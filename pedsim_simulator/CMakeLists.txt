@@ -15,6 +15,8 @@ set(PEDSIM_SIMULATOR_DEPENDENCIES
   tf
   cmake_modules
   dynamic_reconfigure
+  flatland_msgs
+  roslib
 )
 
 set(CMAKE_AUTOMOC ON)
@@ -48,6 +50,7 @@ set(SOURCES
   	src/agentstatemachine.cpp
   	src/scenarioreader.cpp
 	src/rng.cpp
+	src/scene_services.cpp
 
 	# elements
 	src/element/agent.cpp
@@ -82,6 +85,7 @@ set(MOC_FILES
 	include/pedsim_simulator/config.h
 	include/pedsim_simulator/scene.h
 	include/pedsim_simulator/agentstatemachine.h
+	include/pedsim_simulator/scene_services.h
 
 	include/pedsim_simulator/element/scenarioelement.h
 	include/pedsim_simulator/element/agent.h

@@ -514,6 +514,9 @@ std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
 
   return potentialNeighbours;
 }
+void Scene::setTimeStepSize(float t){
+    time_step_size = t;
+}
 
 void Scene::moveAllAgents() {
   // inform users when there is going to be the first update
@@ -530,12 +533,18 @@ void Scene::moveAllAgents() {
   // dissolve agent clusters
   if (!agentClusters.isEmpty()) dissolveClusters();
 
-  // update scene time
-  sceneTime += CONFIG.getTimeStepSize();
+  // // update scene time
+  // sceneTime += CONFIG.getTimeStepSize();
+  // emit sceneTimeChanged(sceneTime);
+
+  // // move the agents
+  // Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
+    // update scene time
+  sceneTime += time_step_size; //CONFIG.getTimeStepSize();
   emit sceneTimeChanged(sceneTime);
 
   // move the agents
-  Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
+  Ped::Tscene::moveAgents(time_step_size);
 
   auto Dist = [](const double ax, const double ay, const double bx,
                  const double by) -> double {
@@ -545,6 +554,7 @@ void Scene::moveAllAgents() {
   // For every agents, if next WP is sink and 'close', call removeAgent.
   for (auto agent : getAgents()) {
     const auto agent_next_wp = agent->getCurrentWaypoint();
+    // ROS_WARN("get waypoint behavior %d",agent_next_wp->getBehavior());
     // skip agents without any waypoint
     if (!agent_next_wp) {
       continue;

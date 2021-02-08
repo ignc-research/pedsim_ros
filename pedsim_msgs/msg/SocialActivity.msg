@@ -7,6 +7,7 @@ uint64[]      track_ids   # IDs of all person tracks involved in the activity, m
 # Constants for social activity type (just examples at the moment)
 string      TYPE_SHOPPING = shopping
 string      TYPE_STANDING = standing
+string      TYPE_TALKING = talking
 string      TYPE_INDIVIDUAL_MOVING = individual_moving
 string      TYPE_WAITING_IN_QUEUE = waiting_in_queue
 string      TYPE_LOOKING_AT_INFORMATION_SCREEN = looking_at_information_screen

@@ -148,6 +148,11 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWalking);
     }
   }
+  // → operate for chatting pattern (6.2.2021 Junhui Li)
+  //a random probability to meet a familiar person and begin chatting
+  if ((state == StateWalking) &&agent->meetFriends()) {
+    activateState(StateTalking);
+    }  
 }
 
 void AgentStateMachine::activateState(AgentState stateIn) {
@@ -194,6 +199,9 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       groupWaypointPlanner->setGroup(agent->getGroup());
       agent->setWaypointPlanner(groupWaypointPlanner);
       break;
+    case StateTalking:
+      agent->setWaypointPlanner(nullptr);
+      break;
     case StateShopping:
       shallLoseAttraction = false;
       if (shoppingPlanner == nullptr) shoppingPlanner = new ShoppingPlanner();
@@ -233,6 +241,9 @@ void AgentStateMachine::deactivateState(AgentState state) {
       // nothing to do
       break;
     case StateWalking:
+      // nothing to do
+      break;
+    case StateTalking:
       // nothing to do
       break;
     case StateQueueing:
@@ -306,6 +317,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) const {
       return "StateQueueing";
     case StateGroupWalking:
       return "StateGroupWalking";
+    case StateTalking:
+      return "StateTalking";
     case StateShopping:
       return "StateShopping";
     default:
