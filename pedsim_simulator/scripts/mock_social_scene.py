@@ -125,6 +125,7 @@ def main():
     rospy.init_node('mock_static_scene')
     rate = rospy.Rate(10)
     counter = 0
+    # /pedsim_simulator/simulated_agents
 
     while not rospy.is_shutdown():
         # Agents

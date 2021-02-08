@@ -1,6 +1,7 @@
 //
 // pedsim - A microscopic pedestrian simulation system.
 // Copyright (c) 2003 - 2012 by Christian Gloor
+// Modified by Ronja Gueldenring
 //
 
 #ifndef _ped_agent_h_
@@ -13,6 +14,7 @@
 #endif
 
 #include "ped_vector.h"
+#include <iostream>
 
 #include <deque>
 #include <set>
@@ -40,7 +42,8 @@ class Twaypoint;
 /// \date    2003-12-26
 class LIBEXPORT Tagent {
  public:
-  enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3 };
+  enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3,
+                  ADULT_AVOID_ROBOT = 10, ADULT_AVOID_ROBOT_REACTION_TIME = 11};
 
   Tagent();
   virtual ~Tagent();
@@ -49,6 +52,7 @@ class LIBEXPORT Tagent {
   virtual void computeForces();
   virtual void move(double stepSizeIn);
   virtual Tvector desiredForce();
+  virtual Tvector robotForce();
   virtual Tvector socialForce() const;
   virtual Tvector obstacleForce() const;
   virtual Tvector myForce(Tvector desired) const;
@@ -92,6 +96,7 @@ class LIBEXPORT Tagent {
   virtual void setForceFactorSocial(double f);
   virtual void setForceFactorObstacle(double f);
 
+
   void assignScene(Tscene* sceneIn);
   void removeAgentFromNeighbors(const Tagent* agentIn);
 
@@ -103,6 +108,7 @@ class LIBEXPORT Tagent {
   AgentType type;
   double vmax;
   double agentRadius;
+  double angleToRobot;
   double relaxationTime;
   bool teleop;
   double robotPosDiffScalingFactor;
@@ -111,6 +117,8 @@ class LIBEXPORT Tagent {
   double forceFactorSocial;
   double forceFactorObstacle;
   double forceSigmaObstacle;
+  double forceSigmaRobot;
+  double still_time;
 
   Ped::Tscene* scene;
 
@@ -120,6 +128,7 @@ class LIBEXPORT Tagent {
   Ped::Tvector desiredforce;
   Ped::Tvector socialforce;
   Ped::Tvector obstacleforce;
+  Ped::Tvector robotforce;
   Ped::Tvector myforce;
 };
 }

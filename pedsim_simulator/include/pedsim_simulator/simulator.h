@@ -93,7 +93,9 @@ class Simulator {
  protected:
   void reconfigureCB(SimConfig& config, uint32_t level);
   dynamic_reconfigure::Server<SimConfig> server_;
+  ros::WallTime last_sim_time;
 
+  
  private:
   void updateRobotPositionFromTF();
   void publishAgents();
