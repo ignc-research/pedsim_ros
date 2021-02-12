@@ -124,6 +124,7 @@ class LIBEXPORT Tagent {
 
   Ped::Tvector desiredDirection;
   set<const Ped::Tagent*> neighbors;
+  // set<const Ped::Tagent*> chatters;
 
   Ped::Tvector desiredforce;
   Ped::Tvector socialforce;

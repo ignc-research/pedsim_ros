@@ -151,8 +151,24 @@ void AgentStateMachine::doStateTransition() {
   // → operate for chatting pattern (6.2.2021 Junhui Li)
   //a random probability to meet a familiar person and begin chatting
   if ((state == StateWalking) &&agent->meetFriends()) {
+    startTalking=false;
     activateState(StateTalking);
-    }  
+    return;
+  }
+  if (state == StateTalking ) {
+    ros::WallTime endRecord = ros::WallTime::now();
+    if(!startTalking){
+      ros::WallTime now = ros::WallTime::now();
+      startRecord=now;
+      startTalking=true;
+    }
+    ros::WallDuration diff = endRecord - startRecord;
+    if(diff.toSec()>1.20){ //transfer to StateWalking 120 time steps for chatting
+      agent->setMeetFriends(false);
+      activateState(StateWalking);
+      return;
+    }
+  }
 }
 
 void AgentStateMachine::activateState(AgentState stateIn) {

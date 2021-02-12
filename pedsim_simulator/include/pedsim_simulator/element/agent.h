@@ -97,7 +97,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   WaypointPlanner* getWaypointPlanner() const;
   void setWaypointPlanner(WaypointPlanner* plannerIn);
 
-  // → direction, forces, neighbors
+  // → direction, forces, neighbors,chatters
  public:
   Ped::Tvector getDesiredDirection() const;
   Ped::Tvector getWalkingDirection() const;
@@ -105,8 +105,12 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getObstacleForce() const;
   Ped::Tvector getMyForce() const;
   QList<const Agent*> getNeighbors() const;
+  QList<const Agent*> getPotentialChatters(double chattingDist) const; 
   void disableForce(const QString& forceNameIn);
   void enableAllForces();
+  bool meetFriends();
+  bool meetFriend;
+  void setMeetFriends(bool meetOrNot);
 
   // → Ped::Tagent Overrides/Overloads
  public:

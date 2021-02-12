@@ -36,6 +36,8 @@
 #include <pedsim_simulator/force/force.h>
 #include <pedsim_simulator/scene.h>
 #include <pedsim_simulator/waypointplanner/waypointplanner.h>
+#include <pedsim_simulator/rng.h>
+#include <ros/ros.h>
 
 Agent::Agent() {
   // initialize
@@ -268,11 +270,70 @@ QList<const Agent*> Agent::getNeighbors() const {
   QList<const Agent*> output;
   for (const Ped::Tagent* neighbor : neighbors) {
     const Agent* upNeighbor = dynamic_cast<const Agent*>(neighbor);
+    // neighbor->getPosition();
     if (upNeighbor != nullptr) output.append(upNeighbor);
   }
 
   return output;
 }
+//Added by Junhui Li (8.2.2021)
+QList<const Agent*> Agent::getPotentialChatters(double chattingDist) const{
+  // upcast chatters
+  QList<const Agent*> output;
+  Ped::Tvector position(getx(), gety());
+
+  auto agentIter = neighbors.begin();
+  while (agentIter != neighbors.end()) {
+    const Ped::Tagent & candidate = **agentIter;
+    Ped::Tvector candidatePos = candidate.getPosition();
+    double distance = (candidatePos - position).length();
+    // if(distance == 0.0){
+    //   // Ped::Tagent::AgentType type =candidate.getType();
+    //   ROS_INFO("ID 0.0 %d",candidate.getId());
+    //   }else{
+    //     ROS_INFO("ID %d",candidate.getId());
+    //   }    
+    // find the potential chatters
+    if (distance > chattingDist||distance == 0.0) {
+      agentIter++;
+    } else {
+      const Agent* upChatter = dynamic_cast<const Agent*>(*agentIter);      
+      output.append(upChatter);
+      agentIter++;
+    }
+  }
+  return output;
+}
+//Added by Junhui Li (8.2.2021)
+bool Agent::meetFriends(){
+    // if(this->meetFriend){      
+    //   return true;
+    // } 
+    QList<const Agent*> potentialChatters=getPotentialChatters(1.3);// dist for start chatting later could be put into config
+    for (const Agent* chatter: potentialChatters) {
+      if(chatter !=nullptr){
+        if(chatter->meetFriend==true){
+          this->meetFriend=true;
+          return true;
+        }
+      }
+    }
+    // uniform_real_distribution<double> Distribution(0, 1);
+    // double possiblityForChatting = Distribution(RNG());
+    if(!potentialChatters.isEmpty()){// possiblity for chatting which could be set in config later &&possiblityForChatting<0.9
+      // ROS_INFO("meet friend");
+      this->meetFriend=true;
+      return true;
+    }else{ 
+    this->meetFriend=false;
+    return false;
+  }
+}
+
+void Agent::setMeetFriends(bool meetOrNot){
+  this->meetFriend=meetOrNot;
+}
+
 
 void Agent::disableForce(const QString& forceNameIn) {
   // disable force by adding it to the list of disabled forces

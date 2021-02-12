@@ -25,14 +25,40 @@ class SceneServices {
   SceneServices();
   virtual ~SceneServices() = default;
 
+  ros::NodeHandle nh;
+  int last_id_;                           //Keeping track of cluster id, that increases in pedsim automatically
+  std::string flatland_path_;             //path to flatland package
+  
+  ros::ServiceServer respawn_peds_service_;
+  ros::ServiceServer remove_all_peds_service_;
+  ros::ServiceServer spawn_ped_service_;
+
+     /**
+    * spawn_ped_service_ + spawnPed
+    * @brief Spawns pedestrian in pedsim and flatland.
+    */
+  bool spawnPed(pedsim_srvs::SpawnPeds::Request &request,
+                                pedsim_srvs::SpawnPeds::Response &response);
+
+   /**
+    * remove_all_peds_service_ + removeAllPeds
+    * @brief Removes all pedestrians in flatland.
+    */  
+  bool removeAllPeds(std_srvs::SetBool::Request &request,
+                                std_srvs::SetBool::Response &response);
+
+   /**
+    * respawn_peds_service_ + respawnPeds
+    * @brief Respawning means reusing objects from previous tasks
+    * It is a more efficient way to setup a task during learning.
+    */
+  bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
+                                pedsim_srvs::SpawnPeds::Response &response);
+
  protected:
    ros::NodeHandle nh_;
 
  private:
-  ros::NodeHandle nh;
-  int last_id_;                           //Keeping track of cluster id, that increases in pedsim automatically
-  std::string flatland_path_;             //path to flatland package
-
     /**
     * @brief Removing all pedestrians in pedsim.
     * @return corresponding flatland namespaces of pedestrians
@@ -45,30 +71,7 @@ class SceneServices {
     */
   std::vector<flatland_msgs::Model> addAgentClusterToPedsim(pedsim_msgs::Ped ped);
 
-   /**
-    * spawn_ped_service_ + spawnPed
-    * @brief Spawns pedestrian in pedsim and flatland.
-    */
-  ros::ServiceServer spawn_ped_service_;                
-  bool spawnPed(pedsim_srvs::SpawnPeds::Request &request,
-                                pedsim_srvs::SpawnPeds::Response &response);
 
-   /**
-    * remove_all_peds_service_ + removeAllPeds
-    * @brief Removes all pedestrians in flatland.
-    */
-  ros::ServiceServer remove_all_peds_service_;          
-  bool removeAllPeds(std_srvs::SetBool::Request &request,
-                                std_srvs::SetBool::Response &response);
-
-   /**
-    * respawn_peds_service_ + respawnPeds
-    * @brief Respawning means reusing objects from previous tasks
-    * It is a more efficient way to setup a task during learning.
-    */
-  ros::ServiceServer respawn_peds_service_;          
-  bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
-                                pedsim_srvs::SpawnPeds::Response &response);
 
   std::string spawn_model_topic;
   ros::ServiceClient spawn_agents_;             //Service client to spawn agent in flatland

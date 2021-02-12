@@ -267,10 +267,10 @@ Ped::Tvector Ped::Tagent::myForce(Ped::Tvector e) const {
 }
 
 void Ped::Tagent::computeForces() {
-  // update neighbors
+  // update neighbors 
   // NOTE - have a config value for the neighbor range
   const double neighborhoodRange = 10.0;
-  neighbors = scene->getNeighbors(p.x, p.y, neighborhoodRange);
+  neighbors = scene->getNeighbors(p.x, p.y, neighborhoodRange);  
 
   // update forces
   desiredforce = desiredForce();

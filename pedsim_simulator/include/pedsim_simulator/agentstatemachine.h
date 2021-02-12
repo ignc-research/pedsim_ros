@@ -33,6 +33,7 @@
 #define _agentstatemachine_h_
 
 #include <QObject>
+#include <ros/ros.h>
 
 // Forward Declarations
 class Agent;
@@ -98,6 +99,10 @@ class AgentStateMachine : public QObject {
   // → Attraction
   AttractionArea* groupAttraction;
   bool shallLoseAttraction;
+
+  // → Talking
+  bool startTalking;
+  ros::WallTime startRecord;
 };
 
 #endif
