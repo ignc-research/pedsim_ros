@@ -126,6 +126,7 @@ bool Simulator::initializeSimulation() {
   nh_.param<std::string>("frame_id", frame_id_, "odom");
   nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,
       "base_footprint");
+  // ROS_INFO("frame_id%s robot_base_frame_id_ %s",frame_id_.c_str(),robot_base_frame_id_.c_str());
 
 //   paused_ = false;
 
@@ -191,7 +192,7 @@ void Simulator::runSimulation() {
       ros::WallTime now = ros::WallTime::now();//here ROS::Time is replaced by WallTime to corperate with flatland
       ros::WallDuration diff = now - last_sim_time;
       last_sim_time = now;
-      // ROS_WARN("time step is%lf",diff.toSec());
+      // ROS_INFO("time step is%lf",diff.toSec());
       SCENE.setTimeStepSize(diff.toSec());
       SCENE.moveAllAgents();
 

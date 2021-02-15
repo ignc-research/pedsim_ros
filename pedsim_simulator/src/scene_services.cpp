@@ -30,11 +30,11 @@ SceneServices::SceneServices(){
   remove_all_peds_service_ = nh.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
   
   //flatland service clients
-  spawn_model_topic = ros::this_node::getNamespace() + "spawn_models";
+  spawn_model_topic = ros::this_node::getNamespace() + "/spawn_models";
   spawn_agents_ = nh.serviceClient<flatland_msgs::SpawnModels>(spawn_model_topic, true);
-  respawn_model_topic = ros::this_node::getNamespace() + "respawn_models";
+  respawn_model_topic = ros::this_node::getNamespace() + "/respawn_models";
   respawn_agents_ = nh.serviceClient<flatland_msgs::RespawnModels>(respawn_model_topic, true);
-  delete_model_topic = ros::this_node::getNamespace() + "delete_models";
+  delete_model_topic = ros::this_node::getNamespace() + "/delete_models";
   delete_agents_ = nh.serviceClient<flatland_msgs::DeleteModels>(delete_model_topic, true);
   flatland_path_ = ros::package::getPath("simulator_setup");
   
@@ -167,6 +167,7 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
   const double dx = 2;
   const double dy = 2;
   const int type = ped.type;
+  // ROS_INFO("type of agent %d",type);
   AgentCluster* agentCluster = new AgentCluster(x, y, n);
   agentCluster->setDistribution(dx, dy);
 
@@ -190,9 +191,10 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
     flatland_msgs::Model model;
     std::string name = "person_" + std::to_string(ped.id);
     std::string ns = "pedsim_agent_" +  std::to_string(i);
-    model.yaml_path = flatland_path_ + "/dynamic_obstacles/" + "person_two_legged.model.yaml";
-    // /home/junhui/study/Masterarbeit/arenarosnav/test_ws/src/arena_rosnav/simulator_setup/dynamic_obstacles/person_two_legged.model.yaml
+    // model.yaml_path = flatland_path_ + "/dynamic_obstacles/" + "person_two_legged.model.yaml";
+    model.yaml_path =ped.yaml_file;    
     model.name = name;
+    // ROS_INFO("name_space human %s",ns.c_str());
     model.ns = ns;
     model.pose.x = x;
     model.pose.y = y;
