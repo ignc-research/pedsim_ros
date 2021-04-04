@@ -1,14 +1,17 @@
 /*
  * @name	 	scene_services.cpp
- * @brief	 	Provides services to spawn and remove pedestrians dynamically. 
+ * @brief	 	Provides services to spawn and remove pedestrians dynamically and add static obstacle spawning. 
  *          The spawned agents are forwarded to flatland
  * @author 	Ronja Gueldenring
  * @date 		2019/04/05
+ * @author Junhui Li
+ * @date 24.3.2021
  **/
 
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/element/areawaypoint.h>
+#include <pedsim_simulator/element/obstacle.h>
 #include <pedsim_simulator/scene_services.h>
 #include <geometry_msgs/Point.h>
 #include <std_srvs/SetBool.h>
@@ -28,6 +31,10 @@ SceneServices::SceneServices(){
   respawn_peds_service_ =
       nh.advertiseService("pedsim_simulator/respawn_peds", &SceneServices::respawnPeds, this);
   remove_all_peds_service_ = nh.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
+  add_obstacle_service_= nh.advertiseService("pedsim_simulator/add_obstacle", &SceneServices::addStaticObstacles, this);
+  move_peds_service_= nh.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
+
+
   
   //flatland service clients
   spawn_model_topic = ros::this_node::getNamespace() + "/spawn_models";
@@ -37,8 +44,6 @@ SceneServices::SceneServices(){
   delete_model_topic = ros::this_node::getNamespace() + "/delete_models";
   delete_agents_ = nh.serviceClient<flatland_msgs::DeleteModels>(delete_model_topic, true);
   flatland_path_ = ros::package::getPath("simulator_setup");
-  
-
   // initialize values
   last_id_ = 0;
   
@@ -64,7 +69,7 @@ bool SceneServices::spawnPed(pedsim_srvs::SpawnPeds::Request &request,
       if (!srv.response.success)
       {
           response.finished = false;
-          ROS_ERROR("Failed to spawn all %d agents", request.peds.size());
+          ROS_ERROR("Failed to spawn all %d agents", int(request.peds.size()));
       }
       response.finished = true;
       return true;
@@ -94,7 +99,7 @@ bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
   respawn_agents_.call(srv);
   if (!srv.response.success)
   {
-      ROS_ERROR("Failed to respawn all %d humans", request.peds.size());
+      ROS_ERROR("Failed to respawn all %d humans", int(request.peds.size()));
       response.finished=false;
       count++;
   }else{
@@ -122,7 +127,7 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
     delete_agents_.call(srv);
     if (!srv.response.success)
     {
-        ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted.", srv.request.name.size());
+        ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted.", int(srv.request.name.size()));
     }
 
     response.success = true;
@@ -143,7 +148,6 @@ std::vector<std::string> SceneServices::removePedsInPedsim(){
       if(i == 0){
         continue;
       }
-
       // Deleting pedestrian and waypoints in SCENE
       for(Waypoint* w: a->getWaypoints()){
         SCENE.removeWaypoint(w);
@@ -163,11 +167,9 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
   const double x = ped.pos.x;
   const double y = ped.pos.y;
   const int n = ped.number_of_peds;
-  // ROS_WARN("number of peds %d",n);
   const double dx = 2;
   const double dy = 2;
   const int type = ped.type;
-  // ROS_INFO("type of agent %d",type);
   AgentCluster* agentCluster = new AgentCluster(x, y, n);
   agentCluster->setDistribution(dx, dy);
 
@@ -178,7 +180,6 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
     const double x = ped.waypoints[i].x;
     const double y = ped.waypoints[i].y;
     const double r = ped.waypoints[i].z;
-    // ROS_WARN("peds waypoints %lf,%lf,%lf",x,y,r);
     // Waypoint behaviour always set to SIMPLE --> ToDo: Parametrize
     AreaWaypoint* w = new AreaWaypoint(id, x, y, r);
     w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
@@ -191,10 +192,8 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
     flatland_msgs::Model model;
     std::string name = "person_" + std::to_string(ped.id);
     std::string ns = "pedsim_agent_" +  std::to_string(i);
-    // model.yaml_path = flatland_path_ + "/dynamic_obstacles/" + "person_two_legged.model.yaml";
     model.yaml_path =ped.yaml_file;    
     model.name = name;
-    // ROS_INFO("name_space human %s",ns.c_str());
     model.ns = ns;
     model.pose.x = x;
     model.pose.y = y;
@@ -204,4 +203,25 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
   // last_id_=last_id_%8;//TODO: this line is added only since there is only a static number of human(8)
 
   return flatland_msg;
+}
+
+bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
+                                pedsim_srvs::SpawnObstacle::Response &response){
+  int k = (int)request.staticObstacles.obstacles.size();  
+  for (int i = 0; i <= k; i++){
+    pedsim_msgs::LineObstacle obstacle=request.staticObstacles.obstacles[i];
+    // Obstacle obstacle=request.staticObstacles.obstacles[i];
+    Obstacle *o = new Obstacle(obstacle.start.x, obstacle.start.y, obstacle.end.x, obstacle.end.y);
+    SCENE.addObstacle(o);
+  }
+
+  response.finished=true;
+  return true;
+}
+
+bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
+                                pedsim_srvs::MovePeds::Response &response){
+  SCENE.moveClusters(request.episode);
+  response.finished=true;
+  return true;
 }
