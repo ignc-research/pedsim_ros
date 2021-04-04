@@ -190,6 +190,11 @@ void Agent::move(double h) {
     Ped::Tagent::setForceFactorDesired(0.5);
   }
 
+  if (stateMachine->getCurrentState() == AgentState::StateRunning) {
+    // running should be fast!
+    Ped::Tagent::setVmax(1.6);
+    Ped::Tagent::setForceFactorDesired(4.2);
+  }
   // inform users
   emit positionChanged(getx(), gety());
   emit velocityChanged(getvx(), getvy());
@@ -287,12 +292,6 @@ QList<const Agent*> Agent::getPotentialChatters(double chattingDist) const{
     const Ped::Tagent & candidate = **agentIter;
     Ped::Tvector candidatePos = candidate.getPosition();
     double distance = (candidatePos - position).length();
-    // if(distance == 0.0){
-    //   // Ped::Tagent::AgentType type =candidate.getType();
-    //   ROS_INFO("ID 0.0 %d",candidate.getId());
-    //   }else{
-    //     ROS_INFO("ID %d",candidate.getId());
-    //   }    
     // find the potential chatters
     if (distance > chattingDist||distance == 0.0) {
       agentIter++;
@@ -306,10 +305,7 @@ QList<const Agent*> Agent::getPotentialChatters(double chattingDist) const{
 }
 //Added by Junhui Li (8.2.2021)
 bool Agent::meetFriends(){
-    // if(this->meetFriend){      
-    //   return true;
-    // } 
-    QList<const Agent*> potentialChatters=getPotentialChatters(1.3);// dist for start chatting later could be put into config
+    QList<const Agent*> potentialChatters=getPotentialChatters(1.8);// dist for start chatting later could be put into config
     for (const Agent* chatter: potentialChatters) {
       if(chatter !=nullptr){
         if(chatter->meetFriend==true){
@@ -318,10 +314,7 @@ bool Agent::meetFriends(){
         }
       }
     }
-    // uniform_real_distribution<double> Distribution(0, 1);
-    // double possiblityForChatting = Distribution(RNG());
     if(!potentialChatters.isEmpty()){// possiblity for chatting which could be set in config later &&possiblityForChatting<0.9
-      // ROS_INFO("meet friend");
       this->meetFriend=true;
       return true;
     }else{ 
@@ -333,7 +326,6 @@ bool Agent::meetFriends(){
 void Agent::setMeetFriends(bool meetOrNot){
   this->meetFriend=meetOrNot;
 }
-
 
 void Agent::disableForce(const QString& forceNameIn) {
   // disable force by adding it to the list of disabled forces
