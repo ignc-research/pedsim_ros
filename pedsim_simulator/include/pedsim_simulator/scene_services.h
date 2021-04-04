@@ -12,8 +12,12 @@
 #include <ros/ros.h>
 #include <pedsim_simulator/scene.h>
 #include <pedsim_srvs/SpawnPeds.h>
+#include <pedsim_srvs/SpawnObstacle.h>
+#include <pedsim_srvs/MovePeds.h>
 #include <flatland_msgs/Model.h>
 #include <pedsim_msgs/Ped.h>
+#include <pedsim_msgs/LineObstacle.h>
+#include <pedsim_msgs/LineObstacles.h>
 #include <std_srvs/SetBool.h>
 
   /**
@@ -32,6 +36,8 @@ class SceneServices {
   ros::ServiceServer respawn_peds_service_;
   ros::ServiceServer remove_all_peds_service_;
   ros::ServiceServer spawn_ped_service_;
+  ros::ServiceServer add_obstacle_service_;
+  ros::ServiceServer move_peds_service_;
 
      /**
     * spawn_ped_service_ + spawnPed
@@ -55,6 +61,16 @@ class SceneServices {
   bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                                 pedsim_srvs::SpawnPeds::Response &response);
 
+  bool moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
+                                pedsim_srvs::MovePeds::Response &response);
+
+    /**
+    * @brief Adding static obstacles to pedsim.
+    * @return corresponding flatland model-message
+    */
+  bool addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
+                                pedsim_srvs::SpawnObstacle::Response &response);
+
  protected:
    ros::NodeHandle nh_;
 
@@ -70,6 +86,7 @@ class SceneServices {
     * @return corresponding flatland model-message
     */
   std::vector<flatland_msgs::Model> addAgentClusterToPedsim(pedsim_msgs::Ped ped);
+
 
 
 
