@@ -11,6 +11,7 @@ pedsim_msgs/AgentForce forces
 # Social State string constants
 string      TYPE_STANDING = "standing"
 string      TYPE_TALKING = "talking"
+string      TYPE_RUNNING = "running"
 string      TYPE_INDIVIDUAL_MOVING = "individual_moving"
 string      TYPE_WAITING_IN_QUEUE = "waiting_in_queue"
 string      TYPE_GROUP_MOVING = "group_moving"
