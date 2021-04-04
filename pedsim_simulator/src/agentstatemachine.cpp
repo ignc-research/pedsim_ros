@@ -148,9 +148,24 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWalking);
     }
   }
+ // → operate for running pattern (3.4.2021 Junhui Li)
+  if (state == StateWalking) {
+    // check whether agent should run
+    double probability = 0.03;
+    std::bernoulli_distribution isAttracted(probability *
+                                            CONFIG.getTimeStepSize());
+
+    if (isAttracted(RNG())) {
+      // activate state
+      activateState(StateRunning);
+      // alreade picked a new state, so nothing to do
+      return;
+    }
+  }
+
   // → operate for chatting pattern (6.2.2021 Junhui Li)
   //a random probability to meet a familiar person and begin chatting
-  if ((state == StateWalking) &&agent->meetFriends()) {
+  if ((state == (StateWalking || StateRunning)) &&agent->meetFriends()) {
     startTalking=false;
     activateState(StateTalking);
     return;
@@ -163,7 +178,7 @@ void AgentStateMachine::doStateTransition() {
       startTalking=true;
     }
     ros::WallDuration diff = endRecord - startRecord;
-    if(diff.toSec()>1.20){ //transfer to StateWalking 120 time steps for chatting
+    if(diff.toSec()>1200){ //transfer to StateWalking 1200 time steps for chatting
       agent->setMeetFriends(false);
       activateState(StateWalking);
       return;
@@ -195,6 +210,13 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(nullptr);
       break;
     case StateWalking:
+      if (individualPlanner == nullptr)
+        individualPlanner = new IndividualWaypointPlanner();
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      break;
+    case StateRunning:
       if (individualPlanner == nullptr)
         individualPlanner = new IndividualWaypointPlanner();
       individualPlanner->setAgent(agent);
@@ -260,6 +282,9 @@ void AgentStateMachine::deactivateState(AgentState state) {
       // nothing to do
       break;
     case StateTalking:
+      // nothing to do
+      break;
+    case StateRunning:
       // nothing to do
       break;
     case StateQueueing:
@@ -335,6 +360,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) const {
       return "StateGroupWalking";
     case StateTalking:
       return "StateTalking";
+    case StateRunning:
+      return "StateRunning";
     case StateShopping:
       return "StateShopping";
     default:
