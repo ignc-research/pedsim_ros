@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "pedsim_simulator");
   ros::NodeHandle node("~");
   Simulator sm(node);
-  ROS_WARN("SceneServices");
+  ROS_INFO("SceneServices");
   SceneServices s;
 
   // use default SIGINT handler so CTRL+C works

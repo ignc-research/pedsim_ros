@@ -151,26 +151,26 @@ bool Simulator::initializeSimulation() {
 //       }
 //     }
   paused_ = false;
-  last_sim_time = ros::WallTime::now();
+  last_sim_time = ros::Time::now();
   spawn_timer_ =
-      nh_.createTimer(ros::Duration(5.0), &Simulator::spawnCallback, this);
+      nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
 
   return true;
 }
 
 void Simulator::runSimulation() {
-  ros::WallRate r(100);
+  ros::WallRate r(100.0);
   while (ros::ok()) {
-    if (SCENE.getTime() < 0.1) {
-      // setup the robot
-      for (Agent* agent : SCENE.getAgents()) {
-        if (agent->getType() == Ped::Tagent::ROBOT) {
-          robot_ = agent;
-          last_robot_orientation_ =
-              poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
-        }
-      }
-    }
+    // if (SCENE.getTime() < 0.1) {
+    //   // setup the robot
+    //   for (Agent* agent : SCENE.getAgents()) {
+    //     if (agent->getType() == Ped::Tagent::ROBOT) {
+    //       robot_ = agent;
+    //       last_robot_orientation_ =
+    //           poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
+    //     }
+    //   }
+    // }
 
   //   if (!paused_) {
   //     updateRobotPositionFromTF();
@@ -188,18 +188,19 @@ void Simulator::runSimulation() {
 
     if (!paused_) {
 
-      updateRobotPositionFromTF();
-      ros::WallTime now = ros::WallTime::now();//here ROS::Time is replaced by WallTime to corperate with flatland
-      ros::WallDuration diff = now - last_sim_time;
+      // updateRobotPositionFromTF(); not used in flatland
+      ros::Time now = ros::Time::now();//here ROS::Time is replaced by WallTime to corperate with flatland
+      ros::Duration diff = now - last_sim_time;
       last_sim_time = now;
       // ROS_INFO("time step is%lf",diff.toSec());
-      SCENE.setTimeStepSize(diff.toSec());
+      SCENE.setTimeStepSize(diff.toSec()/7); // slow down the simulation
       SCENE.moveAllAgents();
 
       publishAgents();
-      publishGroups();
-      publishRobotPosition();
-      publishObstacles();  // TODO - no need to do this all the time.
+      // publishGroups();
+      // // publishRobotPosition();
+      // publishObstacles();  // TODO - no need to do this all the time.
+      // publishWaypoints();
     }
     ros::spinOnce();
     r.sleep();
@@ -466,6 +467,9 @@ std::string Simulator::agentStateToActivity(
       break;
     case AgentStateMachine::AgentState::StateTalking:
       activity = pedsim_msgs::AgentState::TYPE_TALKING;
+      break;
+    case AgentStateMachine::AgentState::StateRunning:
+      activity = pedsim_msgs::AgentState::TYPE_RUNNING;
       break;
     case AgentStateMachine::AgentState::StateQueueing:
       activity = pedsim_msgs::AgentState::TYPE_WAITING_IN_QUEUE;

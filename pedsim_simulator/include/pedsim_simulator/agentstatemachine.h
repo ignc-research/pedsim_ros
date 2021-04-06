@@ -56,7 +56,8 @@ class AgentStateMachine : public QObject {
     StateWalking = 3,
     StateGroupWalking = 4,
     StateShopping = 5,
-    StateTalking = 6
+    StateTalking = 6,
+    StateRunning=7
   } AgentState;
 
   // Constructor and Destructor

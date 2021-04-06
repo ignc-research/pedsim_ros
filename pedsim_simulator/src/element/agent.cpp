@@ -190,7 +190,7 @@ void Agent::move(double h) {
     Ped::Tagent::setForceFactorDesired(0.5);
   }
 
-  if (stateMachine->getCurrentState() == AgentState::StateRunning) {
+  if (stateMachine->getCurrentState() == AgentStateMachine::AgentState::StateRunning) {
     // running should be fast!
     Ped::Tagent::setVmax(1.6);
     Ped::Tagent::setForceFactorDesired(4.2);

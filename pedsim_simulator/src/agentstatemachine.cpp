@@ -149,23 +149,23 @@ void AgentStateMachine::doStateTransition() {
     }
   }
  // → operate for running pattern (3.4.2021 Junhui Li)
-  if (state == StateWalking) {
-    // check whether agent should run
-    double probability = 0.03;
-    std::bernoulli_distribution isAttracted(probability *
-                                            CONFIG.getTimeStepSize());
+  // if (state == StateWalking) {
+  //   // check whether agent should run
+  //   double probability = 0.01;
+  //   std::bernoulli_distribution isAttracted(probability *
+  //                                           CONFIG.getTimeStepSize());
 
-    if (isAttracted(RNG())) {
-      // activate state
-      activateState(StateRunning);
-      // alreade picked a new state, so nothing to do
-      return;
-    }
-  }
+  //   if (isAttracted(RNG())) {
+  //     // activate state
+  //     activateState(StateRunning);
+  //     // alreade picked a new state, so nothing to do
+  //     return;
+  //   }
+  // }
 
   // → operate for chatting pattern (6.2.2021 Junhui Li)
   //a random probability to meet a familiar person and begin chatting
-  if ((state == (StateWalking || StateRunning)) &&agent->meetFriends()) {
+  if ((state == StateWalking) &&agent->meetFriends()) {
     startTalking=false;
     activateState(StateTalking);
     return;

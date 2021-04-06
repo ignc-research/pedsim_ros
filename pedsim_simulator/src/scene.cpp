@@ -330,7 +330,7 @@ void Scene::addWaypoint(Waypoint* waypoint) {
   // keep track of the waypoints
   waypoints.insert(waypoint->getName(), waypoint);
 
-  // add the obstacle to the PedSim scene
+  // add the waypoint to the PedSim scene
   Ped::Tscene::addWaypoint(waypoint);
 
   // inform users
@@ -372,6 +372,7 @@ void Scene::addAttraction(AttractionArea* attractionIn) {
   // inform users
   emit attractionAdded(attractionIn->getName());
 }
+
 
 bool Scene::removeAgent(Agent* agent) {
   // don't keep track of agent anymore
@@ -577,4 +578,15 @@ void Scene::moveAllAgents() {
   emit movedAgents();
 }
 
+// move the agent cluster to another position directly
+// @param int i episode number to determine the next wp
+void Scene::moveClusters(int i) {
+  // ROS_INFO("moving peds++++++++++++++++=%d",agents.size());
+  for(Agent* agent: agents){
+    int k = (int)agent->getWaypoints().size();
+    Waypoint *w=agent->getWaypoints()[i%k];
+    agent->setPosition(w->getx(), w->gety());
+    ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
+  }
+}
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }

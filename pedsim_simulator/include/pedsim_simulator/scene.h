@@ -39,7 +39,7 @@
 #include <QRectF>
 
 #include <pedsim_simulator/utilities.h>
-
+#include <geometry_msgs/Point.h>
 // Forward Declarations
 class QGraphicsScene;
 class Agent;
@@ -99,6 +99,7 @@ class Scene : public QObject, protected Ped::Tscene {
   void attractionAdded(QString name);
   void attractionRemoved(QString name);
 
+
   // Slots
  public slots:
   void moveAllAgents();
@@ -132,6 +133,9 @@ class Scene : public QObject, protected Ped::Tscene {
   // → simulation time
   double getTime() const;
   bool hasStarted() const;
+
+  //->move agent cluster directly to another place
+  void moveClusters(int i);
 
  protected:
   void dissolveClusters();
