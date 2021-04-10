@@ -193,7 +193,7 @@ void Simulator::runSimulation() {
       ros::Duration diff = now - last_sim_time;
       last_sim_time = now;
       // ROS_INFO("time step is%lf",diff.toSec());
-      SCENE.setTimeStepSize(diff.toSec()/7); // slow down the simulation
+      SCENE.setTimeStepSize(diff.toSec()/5); // slow down the simulation
       SCENE.moveAllAgents();
 
       publishAgents();

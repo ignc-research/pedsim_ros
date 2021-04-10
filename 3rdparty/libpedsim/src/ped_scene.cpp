@@ -216,3 +216,9 @@ void Ped::Tscene::getNeighbors(vector<const Ped::Tagent*>& neighborList,
     }
   }
 }
+
+void Ped::Tscene::removeAllObstacles() {
+  // remove all obstacles
+  for (Ped::Tobstacle* currentObstacle : obstacles) delete currentObstacle;
+  obstacles.clear();
+}

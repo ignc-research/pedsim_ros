@@ -75,6 +75,8 @@ class LIBEXPORT Tscene {
   virtual bool removeObstacle(Tobstacle* o);
   virtual bool removeWaypoint(Twaypoint* w);
 
+  virtual void removeAllObstacles();
+
   virtual void cleanup();
   virtual void moveAgents(double h);
 

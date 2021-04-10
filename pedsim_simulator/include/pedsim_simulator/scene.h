@@ -134,8 +134,8 @@ class Scene : public QObject, protected Ped::Tscene {
   double getTime() const;
   bool hasStarted() const;
 
-  //->move agent cluster directly to another place
-  void moveClusters(int i);
+
+  
 
  protected:
   void dissolveClusters();
@@ -153,6 +153,10 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual bool removeAgentCluster(AgentCluster* clusterIn);
   virtual bool removeWaitingQueue(WaitingQueue* queueIn);
   virtual bool removeAttraction(AttractionArea* attractionInIn);
+  
+  //->move agent cluster directly to another place
+  virtual void moveClusters(int i);
+  virtual void removeAllObstacles();
 
   virtual std::set<const Ped::Tagent*> getNeighbors(double x, double y,
                                                     double maxDist);

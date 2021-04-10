@@ -555,7 +555,6 @@ void Scene::moveAllAgents() {
   // For every agents, if next WP is sink and 'close', call removeAgent.
   for (auto agent : getAgents()) {
     const auto agent_next_wp = agent->getCurrentWaypoint();
-    // ROS_WARN("get waypoint behavior %d",agent_next_wp->getBehavior());
     // skip agents without any waypoint
     if (!agent_next_wp) {
       continue;
@@ -581,12 +580,16 @@ void Scene::moveAllAgents() {
 // move the agent cluster to another position directly
 // @param int i episode number to determine the next wp
 void Scene::moveClusters(int i) {
-  // ROS_INFO("moving peds++++++++++++++++=%d",agents.size());
   for(Agent* agent: agents){
     int k = (int)agent->getWaypoints().size();
     Waypoint *w=agent->getWaypoints()[i%k];
     agent->setPosition(w->getx(), w->gety());
     ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
   }
+}
+void Scene::removeAllObstacles(){
+  // remove all elements from the scene
+  Ped::Tscene::removeAllObstacles();
+  obstacles.clear();
 }
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }
