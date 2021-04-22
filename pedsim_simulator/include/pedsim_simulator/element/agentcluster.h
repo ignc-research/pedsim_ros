@@ -54,6 +54,7 @@ class AgentCluster : public ScenarioElement {
   // Methods
  public:
   QList<Agent*> dissolve();
+  std::vector<std::string> generate_agent_names();
 
   int getId() const;
   int getCount() const;
@@ -92,6 +93,14 @@ class AgentCluster : public ScenarioElement {
   Ped::Tagent::AgentType agentType;
   bool shallCreateGroups;
   QList<Waypoint*> waypoints;
+ public:
+  static int lastID;
+  double forceFactorDesired;
+  double forceFactorSocial;
+  double forceFactorObstacle;
+  double vmax;
+  double chatting_probability;
+  Agent::WaypointMode waypoint_mode;
 };
 
 #endif

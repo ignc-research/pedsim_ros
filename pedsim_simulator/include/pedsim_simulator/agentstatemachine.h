@@ -33,6 +33,7 @@
 #define _agentstatemachine_h_
 
 #include <QObject>
+#include <ros/ros.h>
 
 // Forward Declarations
 class Agent;
@@ -54,7 +55,16 @@ class AgentStateMachine : public QObject {
     StateQueueing = 2,
     StateWalking = 3,
     StateGroupWalking = 4,
-    StateShopping = 5
+    StateShopping = 5,
+    StateTalking = 6,
+    StateWorking = 7,
+    StateLiftingForks = 8,
+    StateLoading = 9,
+    StateLoweringForks = 10,
+    StateTellStory = 11,
+    StateGroupTalking = 12,
+    StateListening = 13,
+    StateRunning=14
   } AgentState;
 
   // Constructor and Destructor
@@ -73,15 +83,15 @@ class AgentStateMachine : public QObject {
  public:
   void doStateTransition();
   AgentState getCurrentState();
+  void activateState(AgentState stateIn);
+  static QString stateToName(AgentState stateIn);
 
  protected:
-  void activateState(AgentState stateIn);
   void deactivateState(AgentState stateIn);
   bool checkGroupForAttractions(AttractionArea** attractionOut = nullptr) const;
-  QString stateToName(AgentState stateIn) const;
+  double getRandomDuration(double baseTime);
 
-  // Attributes
- protected:
+
   Agent* agent;
 
   // → State Machine
@@ -97,6 +107,17 @@ class AgentStateMachine : public QObject {
   // → Attraction
   AttractionArea* groupAttraction;
   bool shallLoseAttraction;
+
+  ros::WallTime startTimestamp;
+  double stateMaxDuration;  // in seconds
+
+  double stateTalkingBaseTime;  // in seconds
+  double stateWorkingBaseTime;  // in seconds
+  double stateLiftingForksBaseTime;  // in seconds
+  double stateLoadingBaseTime;  // in seconds
+  double stateLoweringForksBaseTime;  // in seconds
+  double stateTellStoryBaseTime;  // in seconds
+  double stateGroupTalkingBaseTime;  // in seconds
 };
 
 #endif

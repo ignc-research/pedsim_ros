@@ -57,6 +57,8 @@ class WaypointPlanner : public QObject {
   virtual bool hasCompletedDestination() const = 0;
 
   virtual QString name() const = 0;
+  void setDestination(Waypoint* waypointIn);
+  Waypoint* destination;
 };
 
 #endif

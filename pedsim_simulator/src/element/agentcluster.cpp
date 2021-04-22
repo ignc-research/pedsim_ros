@@ -34,8 +34,13 @@
 #include <pedsim_simulator/rng.h>
 #include <pedsim_simulator/scene.h>
 
+
+int AgentCluster::lastID = 0;
+default_random_engine generator;
+
+
 AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
-  static int lastID = 0;
+
 
   // initialize values
   id = ++lastID;
@@ -44,10 +49,23 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
   distribution = QSizeF(0, 0);
   agentType = Ped::Tagent::ADULT;
   shallCreateGroups = true;
-};
-
+  forceFactorDesired = 1.0;
+  forceFactorSocial = 2.0;
+  forceFactorObstacle = 10.0;
+  normal_distribution<double> distribution(0.6, 0.2);
+  vmax = distribution(generator);
+  chatting_probability = 0.1;
+  waypoint_mode = Agent::WaypointMode::LOOP;
+}
 AgentCluster::~AgentCluster() {}
-
+std::vector<std::string> AgentCluster::generate_agent_names() {
+  std::vector<std::string> agent_names;
+  for (int i = 0; i < count; ++i) {
+    std::string agent_name = "person_" + std::to_string(id) + "_" + std::to_string(i);
+    agent_names.push_back(agent_name);
+  }
+  return agent_names;
+}
 QList<Agent*> AgentCluster::dissolve() {
   QList<Agent*> agents;
 
@@ -56,9 +74,11 @@ QList<Agent*> AgentCluster::dissolve() {
   std::uniform_real_distribution<double> randomY(-distribution.height() / 2,
                                                  distribution.height() / 2);
 
+  std::vector<std::string> agent_names = this->generate_agent_names();
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
-    Agent* a = new Agent();
+    Agent* a = new Agent(i, agent_names[i]);
+    ROS_INFO("created new agent");
 
     double randomizedX = position.x;
     double randomizedY = position.y;
@@ -66,7 +86,16 @@ QList<Agent*> AgentCluster::dissolve() {
     if (distribution.width() != 0) randomizedX += randomX(RNG());
     if (distribution.height() != 0) randomizedY += randomY(RNG());
     a->setPosition(randomizedX, randomizedY);
+       a->initialPosX = randomizedX;
+    a->initialPosY = randomizedY;
     a->setType(agentType);
+    a->setVmax(vmax);
+    a->chattingProbability = chatting_probability;
+    a->waypointMode = waypoint_mode;
+    a->setForceFactorDesired(forceFactorDesired);
+    a->setForceFactorSocial(forceFactorSocial);
+    a->setForceFactorObstacle(forceFactorObstacle);
+
 
     // add waypoints to the agent
     foreach (Waypoint* waypoint, waypoints)

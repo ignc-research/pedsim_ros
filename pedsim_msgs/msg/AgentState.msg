@@ -5,16 +5,21 @@ string social_state
 geometry_msgs/Pose pose
 geometry_msgs/Twist twist
 pedsim_msgs/AgentForce forces
-
+int64 talking_to_id
+int64 listening_to_id
+geometry_msgs/Vector3 acceleration
+geometry_msgs/Vector3 direction
 # Use sensors package to control observability
 
 # Social State string constants
 string      TYPE_STANDING = "standing"
+string      TYPE_TALKING = "talking"
+string      TYPE_RUNNING = "running"
 string      TYPE_INDIVIDUAL_MOVING = "individual_moving"
 string      TYPE_WAITING_IN_QUEUE = "waiting_in_queue"
 string      TYPE_GROUP_MOVING = "group_moving"
 
-
+ 
 # Agent types
 # 0, 1 -> ordinary agents
 # 2 -> Robot

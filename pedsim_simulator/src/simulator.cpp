@@ -126,9 +126,32 @@ bool Simulator::initializeSimulation() {
   nh_.param<std::string>("frame_id", frame_id_, "odom");
   nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,
       "base_footprint");
+  // ROS_INFO("frame_id%s robot_base_frame_id_ %s",frame_id_.c_str(),robot_base_frame_id_.c_str());
 
+//   paused_ = false;
+
+//   spawn_timer_ =
+//       nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
+
+//   return true;
+// }
+
+// void Simulator::runSimulation() {
+//   ros::Rate r(CONFIG.updateRate);
+
+//   while (ros::ok()) {
+//     if (!robot_) {
+//       // setup the robot
+//       for (Agent* agent : SCENE.getAgents()) {
+//         if (agent->getType() == Ped::Tagent::ROBOT) {
+//           robot_ = agent;
+//           last_robot_orientation_ =
+//               poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
+//         }
+//       }
+//     }
   paused_ = false;
-
+  last_sim_time = ros::Time::now();
   spawn_timer_ =
       nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
 
@@ -136,29 +159,48 @@ bool Simulator::initializeSimulation() {
 }
 
 void Simulator::runSimulation() {
-  ros::Rate r(CONFIG.updateRate);
-
+  ros::WallRate r(100.0);
   while (ros::ok()) {
-    if (!robot_) {
-      // setup the robot
-      for (Agent* agent : SCENE.getAgents()) {
-        if (agent->getType() == Ped::Tagent::ROBOT) {
-          robot_ = agent;
-          last_robot_orientation_ =
-              poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
-        }
-      }
-    }
+  //   if (SCENE.getTime() < 0.1) {
+  //     // setup the robot
+  //     for (Agent* agent : SCENE.getAgents()) {
+  //       if (agent->getType() == Ped::Tagent::ROBOT) {
+  //         robot_ = agent;
+  //         last_robot_orientation_ =
+  //             poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
+  //       }
+  //     }
+  //   }
+
+  //   if (!paused_) {
+  //     updateRobotPositionFromTF();
+  //     SCENE.moveAllAgents();
+
+  //     publishAgents();
+  //     publishGroups();
+  //     publishRobotPosition();
+  //     publishObstacles();
+  //     publishWaypoints();
+  //   }
+  //   ros::spinOnce();
+  //   r.sleep();
+  // }
 
     if (!paused_) {
-      updateRobotPositionFromTF();
+
+    //  updateRobotPositionFromTF();
+      ros::Time now = ros::Time::now();//here ROS::Time is replaced by WallTime to corperate with flatland
+      ros::Duration diff = now - last_sim_time;
+      last_sim_time = now;
+      // ROS_INFO("time step is%lf",diff.toSec());
+      SCENE.setTimeStepSize(diff.toSec()/5); // slow down the simulation
+
       SCENE.moveAllAgents();
 
       publishAgents();
-      publishGroups();
-      publishRobotPosition();
-      publishObstacles();
-      publishWaypoints();
+      // publishGroups();
+      // publishRobotPosition();
+      // publishObstacles();  // TODO - no need to do this all the time.
     }
     ros::spinOnce();
     r.sleep();
@@ -342,8 +384,16 @@ void Simulator::publishAgents() {
 
     state.forces = agent_forces;
 
+    state.talking_to_id = a->talkingToId;
+    state.listening_to_id = a->listeningToId;
+
+    state.acceleration = VecToMsg(a->getAcceleration());
+    state.direction = VecToMsg(a->facingDirection);
+
     all_status.agent_states.push_back(state);
+    // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }
+  
 
   pub_agent_states_.publish(all_status);
 }
@@ -413,24 +463,7 @@ void Simulator::publishWaypoints() {
 
 std::string Simulator::agentStateToActivity(
     const AgentStateMachine::AgentState& state) const {
-  std::string activity = "Unknown";
-  switch (state) {
-    case AgentStateMachine::AgentState::StateWalking:
-      activity = pedsim_msgs::AgentState::TYPE_INDIVIDUAL_MOVING;
-      break;
-    case AgentStateMachine::AgentState::StateGroupWalking:
-      activity = pedsim_msgs::AgentState::TYPE_GROUP_MOVING;
-      break;
-    case AgentStateMachine::AgentState::StateQueueing:
-      activity = pedsim_msgs::AgentState::TYPE_WAITING_IN_QUEUE;
-      break;
-    case AgentStateMachine::AgentState::StateShopping:
-      break;
-    case AgentStateMachine::AgentState::StateNone:
-      break;
-    case AgentStateMachine::AgentState::StateWaiting:
-      break;
-  }
+  std::string activity = AgentStateMachine::stateToName(state).toStdString();
   return activity;
 }
 

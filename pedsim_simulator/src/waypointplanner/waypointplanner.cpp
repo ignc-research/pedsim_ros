@@ -32,3 +32,8 @@
 #include <pedsim_simulator/waypointplanner/waypointplanner.h>
 
 WaypointPlanner::WaypointPlanner() {}
+WaypointPlanner::Type WaypointPlanner::getPlannerType() {}
+
+void WaypointPlanner::setDestination(Waypoint* waypointIn) {
+  destination = waypointIn;
+}

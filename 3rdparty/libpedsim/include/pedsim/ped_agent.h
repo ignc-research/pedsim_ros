@@ -1,6 +1,7 @@
 //
 // pedsim - A microscopic pedestrian simulation system.
 // Copyright (c) 2003 - 2012 by Christian Gloor
+// Modified by Ronja Gueldenring
 //
 
 #ifndef _ped_agent_h_
@@ -13,6 +14,9 @@
 #endif
 
 #include "ped_vector.h"
+#include <iostream>
+#include <vector>
+#include <nav_msgs/OccupancyGrid.h>
 
 #include <deque>
 #include <set>
@@ -40,18 +44,23 @@ class Twaypoint;
 /// \date    2003-12-26
 class LIBEXPORT Tagent {
  public:
-  enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3 };
-
+  enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3,VEHICLE = 4,
+                  ADULT_AVOID_ROBOT = 10, ADULT_AVOID_ROBOT_REACTION_TIME = 11};
+                  
+                
   Tagent();
   virtual ~Tagent();
 
   virtual void updateState(){};
   virtual void computeForces();
   virtual void move(double stepSizeIn);
+  virtual double keepDistanceForceFunction(double distance);
+  virtual Tvector keepDistanceForce();
   virtual Tvector desiredForce();
+  virtual Tvector robotForce();
   virtual Tvector socialForce() const;
-  virtual Tvector obstacleForce() const;
-  virtual Tvector myForce(Tvector desired) const;
+  virtual Tvector obstacleForce();
+  virtual Tvector myForce(Tvector desired);
   virtual Twaypoint* getCurrentWaypoint() const = 0;
 
   virtual void setPosition(double px, double py, double pz = 0);
@@ -88,12 +97,26 @@ class LIBEXPORT Tagent {
   void setvx(double vv) { v.x = vv; }
   void setvy(double vv) { v.y = vv; }
 
+  void setv(Tvector vIn) { v = vIn; }
+  void seta(Tvector aIn) { a = aIn; }
+
   virtual void setForceFactorDesired(double f);
   virtual void setForceFactorSocial(double f);
   virtual void setForceFactorObstacle(double f);
 
   void assignScene(Tscene* sceneIn);
   void removeAgentFromNeighbors(const Tagent* agentIn);
+
+  std::vector<double> LinearSpacedArray(double a, double b, std::size_t N);
+  std::vector<int> odomPosToMapIndex(Ped::Tvector pos);
+  bool isOccupied(Ped::Tvector pos);
+  Ped::Tvector* getClosestObstaclePos(std::vector<Ped::Tvector > considered_positions, Ped::Tvector pos);
+  std::vector<Ped::Tvector > getSurroundingPositions(Ped::Tvector pos);
+  double obstacleForceFunction(double distance);
+
+  int obstacleForceRange;
+  double keepDistanceForceDistance;
+  Tvector keepDistanceTo;
 
  protected:
   int id;
@@ -103,6 +126,7 @@ class LIBEXPORT Tagent {
   AgentType type;
   double vmax;
   double agentRadius;
+  double angleToRobot;
   double relaxationTime;
   bool teleop;
   double robotPosDiffScalingFactor;
@@ -111,6 +135,8 @@ class LIBEXPORT Tagent {
   double forceFactorSocial;
   double forceFactorObstacle;
   double forceSigmaObstacle;
+  double forceSigmaRobot;
+  double still_time;
 
   Ped::Tscene* scene;
 
@@ -120,7 +146,9 @@ class LIBEXPORT Tagent {
   Ped::Tvector desiredforce;
   Ped::Tvector socialforce;
   Ped::Tvector obstacleforce;
+  Ped::Tvector robotforce;
   Ped::Tvector myforce;
+  Ped::Tvector keepdistanceforce;
 };
 }
 #endif
