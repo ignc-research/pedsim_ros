@@ -83,15 +83,16 @@ class AgentStateMachine : public QObject {
  public:
   void doStateTransition();
   AgentState getCurrentState();
-  void activateState(AgentState stateIn);
-  static QString stateToName(AgentState stateIn);
+   void activateState(AgentState stateIn);  
+   static QString stateToName(AgentState stateIn);
 
  protected:
   void deactivateState(AgentState stateIn);
   bool checkGroupForAttractions(AttractionArea** attractionOut = nullptr) const;
-  double getRandomDuration(double baseTime);
+ double getRandomDuration(double baseTime);
 
-
+  // Attributes
+ protected:
   Agent* agent;
 
   // → State Machine
@@ -108,6 +109,9 @@ class AgentStateMachine : public QObject {
   AttractionArea* groupAttraction;
   bool shallLoseAttraction;
 
+  // → Talking
+  bool startTalking;
+  ros::WallTime startRecord;
   ros::WallTime startTimestamp;
   double stateMaxDuration;  // in seconds
 
@@ -118,6 +122,7 @@ class AgentStateMachine : public QObject {
   double stateLoweringForksBaseTime;  // in seconds
   double stateTellStoryBaseTime;  // in seconds
   double stateGroupTalkingBaseTime;  // in seconds
-};
+  };
+
 
 #endif

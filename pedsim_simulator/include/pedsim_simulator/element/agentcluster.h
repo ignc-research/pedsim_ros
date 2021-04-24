@@ -55,7 +55,6 @@ class AgentCluster : public ScenarioElement {
  public:
   QList<Agent*> dissolve();
   std::vector<std::string> generate_agent_names();
-
   int getId() const;
   int getCount() const;
   void setCount(int countIn);
@@ -101,6 +100,6 @@ class AgentCluster : public ScenarioElement {
   double vmax;
   double chatting_probability;
   Agent::WaypointMode waypoint_mode;
-};
+  };
 
 #endif

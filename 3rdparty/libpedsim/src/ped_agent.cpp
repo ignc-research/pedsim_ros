@@ -44,11 +44,11 @@ Ped::Tagent::Tagent() {
   agentRadius = 0.35;
   relaxationTime = 0.5;
   robotPosDiffScalingFactor = 5;
-    obstacleForceRange = 2.0;
+ obstacleForceRange = 2.0;
 
   keepDistanceForceDistance = 1.0;
   keepDistanceTo = Tvector(0.0, 0.0);
-}
+  }
 
 /// Destructor
 Ped::Tagent::~Tagent() {}
@@ -109,6 +109,7 @@ void Ped::Tagent::setForceFactorSocial(double f) { forceFactorSocial = f; }
 /// and about 10 do make sense.
 /// \param   f The factor
 void Ped::Tagent::setForceFactorObstacle(double f) { forceFactorObstacle = f; }
+
 double Ped::Tagent::keepDistanceForceFunction(double distance) {
   return -10 * (distance - keepDistanceForceDistance);
 }
@@ -244,6 +245,32 @@ Ped::Tvector Ped::Tagent::robotForce(){
   return force;
 }
 
+/// Calculates the force between this agent and the nearest obstacle in this
+/// scene.
+/// Iterates over all obstacles == O(N).
+/// \return  Tvector: the calculated force
+// Ped::Tvector Ped::Tagent::obstacleForce () const {
+//   // obstacle which is closest only
+//   Ped::Tvector minDiff;
+//   double minDistanceSquared = INFINITY;
+
+//   for (const Tobstacle* obstacle : scene->obstacles) {
+//     Ped::Tvector closestPoint = obstacle->closestPoint(p);
+//     Ped::Tvector diff = p - closestPoint;
+//     double distanceSquared = diff.lengthSquared();  // use squared distance to
+//     // avoid computing square
+//     // root
+//     if (distanceSquared < minDistanceSquared) {
+//       minDistanceSquared = distanceSquared;
+//       minDiff = diff;
+//     }
+//   }
+
+//   double distance = sqrt(minDistanceSquared) - agentRadius;
+//   double forceAmount = exp(-distance / forceSigmaObstacle);
+//   return forceAmount * minDiff.normalized();
+// }
+
 
 std::vector<double> Ped::Tagent::LinearSpacedArray(double a, double b, std::size_t N)
 {
@@ -331,6 +358,7 @@ std::vector<Ped::Tvector > Ped::Tagent::getSurroundingPositions(Ped::Tvector pos
   return considered_positions;
 }
 
+
 double Ped::Tagent::obstacleForceFunction(double distance)
 {
   if (distance <= 0)
@@ -343,7 +371,7 @@ double Ped::Tagent::obstacleForceFunction(double distance)
 /// Calculate force between this agent and the nearest occupied cell
 /// found in the map. Scans only the immediate area of the agent.
 /// The size of the area is dependent on the value of obstacleForceRange.
-Ped::Tvector Ped::Tagent::obstacleForce() {
+Ped::Tvector Ped::Tagent::obstacleForce()  {
   std::vector<Ped::Tvector > considered_positions = getSurroundingPositions(p);
   Ped::Tvector* closest_obstacle_pos = getClosestObstaclePos(considered_positions, p);
 
@@ -368,7 +396,6 @@ Ped::Tvector Ped::Tagent::obstacleForce() {
   // }
   return force;
 }
-
 /// myForce() is a method that returns an "empty" force (all components set to
 /// 0).
 /// This method can be overridden in order to define own forces.
@@ -390,7 +417,7 @@ void Ped::Tagent::computeForces() {
   desiredforce = desiredForce();
   if (forceFactorSocial > 0) socialforce = socialForce();
   if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
-  robotforce = robotForce();
+  robotforce = robotForce();  
   keepdistanceforce = keepDistanceForce();
   myforce = myForce(desiredDirection);
 }
@@ -408,12 +435,11 @@ void Ped::Tagent::move(double stepSizeIn) {
   // sum of all forces --> acceleration
   a = forceFactorDesired * desiredforce + forceFactorSocial * socialforce 
     + forceFactorObstacle * obstacleforce + myforce + keepdistanceforce;
-    // ROS_INFO("desiredforce: %lf,%lf,%lf  factor: %lf", desiredforce.x, desiredforce.y, desiredforce.z, forceFactorDesired);
+    // ROS_INFO("desiredforce %lf,%lf,%lf, ", desiredforce.x,desiredforce.y,desiredforce.z);
     // ROS_INFO("socialforce, %lf,%lf,%lf",socialforce.x,socialforce.y,socialforce.z);
     // ROS_INFO("obstacleforce,%lf,%lf,%lf",obstacleforce.x,obstacleforce.y,obstacleforce.z);
     // ROS_INFO("myforce, %lf,%lf,%lf",myforce.x,myforce.y,myforce.z);
     // ROS_INFO("stepSizeln%lf",stepSizeIn);
-    // if (id == 0) ROS_INFO("KDF: %lf", keepdistanceforce.length());
 
   // Added by Ronja Gueldenring
   // add robot force, so that pedestrians avoid robot

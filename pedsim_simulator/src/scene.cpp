@@ -183,7 +183,6 @@ Agent* Scene::getAgent(int id) const {
   }
   return nullptr;
 }
-
 QList<AgentGroup*> Scene::getGroups() { return agentGroups; }
 
 QMap<QString, AttractionArea*> Scene::getAttractions() { return attractions; }

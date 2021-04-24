@@ -63,7 +63,7 @@ AgentStateMachine::AgentStateMachine(Agent* agentIn) {
   stateLoweringForksBaseTime = 6.0;
   stateTellStoryBaseTime = 6.0;
   stateGroupTalkingBaseTime = 12.0;
-}
+  }
 
 AgentStateMachine::~AgentStateMachine() {
   // clean up
@@ -138,9 +138,6 @@ void AgentStateMachine::doStateTransition() {
   }
 
   // → operate on waypoints/destinations
-
-
-  // → operate on waypoints/destinations
   if (state == StateNone) {
     Ped::Twaypoint* destination = agent->updateDestination();
     if (destination == nullptr)
@@ -163,9 +160,7 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
   }
-
-
-  // → do work
+    // → do work
   if (state == StateWorking)
   {
     activateState(StateLiftingForks);
@@ -279,7 +274,28 @@ void AgentStateMachine::doStateTransition() {
   }
 
 
-  // → talk for some time
+  // → operate for chatting pattern (6.2.2021 Junhui Li)
+  //a random probability to meet a familiar person and begin chatting
+  // if ((state == StateWalking) &&agent->meetFriends()) {
+  //   startTalking=false;
+  //   activateState(StateTalking);
+  //   return;
+  // }
+  // if (state == StateTalking ) {
+  //   ros::WallTime endRecord = ros::WallTime::now();
+  //   if(!startTalking){
+  //     ros::WallTime now = ros::WallTime::now();
+  //     startRecord=now;
+  //     startTalking=true;
+  //   }
+  //   ros::WallDuration diff = endRecord - startRecord;
+  //   if(diff.toSec()>1200){ //transfer to StateWalking 1200 time steps for chatting
+  //     agent->setMeetFriends(false);
+  //     activateState(StateWalking);
+  //     return;
+  //   }
+  // }
+    // → talk for some time
   if (state == StateTalking) {
     ros::WallDuration diff = ros::WallTime::now() - startTimestamp;
     if (diff.toSec() > 6.20) {
@@ -289,11 +305,9 @@ void AgentStateMachine::doStateTransition() {
   }
 }
 
-
 void AgentStateMachine::activateState(AgentState stateIn) {
-  ROS_DEBUG("Agent %d type %d activating state '%s' (time: %f)", agent->getId(), agent->getType(),
+  ROS_DEBUG("Agent %d activating state '%s' (time: %f)", agent->getId(),
             stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
-
 
   // de-activate old state
   deactivateState(state);
@@ -320,7 +334,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       individualPlanner->setAgent(agent);
       individualPlanner->setDestination(destination);
       agent->setWaypointPlanner(individualPlanner);
-       agent->resumeMovement();
+      agent->resumeMovement();
       break;
     case StateRunning:
       if (individualPlanner == nullptr)
@@ -343,9 +357,13 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       groupWaypointPlanner->setGroup(agent->getGroup());
       agent->setWaypointPlanner(groupWaypointPlanner);
       break;
+    // case StateTalking:
+    //   agent->setWaypointPlanner(nullptr);
+    //   break;
+
     case StateShopping:
-    {
-      shallLoseAttraction = false;
+      {
+        shallLoseAttraction = false;
       if (shoppingPlanner == nullptr) shoppingPlanner = new ShoppingPlanner();
       AttractionArea* attraction =
           SCENE.getClosestAttraction(agent->getPosition());
@@ -366,15 +384,15 @@ void AgentStateMachine::activateState(AgentState stateIn) {
                   SLOT(loseAttraction()));
         }
       }
-  }
+      }
       break;
-    case StateTalking:
+      case StateTalking:
       startTimestamp = ros::WallTime::now();
       stateMaxDuration = getRandomDuration(stateTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
-    case StateWorking:
+      case StateWorking:
       startTimestamp = ros::WallTime::now();
       stateMaxDuration = getRandomDuration(stateWorkingBaseTime);
       agent->setWaypointPlanner(nullptr);
@@ -464,6 +482,7 @@ double AgentStateMachine::getRandomDuration(double baseTime)
   return duration;
 }
 
+   
 bool AgentStateMachine::checkGroupForAttractions(
     AttractionArea** attractionOut) const {
   AgentGroup* group = agent->getGroup();
@@ -535,4 +554,3 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
 AgentStateMachine::AgentState AgentStateMachine::getCurrentState() {
   return state;
 }
-

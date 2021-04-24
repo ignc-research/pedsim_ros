@@ -161,16 +161,16 @@ bool Simulator::initializeSimulation() {
 void Simulator::runSimulation() {
   ros::WallRate r(100.0);
   while (ros::ok()) {
-  //   if (SCENE.getTime() < 0.1) {
-  //     // setup the robot
-  //     for (Agent* agent : SCENE.getAgents()) {
-  //       if (agent->getType() == Ped::Tagent::ROBOT) {
-  //         robot_ = agent;
-  //         last_robot_orientation_ =
-  //             poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
-  //       }
-  //     }
-  //   }
+    // if (SCENE.getTime() < 0.1) {
+    //   // setup the robot
+    //   for (Agent* agent : SCENE.getAgents()) {
+    //     if (agent->getType() == Ped::Tagent::ROBOT) {
+    //       robot_ = agent;
+    //       last_robot_orientation_ =
+    //           poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
+    //     }
+    //   }
+    // }
 
   //   if (!paused_) {
   //     updateRobotPositionFromTF();
@@ -188,19 +188,19 @@ void Simulator::runSimulation() {
 
     if (!paused_) {
 
-    //  updateRobotPositionFromTF();
+      // updateRobotPositionFromTF(); not used in flatland
       ros::Time now = ros::Time::now();//here ROS::Time is replaced by WallTime to corperate with flatland
       ros::Duration diff = now - last_sim_time;
       last_sim_time = now;
       // ROS_INFO("time step is%lf",diff.toSec());
       SCENE.setTimeStepSize(diff.toSec()/5); // slow down the simulation
-
       SCENE.moveAllAgents();
 
       publishAgents();
       // publishGroups();
-      // publishRobotPosition();
+      // // publishRobotPosition();
       // publishObstacles();  // TODO - no need to do this all the time.
+      // publishWaypoints();
     }
     ros::spinOnce();
     r.sleep();
@@ -390,7 +390,8 @@ void Simulator::publishAgents() {
     state.acceleration = VecToMsg(a->getAcceleration());
     state.direction = VecToMsg(a->facingDirection);
 
-    all_status.agent_states.push_back(state);
+    
+        all_status.agent_states.push_back(state);
     // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }
   
@@ -463,7 +464,7 @@ void Simulator::publishWaypoints() {
 
 std::string Simulator::agentStateToActivity(
     const AgentStateMachine::AgentState& state) const {
-  std::string activity = AgentStateMachine::stateToName(state).toStdString();
+std::string activity = AgentStateMachine::stateToName(state).toStdString();
   return activity;
 }
 

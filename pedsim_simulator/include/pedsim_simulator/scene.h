@@ -115,7 +115,6 @@ class Scene : public QObject, protected Ped::Tscene {
   // → elements
   const QList<Agent*>& getAgents() const;
   Agent* getAgent(int id) const;
-
   Agent* getAgentById(int idIn) const;
   QList<AgentGroup*> getGroups();
   QMap<QString, AttractionArea*> getAttractions();

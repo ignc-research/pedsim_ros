@@ -39,6 +39,20 @@
 #include <pedsim_simulator/rng.h>
 #include <ros/ros.h>
 
+Agent::Agent() {
+  // initialize
+  Ped::Tagent::setType(Ped::Tagent::ADULT);
+  Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
+  forceSigmaObstacle = CONFIG.sigmaObstacle;
+  Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial);
+  // waypoints
+  currentDestination = nullptr;
+  waypointplanner = nullptr;
+  // state machine
+  stateMachine = new AgentStateMachine(this);
+  // group
+  group = nullptr;
+}
 Agent::Agent(int id, std::string name) {
   // initialize
   Ped::Tagent::setType(Ped::Tagent::ADULT);
@@ -110,13 +124,13 @@ Ped::Tvector Agent::obstacleForce() {
 
   return force;
 }
+
 Ped::Tvector Agent::keepDistanceForce() {
   Ped::Tvector force;
   if (!disabledForces.contains("KeepDistance")) force = Tagent::keepDistanceForce();
 
   return force;
 }
-
 Ped::Tvector Agent::myForce(Ped::Tvector desired) const {
   // run additional forces
   Ped::Tvector forceValue;
@@ -162,7 +176,6 @@ void Agent::reset() {
   // reset state
   stateMachine->activateState(AgentStateMachine::AgentState::StateNone);
 }
-
 Ped::Twaypoint* Agent::updateDestination() {
   // assign new destination
   if (!destinations.isEmpty()) {
@@ -184,8 +197,6 @@ void Agent::updateState() {
   // check state
   stateMachine->doStateTransition();
 }
-
-// update direction the agent is facing based on the state
 void Agent::updateDirection() {
   switch (stateMachine->getCurrentState()) {
   case AgentStateMachine::AgentState::StateWalking:
@@ -351,8 +362,53 @@ QList<const Agent*> Agent::getNeighbors() const {
 
   return output;
 }
+//Added by Junhui Li (8.2.2021)
+QList<const Agent*> Agent::getPotentialChatters(double chattingDist) const{
+  // upcast chatters
+  QList<const Agent*> output;
+  Ped::Tvector position(getx(), gety());
+
+  auto agentIter = neighbors.begin();
+  while (agentIter != neighbors.end()) {
+    const Ped::Tagent & candidate = **agentIter;
+    Ped::Tvector candidatePos = candidate.getPosition();
+    double distance = (candidatePos - position).length();
+    // find the potential chatters
+    if (distance > chattingDist||distance == 0.0) {
+      agentIter++;
+    } else {
+      const Agent* upChatter = dynamic_cast<const Agent*>(*agentIter);      
+      output.append(upChatter);
+      agentIter++;
+    }
+  }
+  return output;
+}
 
 
+//Added by Junhui Li (8.2.2021)
+bool Agent::meetFriends(){
+    QList<const Agent*> potentialChatters=getPotentialChatters(1.8);// dist for start chatting later could be put into config
+    for (const Agent* chatter: potentialChatters) {
+      if(chatter !=nullptr){
+        if(chatter->meetFriend==true){
+          this->meetFriend=true;
+          return true;
+        }
+      }
+    }
+    if(!potentialChatters.isEmpty()){// possiblity for chatting which could be set in config later &&possiblityForChatting<0.9
+      this->meetFriend=true;
+      return true;
+    }else{ 
+    this->meetFriend=false;
+    return false;
+  }
+}
+
+void Agent::setMeetFriends(bool meetOrNot){
+  this->meetFriend=meetOrNot;
+}
 
 QList<const Agent*> Agent::getAgentsInRange(double distance) {
   QList<const Agent*> agents;
@@ -368,6 +424,7 @@ QList<const Agent*> Agent::getAgentsInRange(double distance) {
   }
   return agents;
 }
+
 
 
 bool Agent::someoneTalkingToMe() {
@@ -488,6 +545,7 @@ bool Agent::startTalking(){
   return false;
 }
 
+
 void Agent::disableForce(const QString& forceNameIn) {
   // disable force by adding it to the list of disabled forces
   disabledForces.append(forceNameIn);
@@ -498,12 +556,10 @@ void Agent::enableForce(const QString& forceNameIn) {
     disabledForces.removeAt(idx);
   }
 }
-
 void Agent::enableAllForces() {
   // remove all forces from disabled list
   disabledForces.clear();
 }
-
 void Agent::disableAllForces() {
   disableForce("Obstacle");
   disableForce("Desired");
@@ -522,7 +578,6 @@ void Agent::stopMovement() {
   setv(Ped::Tvector());
   seta(Ped::Tvector());
 }
-
 void Agent::setPosition(double xIn, double yIn) {
   // call super class' method
   Ped::Tagent::setPosition(xIn, yIn);
