@@ -33,6 +33,7 @@
 #define _agentcluster_h_
 
 #include <pedsim_simulator/element/agent.h>
+#include <pedsim_simulator/agentstatemachine.h>
 
 // Forward Declarations
 class Waypoint;
@@ -92,14 +93,23 @@ class AgentCluster : public ScenarioElement {
   Ped::Tagent::AgentType agentType;
   bool shallCreateGroups;
   QList<Waypoint*> waypoints;
+
  public:
   static int lastID;
   double forceFactorDesired;
   double forceFactorSocial;
   double forceFactorObstacle;
   double vmax;
-  double chatting_probability;
+  double chattingProbability;
+  double tellStoryProbability;
+  double groupTalkingProbability;
+  double talkingAndWalkingProbability;
+  double maxTalkingDistance;
   Agent::WaypointMode waypoint_mode;
-  };
+  double stateTalkingBaseTime;  // in seconds
+  double stateTellStoryBaseTime;  // in seconds
+  double stateGroupTalkingBaseTime;  // in seconds
+  double stateTalkingAndWalkingBaseTime;  // in seconds
+};
 
 #endif

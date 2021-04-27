@@ -92,6 +92,11 @@ Ped::Tvector Ped::Tvector::scaled(double factor) const {
   return Ped::Tvector(factor * x, factor * y, factor * z);
 }
 
+Ped::Tvector Ped::Tvector::rotated(double angle) const {
+  auto temp = x * Ped::Tvector(cos(angle), sin(angle)) + y * Ped::Tvector(-1 * sin(angle), cos(angle));
+  return temp;
+}
+
 Ped::Tvector Ped::Tvector::leftNormalVector() const {
   return Ped::Tvector(-y, x);
 }

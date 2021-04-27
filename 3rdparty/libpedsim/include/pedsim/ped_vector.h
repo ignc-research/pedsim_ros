@@ -12,6 +12,7 @@
 #define LIBEXPORT
 #endif
 
+#include <stdio.h>
 #include <cmath>
 #include "ped_angle.h"
 
@@ -40,6 +41,7 @@ class LIBEXPORT Tvector {
   Tvector normalized() const;
   void scale(double factor);
   Tvector scaled(double factor) const;
+  Ped::Tvector rotated(double angle) const;
 
   Tvector leftNormalVector() const;
   Tvector rightNormalVector() const;

@@ -50,21 +50,24 @@ class AgentStateMachine : public QObject {
   // TODO - switch to enum classes
  public:
   typedef enum {
-    StateNone = 0,
-    StateWaiting = 1,
-    StateQueueing = 2,
-    StateWalking = 3,
-    StateGroupWalking = 4,
-    StateShopping = 5,
-    StateTalking = 6,
-    StateWorking = 7,
-    StateLiftingForks = 8,
-    StateLoading = 9,
-    StateLoweringForks = 10,
-    StateTellStory = 11,
-    StateGroupTalking = 12,
-    StateListening = 13,
-    StateRunning=14
+    StateNone,
+    StateWaiting,
+    StateQueueing,
+    StateWalking,
+    StateGroupWalking,
+    StateShopping,
+    StateTalking,
+    StateWorking,
+    StateLiftingForks,
+    StateLoading,
+    StateLoweringForks,
+    StateTellStory,
+    StateGroupTalking,
+    StateListening,
+    StateTalkingAndWalking,
+    StateListeningAndWalking,
+    StateReachedShelf,
+    StateRunning,
   } AgentState;
 
   // Constructor and Destructor
@@ -79,20 +82,26 @@ class AgentStateMachine : public QObject {
  public slots:
   void loseAttraction();
 
-  // Methods
  public:
   void doStateTransition();
   AgentState getCurrentState();
-   void activateState(AgentState stateIn);  
-   static QString stateToName(AgentState stateIn);
+  void activateState(AgentState stateIn);
+  static QString stateToName(AgentState stateIn);
+
+  double stateWorkingBaseTime;  // in seconds
+  double stateLiftingForksBaseTime;  // in seconds
+  double stateLoadingBaseTime;  // in seconds
+  double stateLoweringForksBaseTime;  // in seconds
+  double stateTalkingBaseTime;  // in seconds
+  double stateTellStoryBaseTime;  // in seconds
+  double stateGroupTalkingBaseTime;  // in seconds
+  double stateTalkingAndWalkingBaseTime;  // in seconds
 
  protected:
   void deactivateState(AgentState stateIn);
   bool checkGroupForAttractions(AttractionArea** attractionOut = nullptr) const;
- double getRandomDuration(double baseTime);
+  double getRandomDuration(double baseTime);
 
-  // Attributes
- protected:
   Agent* agent;
 
   // → State Machine
@@ -109,20 +118,9 @@ class AgentStateMachine : public QObject {
   AttractionArea* groupAttraction;
   bool shallLoseAttraction;
 
-  // → Talking
-  bool startTalking;
-  ros::WallTime startRecord;
   ros::WallTime startTimestamp;
   double stateMaxDuration;  // in seconds
 
-  double stateTalkingBaseTime;  // in seconds
-  double stateWorkingBaseTime;  // in seconds
-  double stateLiftingForksBaseTime;  // in seconds
-  double stateLoadingBaseTime;  // in seconds
-  double stateLoweringForksBaseTime;  // in seconds
-  double stateTellStoryBaseTime;  // in seconds
-  double stateGroupTalkingBaseTime;  // in seconds
-  };
-
+};
 
 #endif

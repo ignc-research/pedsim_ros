@@ -183,6 +183,7 @@ Agent* Scene::getAgent(int id) const {
   }
   return nullptr;
 }
+
 QList<AgentGroup*> Scene::getGroups() { return agentGroups; }
 
 QMap<QString, AttractionArea*> Scene::getAttractions() { return attractions; }
@@ -380,7 +381,6 @@ void Scene::addAttraction(AttractionArea* attractionIn) {
   // inform users
   emit attractionAdded(attractionIn->getName());
 }
-
 
 bool Scene::removeAgent(Agent* agent) {
   // don't keep track of agent anymore
@@ -592,12 +592,14 @@ void Scene::moveClusters(int i) {
     int k = (int)agent->getWaypoints().size();
     Waypoint *w=agent->getWaypoints()[i%k];
     agent->setPosition(w->getx(), w->gety());
-    ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
+    // ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
   }
 }
+
 void Scene::removeAllObstacles(){
   // remove all elements from the scene
   Ped::Tscene::removeAllObstacles();
   obstacles.clear();
 }
+
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }

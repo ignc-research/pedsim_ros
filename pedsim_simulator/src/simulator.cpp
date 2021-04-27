@@ -189,7 +189,7 @@ void Simulator::runSimulation() {
     if (!paused_) {
 
       // updateRobotPositionFromTF(); not used in flatland
-      ros::Time now = ros::Time::now();//here ROS::Time is replaced by WallTime to corperate with flatland
+      ros::Time now = ros::Time::now();
       ros::Duration diff = now - last_sim_time;
       last_sim_time = now;
       // ROS_INFO("time step is%lf",diff.toSec());
@@ -363,14 +363,11 @@ void Simulator::publishAgents() {
 
     AgentStateMachine::AgentState sc = a->getStateMachine()->getCurrentState();
     state.social_state = agentStateToActivity(sc);
-    if (a->getType() == Ped::Tagent::ELDER) {
-      state.social_state = pedsim_msgs::AgentState::TYPE_STANDING;
-    }
 
     // Skip robot.
-    if (a->getType() == Ped::Tagent::ROBOT) {
-      continue;
-    }
+    // if (a->getType() == Ped::Tagent::ROBOT) {
+      // continue;
+    // }
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
@@ -388,10 +385,9 @@ void Simulator::publishAgents() {
     state.listening_to_id = a->listeningToId;
 
     state.acceleration = VecToMsg(a->getAcceleration());
-    state.direction = VecToMsg(a->facingDirection);
+    state.direction = a->facingDirection;
 
-    
-        all_status.agent_states.push_back(state);
+    all_status.agent_states.push_back(state);
     // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }
   
@@ -464,7 +460,7 @@ void Simulator::publishWaypoints() {
 
 std::string Simulator::agentStateToActivity(
     const AgentStateMachine::AgentState& state) const {
-std::string activity = AgentStateMachine::stateToName(state).toStdString();
+  std::string activity = AgentStateMachine::stateToName(state).toStdString();
   return activity;
 }
 

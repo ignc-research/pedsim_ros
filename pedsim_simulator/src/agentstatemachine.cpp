@@ -53,17 +53,17 @@ AgentStateMachine::AgentStateMachine(Agent* agentIn) {
   shoppingPlanner = nullptr;
   groupAttraction = nullptr;
   shallLoseAttraction = false;
-
   // initialize state machine
   state = StateNone;
   stateTalkingBaseTime = 6.0;
   stateWorkingBaseTime = 6.0;
-  stateLiftingForksBaseTime = 6.0;
-  stateLoadingBaseTime = 6.0;
-  stateLoweringForksBaseTime = 6.0;
+  stateLiftingForksBaseTime = 1.0;
+  stateLoadingBaseTime = 1.0;
+  stateLoweringForksBaseTime = 1.0;
   stateTellStoryBaseTime = 6.0;
   stateGroupTalkingBaseTime = 12.0;
-  }
+  stateTalkingAndWalkingBaseTime = 12.0;
+}
 
 AgentStateMachine::~AgentStateMachine() {
   // clean up
@@ -80,234 +80,284 @@ void AgentStateMachine::loseAttraction() {
 
 void AgentStateMachine::doStateTransition() {
   // determine new state
-  // → randomly get attracted by attractions
-  if ((state != StateShopping) && (state != StateQueueing)) {
-    double distance = INFINITY;
-    AttractionArea* attraction = nullptr;
-    bool hasGroupAttraction = checkGroupForAttractions(&attraction);
-    if (hasGroupAttraction) {
-      // inherit groups' attraction
-      groupAttraction = attraction;
+  if (agent->getType() == Ped::Tagent::AgentType::VEHICLE) {
+    // ## Forklift behavior ##
 
-      normalState = state;
-      activateState(StateShopping);
+    // → operate on waypoints/destinations
+    if (state == StateNone) {
+      Ped::Twaypoint* destination = agent->updateDestination();
+      if (destination == nullptr)
+        activateState(StateWaiting);
+      else
+        activateState(StateWalking);
+    }
+
+
+    // → update destination on arrival
+    if (agent->hasCompletedDestination()) {
+      agent->updateDestination();
+      activateState(StateReachedShelf);
       return;
-    } else {
-      // TODO: attraction must be visible!
-      attraction = SCENE.getClosestAttraction(agent->getPosition(), &distance);
+    }
 
-      if (attraction != nullptr) {
-        // check whether agent is attracted
-        // NOTE: The Cumulative Geometric Distribution determines the
-        //       number of Bernoulli trials needed to get one success.
-        //       → CDF(X) = 1-(1-p)^k   with k = the number of trials
-        double baseProbability = 0.02;
-        double maxAttractionDist = 7;
-        // → probability dependents on strength, distance,
-        //   and whether another group member are attracted
-        double probability = baseProbability * attraction->getStrength() *
-                             ((distance < maxAttractionDist)
-                                  ? (1 - (distance / maxAttractionDist))
-                                  : 0) *
-                             CONFIG.getTimeStepSize();
-        std::bernoulli_distribution isAttracted(probability);
 
-        if (isAttracted(RNG())) {
-          normalState = state;
-          activateState(StateShopping);
+    if (state == StateReachedShelf)
+    {
+      if (agent->finishedRotation()) {
+        activateState(StateLiftingForks);
+      }
+      return;
+    }
+
+
+    // // → do work
+    // if (state == StateWorking)
+    // {
+    //   activateState(StateReachedShelf);
+    //   // activateState(StateLiftingForks);
+    //   return;
+    // }
+
+
+    // → lift forks
+    if (state == StateLiftingForks)
+    {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateLoading);
+      }
+      return;
+    }
+
+
+    // → load stuff
+    if (state == StateLoading)
+    {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateLoweringForks);
+      }
+      return;
+    }
+
+
+    // → lower forks
+    if (state == StateLoweringForks)
+    {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateWalking);
+      }
+      return;
+    }
+
+
+  } else {
+    // ## normal pedestrian behavior ##
+
+    // → randomly get attracted by attractions
+    // if ((state != StateShopping) && (state != StateQueueing)) {
+    //   double distance = INFINITY;
+    //   AttractionArea* attraction = nullptr;
+    //   bool hasGroupAttraction = checkGroupForAttractions(&attraction);
+    //   if (hasGroupAttraction) {
+    //     // inherit groups' attraction
+    //     groupAttraction = attraction;
+
+    //     normalState = state;
+    //     activateState(StateShopping);
+    //     return;
+    //   } else {
+    //     // TODO: attraction must be visible!
+    //     attraction = SCENE.getClosestAttraction(agent->getPosition(), &distance);
+
+    //     if (attraction != nullptr) {
+    //       // check whether agent is attracted
+    //       // NOTE: The Cumulative Geometric Distribution determines the
+    //       //       number of Bernoulli trials needed to get one success.
+    //       //       → CDF(X) = 1-(1-p)^k   with k = the number of trials
+    //       double baseProbability = 0.02;
+    //       double maxAttractionDist = 7;
+    //       // → probability dependents on strength, distance,
+    //       //   and whether another group member are attracted
+    //       double probability = baseProbability * attraction->getStrength() *
+    //                             ((distance < maxAttractionDist)
+    //                                 ? (1 - (distance / maxAttractionDist))
+    //                                 : 0) *
+    //                             CONFIG.getTimeStepSize();
+    //       std::bernoulli_distribution isAttracted(probability);
+
+    //       if (isAttracted(RNG())) {
+    //         normalState = state;
+    //         activateState(StateShopping);
+    //         return;
+    //       }
+    //     }
+    //   }
+    // }
+
+
+    // // → randomly lose attraction
+    // if (state == StateShopping) {
+    //   // check whether agent loses attraction
+    //   // TODO: make this dependent from the distance to CoM
+    //   double probability = 0.03;
+    //   std::bernoulli_distribution isAttracted(probability *
+    //                                           CONFIG.getTimeStepSize());
+
+    //   if (shallLoseAttraction || isAttracted(RNG())) {
+    //     // reactivate previous state
+    //     activateState(normalState);
+
+    //     // alreade picked a new state, so nothing to do
+    //     return;
+    //   }
+    // }
+
+
+    // → operate on waypoints/destinations
+    if (state == StateNone) {
+      Ped::Twaypoint* destination = agent->updateDestination();
+      if (destination == nullptr)
+        activateState(StateWaiting);
+      else
+        activateState(StateWalking);
+    }
+
+
+    // → update destination on arrival
+    if (agent->hasCompletedDestination()) {
+      agent->updateDestination();
+      activateState(StateWalking);
+      return;
+    }
+
+    // ## do some checks wether to interrupt walking
+
+    // → start telling a story sometimes
+    if (state == StateWalking && agent->tellStory()) {
+      activateState(StateTellStory);
+      return;
+    }
+
+
+    // → start group talking sometimes
+    if (state == StateWalking && agent->startGroupTalking()) {
+      activateState(StateGroupTalking);
+      return;
+    }
+
+
+    // → check wether someone is talking to me
+    if ((state == StateWalking) && agent->someoneTalkingToMe()) {
+      if (agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalkingAndWalking) {
+        activateState(StateListeningAndWalking);
+      } else {
+        activateState(StateListening);
+      }
+      return;
+    }
+
+
+    // → start talking to someone sometimes
+    if ((state == StateWalking) && agent->startTalking()) {
+      activateState(StateTalking);
+      return;
+    }
+
+
+    // → start talking to someone while walking sometimes
+    if ((state == StateWalking) && agent->startTalkingAndWalking()) {
+      activateState(StateTalkingAndWalking);
+      return;
+    }
+
+
+    // → talk and walk for some time
+    if (state == StateTalkingAndWalking) {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateWalking);
+      }
+      return;
+    }
+
+
+    // → tell story for some time
+    if (state == StateTellStory) {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateWalking);
+      }
+      return;
+    }
+
+
+    // → talk as a group for some time
+    if (state == StateGroupTalking) {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration)
+      {
+        activateState(StateWalking);
+      }
+      return;
+    }
+
+
+    // → listening while walking
+    if (state == StateListeningAndWalking) {
+      // check if I am still being talked to
+      if (agent->listeningToAgent != nullptr) {
+        if (
+          agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalkingAndWalking
+        ) {
+          // agent->listenAndWalk();
           return;
         }
       }
-    }
-  }
-  // → randomly lose attraction
-  if (state == StateShopping) {
-    // check whether agent loses attraction
-    // TODO: make this dependent from the distance to CoM
-    double probability = 0.03;
-    std::bernoulli_distribution isAttracted(probability *
-                                            CONFIG.getTimeStepSize());
 
-    if (shallLoseAttraction || isAttracted(RNG())) {
-      // reactivate previous state
-      activateState(normalState);
-
-      // alreade picked a new state, so nothing to do
-      return;
-    }
-  }
-
-  // → operate on waypoints/destinations
-  if (state == StateNone) {
-    Ped::Twaypoint* destination = agent->updateDestination();
-    if (destination == nullptr)
-      activateState(StateWaiting);
-    else
-      activateState(StateWalking);
-  }
-
-
-  // → update destination on arrival
-  if (agent->hasCompletedDestination()) {
-    agent->updateDestination();
-    // start working if vehicle
-    if (agent->getType() == Ped::Tagent::AgentType::VEHICLE)
-    {
-      activateState(StateWorking);
-      return;
-    } else {
       activateState(StateWalking);
       return;
     }
-  }
-    // → do work
-  if (state == StateWorking)
-  {
-    activateState(StateLiftingForks);
-    return;
-  }
 
+    // → listening
+    if (state == StateListening) {
+      // check if I am still being talked to
+      if (agent->listeningToAgent != nullptr) {
+        if (
+          agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTellStory ||
+          agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateGroupTalking ||
+          agent->listeningToAgent->talkingToId == agent->getId()
+        ) {
+          agent->adjustKeepDistanceForceDistance();
+          return;
+        }
+      }
 
-  // → lift forks
-  if (state == StateLiftingForks)
-  {
-    ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
-    if (timePassed.toSec() > stateMaxDuration)
-    {
-      activateState(StateLoading);
-    }
-    return;
-  }
-
-
-  // → load stuff
-  if (state == StateLoading)
-  {
-    ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
-    if (timePassed.toSec() > stateMaxDuration)
-    {
-      activateState(StateLoweringForks);
-    }
-    return;
-  }
-
-
-  // → lower forks
-  if (state == StateLoweringForks)
-  {
-    ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
-    if (timePassed.toSec() > stateMaxDuration)
-    {
       activateState(StateWalking);
+      return;
     }
-    return;
-  }
 
 
-  // ## do some checks wether to interrupt walking
-
-  // → start telling a story sometimes
-  if (state == StateWalking && agent->tellStory()) {
-    activateState(StateTellStory);
-    return;
-  }
-
-
-  // → start group talking sometimes
-  if (state == StateWalking && agent->startGroupTalking()) {
-    activateState(StateGroupTalking);
-    return;
-  }
-
-
-  // → check wether someone is talking to me
-  if ((state == StateWalking) && agent->someoneTalkingToMe()) {
-    activateState(StateListening);
-    return;
-  }
-
-
-  // → start talking to someone sometimes
-  if ((state == StateWalking) && agent->startTalking()) {
-    activateState(StateTalking);
-    return;
-  }
-
-
-  // → tell story for some time
-  if (state == StateTellStory) {
-    ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
-    if (timePassed.toSec() > stateMaxDuration)
-    {
-      activateState(StateWalking);
-    }
-    return;
-  }
-
-
-  // → talk as a group for some time
-  if (state == StateGroupTalking) {
-    ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
-    if (timePassed.toSec() > stateMaxDuration)
-    {
-      activateState(StateWalking);
-    }
-    return;
-  }
-
-
-  // → listening
-  if (state == StateListening) {
-    // check if I am still being talked to
-    if (agent->listeningToAgent != nullptr) {
-      if (
-        agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTellStory ||
-        agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateGroupTalking ||
-        agent->listeningToAgent->talkingToId == agent->getId()
-      ) {
+    // → talk for some time
+    if (state == StateTalking) {
+      ros::WallDuration diff = ros::WallTime::now() - startTimestamp;
+      if (diff.toSec() > 6.20) {
+        activateState(StateWalking);
         return;
       }
-    }
-
-    activateState(StateWalking);
-    return;
-  }
-
-
-  // → operate for chatting pattern (6.2.2021 Junhui Li)
-  //a random probability to meet a familiar person and begin chatting
-  // if ((state == StateWalking) &&agent->meetFriends()) {
-  //   startTalking=false;
-  //   activateState(StateTalking);
-  //   return;
-  // }
-  // if (state == StateTalking ) {
-  //   ros::WallTime endRecord = ros::WallTime::now();
-  //   if(!startTalking){
-  //     ros::WallTime now = ros::WallTime::now();
-  //     startRecord=now;
-  //     startTalking=true;
-  //   }
-  //   ros::WallDuration diff = endRecord - startRecord;
-  //   if(diff.toSec()>1200){ //transfer to StateWalking 1200 time steps for chatting
-  //     agent->setMeetFriends(false);
-  //     activateState(StateWalking);
-  //     return;
-  //   }
-  // }
-    // → talk for some time
-  if (state == StateTalking) {
-    ros::WallDuration diff = ros::WallTime::now() - startTimestamp;
-    if (diff.toSec() > 6.20) {
-      activateState(StateWalking);
-      return;
     }
   }
 }
 
+
 void AgentStateMachine::activateState(AgentState stateIn) {
-  ROS_DEBUG("Agent %d activating state '%s' (time: %f)", agent->getId(),
-            stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
+  // ROS_INFO("Agent %d type %d activating state '%s' (time: %f)", agent->getId(), agent->getType(), stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
 
   // de-activate old state
   deactivateState(state);
@@ -335,6 +385,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       individualPlanner->setDestination(destination);
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault);
       break;
     case StateRunning:
       if (individualPlanner == nullptr)
@@ -357,10 +408,6 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       groupWaypointPlanner->setGroup(agent->getGroup());
       agent->setWaypointPlanner(groupWaypointPlanner);
       break;
-    // case StateTalking:
-    //   agent->setWaypointPlanner(nullptr);
-    //   break;
-
     case StateShopping:
       {
         shallLoseAttraction = false;
@@ -386,13 +433,28 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       }
       }
       break;
-      case StateTalking:
+    case StateTalking:
       startTimestamp = ros::WallTime::now();
       stateMaxDuration = getRandomDuration(stateTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
-      case StateWorking:
+    case StateTalkingAndWalking:
+      startTimestamp = ros::WallTime::now();
+      stateMaxDuration = getRandomDuration(stateTalkingAndWalkingBaseTime);
+      if (individualPlanner == nullptr){
+        individualPlanner = new IndividualWaypointPlanner();
+      }
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 0.3);  // walk slower when talking
+      break;
+    case StateListeningAndWalking:
+      agent->setWaypointPlanner(nullptr);
+      break;
+    case StateWorking:
       startTimestamp = ros::WallTime::now();
       stateMaxDuration = getRandomDuration(stateWorkingBaseTime);
       agent->setWaypointPlanner(nullptr);
@@ -433,6 +495,10 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->enableForce("KeepDistance");
       agent->setForceFactorSocial(50.0);
       break;
+    case StateReachedShelf:
+      agent->angleTarget = agent->currentDestination->staticObstacleAngle;
+      agent->setWaypointPlanner(nullptr);
+      break;
   }
 
   // inform users
@@ -445,11 +511,20 @@ void AgentStateMachine::deactivateState(AgentState state) {
       // reset talking to id
       agent->talkingToId = -1;
       break;
+    case StateTalkingAndWalking:
+      // reset talking to id
+      agent->talkingToId = -1;
+      break;
     case StateListening:
       // reset listening to id
       agent->listeningToId = -1;
       agent->listeningToAgent = nullptr;
       agent->setForceFactorSocial(2.0);
+      break;
+    case StateListeningAndWalking:
+      // reset listening to id
+      agent->listeningToId = -1;
+      agent->listeningToAgent = nullptr;
       break;
     case StateShopping:
     {
@@ -474,6 +549,7 @@ void AgentStateMachine::deactivateState(AgentState state) {
       break;
   }
 }
+
 double AgentStateMachine::getRandomDuration(double baseTime)
 {
   uniform_real_distribution<double> Distribution(0.5, 1.5);
@@ -482,7 +558,6 @@ double AgentStateMachine::getRandomDuration(double baseTime)
   return duration;
 }
 
-   
 bool AgentStateMachine::checkGroupForAttractions(
     AttractionArea** attractionOut) const {
   AgentGroup* group = agent->getGroup();
@@ -530,6 +605,10 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "GroupWalking";
     case StateTalking:
       return "Talking";
+    case StateTalkingAndWalking:
+      return "TalkingAndWalking";
+    case StateListeningAndWalking:
+      return "ListeningAndWalking";
     case StateShopping:
       return "Shopping";
     case StateWorking:
@@ -546,6 +625,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "GroupTalking";
     case StateListening:
       return "Listening";
+    case StateReachedShelf:
+      return "ReachedShelf";
     default:
       return "UnknownState";
   }

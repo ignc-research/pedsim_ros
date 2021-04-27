@@ -6,6 +6,15 @@ int16 type
 int16 number_of_peds
 float64 vmax
 float64 chatting_probability
+float64 tell_story_probability
+float64 group_talking_probability
+float64 talking_and_walking_probability
+float64 max_talking_distance
+float64 talking_base_time
+float64 tell_story_base_time
+float64 group_talking_base_time
+float64 talking_and_walking_base_time
+
 int16 waypoint_mode
 
 # forces

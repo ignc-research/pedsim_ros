@@ -23,35 +23,25 @@
 
 int SceneServices::agents_index_ = 0;
 
-
-
 SceneServices::SceneServices(){
-  //Pedsim service
-  // spawn_ped_service_ =
-  //     nh.advertiseService("pedsim_simulator/spawn_ped", &SceneServices::spawnPed, this);
-  respawn_peds_service_ =
-      nh.advertiseService("pedsim_simulator/respawn_peds", &SceneServices::respawnPeds, this);
-  //Pedsim service
-  spawn_peds_service_ = nh.advertiseService("pedsim_simulator/spawn_peds", &SceneServices::spawnPeds, this);
-  remove_all_peds_service_ = nh.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
-  reset_peds_service_ = nh.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::resetPeds, this);
- add_obstacle_service_= nh.advertiseService("pedsim_simulator/add_obstacle", &SceneServices::addStaticObstacles, this);
-  move_peds_service_= nh.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
-
-
+  // pedsim services
+  respawn_peds_service_ = nh_.advertiseService("pedsim_simulator/respawn_peds", &SceneServices::respawnPeds, this);
+  spawn_peds_service_ = nh_.advertiseService("pedsim_simulator/spawn_peds", &SceneServices::spawnPeds, this);
+  remove_all_peds_service_ = nh_.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
+  reset_peds_service_ = nh_.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::resetPeds, this);
+  add_obstacle_service_= nh_.advertiseService("pedsim_simulator/add_obstacle", &SceneServices::addStaticObstacles, this);
+  move_peds_service_= nh_.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
   
   //flatland service clients
-  spawn_model_topic = ros::this_node::getNamespace() + "/spawn_models";
-  spawn_agents_ = nh.serviceClient<flatland_msgs::SpawnModels>(spawn_model_topic, true);
-  respawn_model_topic = ros::this_node::getNamespace() + "/respawn_models";
-  respawn_agents_ = nh.serviceClient<flatland_msgs::RespawnModels>(respawn_model_topic, true);
-  delete_model_topic = ros::this_node::getNamespace() + "/delete_models";
-  delete_agents_ = nh.serviceClient<flatland_msgs::DeleteModels>(delete_model_topic, true);
-  flatland_path_ = ros::package::getPath("simulator_setup");
+  spawn_models_topic_ = ros::this_node::getNamespace() + "/spawn_models";
+  spawn_models_client_ = nh_.serviceClient<flatland_msgs::SpawnModels>(spawn_models_topic_, true);
+  respawn_models_topic_ = ros::this_node::getNamespace() + "/respawn_models";
+  respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
+  delete_models_topic_ = ros::this_node::getNamespace() + "/delete_models";
+  delete_models_client_ = nh_.serviceClient<flatland_msgs::DeleteModels>(delete_models_topic_, true);
 
   // initialize values
   last_id_ = 0;
-  
 }
 
 bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response) {
@@ -68,14 +58,14 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   }
 
   // make sure client is valid
-  while (!spawn_agents_.isValid()) {
+  while (!spawn_models_client_.isValid()) {
     ROS_WARN("Reconnecting to flatland spawn_models service...");
-    spawn_agents_.waitForExistence(ros::Duration(5.0));
-    spawn_agents_ = nh.serviceClient<flatland_msgs::SpawnModels>(spawn_model_topic, true);
+    spawn_models_client_.waitForExistence(ros::Duration(5.0));
+    spawn_models_client_ = nh_.serviceClient<flatland_msgs::SpawnModels>(spawn_models_topic_, true);
   }
 
   // call spawn_models service
-  spawn_agents_.call(srv);
+  spawn_models_client_.call(srv);
   if (srv.response.success) {
     response.success = true;
     ROS_INFO("Successfully called flatland spawn_models service");
@@ -88,36 +78,44 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
 }
 
 
-
-// bool SceneServices::spawnPed(pedsim_srvs::SpawnPeds::Request &request,
-//                                 pedsim_srvs::SpawnPeds::Response &response) {
-//       flatland_msgs::SpawnModels srv;
-//        ros::WallTime start = ros::WallTime::now();
-//       for (int ped_i = 0; ped_i < (int)request.peds.size(); ped_i++){
-//         pedsim_msgs::Ped ped = request.peds[ped_i];
-//              std::vector<flatland_msgs::Model> new_models = addAgentClusterToPedsim(ped);
-//         srv.request.models.insert(srv.request.models.end(), new_models.begin(), new_models.end());
-//       }
-//        start = ros::WallTime::now();
-//       while(!spawn_agents_.isValid()){
-//           ROS_WARN("Reconnecting spawn_agents_-server....");
-//           spawn_agents_.waitForExistence(ros::Duration(5.0));
-//           spawn_agents_ = nh.serviceClient<flatland_msgs::SpawnModels>(spawn_model_topic, true);
-//       }
-//       spawn_agents_.call(srv);
-//       if (!srv.response.success)
-//       {
-//           response.finished = false;
-//           response.success = true;
-//           ROS_ERROR("Failed to spawn all %d agents", int(request.peds.size()));
-//       }
-//       response.finished = true;
-//       response.success = true;
-//       return true;
-// }
-
 bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                                 pedsim_srvs::SpawnPeds::Response &response){
+  // flatland_msgs::RespawnModels srv;
+  // srv.request.old_model_names = removePedsInPedsim();
+
+  // for (int ped_i = 0; ped_i < (int) request.peds.size(); ped_i++) {
+  //   // add ped to pedsim
+  //   pedsim_msgs::Ped ped = request.peds[ped_i];
+  //   AgentCluster* agentCluster = addAgentClusterToPedsimBehaviorModelling(ped);
+
+  //   // add flatland models to spawn_models service request
+  //   std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file);
+  //   srv.request.new_models.insert(srv.request.new_models.end(), new_models.begin(), new_models.end());
+  // }
+
+  // // make sure client is valid
+  // while (!respawn_models_client_.isValid()) {
+  //   ROS_WARN("Reconnecting to flatland spawn_models service...");
+  //   respawn_models_client_.waitForExistence(ros::Duration(5.0));
+  //   respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
+  // }
+
+  // // call spawn_models service
+  // respawn_models_client_.call(srv);
+  // if (srv.response.success) {
+  //   response.success = true;
+  //   ROS_INFO("Successfully called flatland respawn_models service");
+  // } else {
+  //   response.success = false;
+  //   ROS_ERROR("Failed to spawn all %ld agents", request.peds.size());
+  // }
+  
+  // return true;
+
+  ROS_WARN("called respawnPeds() with %ld peds", request.peds.size());
+
+
+
   
   ros::Time begin = ros::Time::now();
   flatland_msgs::RespawnModels srv;
@@ -127,24 +125,24 @@ bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
     std::vector<flatland_msgs::Model> new_models = addAgentClusterToPedsim(ped);
     srv.request.new_models.insert(srv.request.new_models.end(), new_models.begin(), new_models.end());
   }
-  response.finished=false;
+  response.success=false;
   int count=0;
 
   begin = ros::Time::now();
-  while(!respawn_agents_.isValid()){
-    ROS_DEBUG("Reconnecting spawn_agents_-server....");
-    respawn_agents_.waitForExistence(ros::Duration(5.0));
-    respawn_agents_ = nh.serviceClient<flatland_msgs::RespawnModels>(respawn_model_topic, true);
+  while(!respawn_models_client_.isValid()){
+    ROS_DEBUG("Reconnecting spawn_models_client_-server....");
+    respawn_models_client_.waitForExistence(ros::Duration(5.0));
+    respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
   } 
-  while(!response.finished&&count<10){
-  respawn_agents_.call(srv);
+  while(!response.success&&count<10){
+  respawn_models_client_.call(srv);
   if (!srv.response.success)
   {
       ROS_ERROR("Failed to respawn all %d humans", int(request.peds.size()));
-      response.finished=false;
+      response.success=false;
       count++;
   }else{
-    response.finished = true;
+    response.success = true;
     break;
   } 
 
@@ -155,52 +153,52 @@ bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
 
 bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
                                 std_srvs::SetBool::Response &response){
-    flatland_msgs::DeleteModels srv;
+  flatland_msgs::DeleteModels srv;
+  srv.request.name = removePedsInPedsim();
 
-    srv.request.name = removePedsInPedsim();
-    // Deleting pedestrian in flatland
-    while(!delete_agents_.isValid()){
-        ROS_WARN("Reconnecting delete_agents_-server....");
-        delete_agents_.waitForExistence(ros::Duration(5.0));
-        delete_agents_ = nh.serviceClient<flatland_msgs::DeleteModels>(delete_model_topic, true);
-    }
-    delete_agents_.call(srv);
-    if (!srv.response.success)
-    {
-        ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted.", int(srv.request.name.size()));
-    }
+  // Deleting pedestrian in flatland
+  while (!delete_models_client_.isValid()) {
+    ROS_WARN("Reconnecting delete_models_client_-server....");
+    delete_models_client_.waitForExistence(ros::Duration(5.0));
+    delete_models_client_ = nh_.serviceClient<flatland_msgs::DeleteModels>(delete_models_topic_, true);
+  }
 
-    response.success = true;
-    return true;
+  delete_models_client_.call(srv);
+
+  if (!srv.response.success) {
+    ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted.", int(srv.request.name.size()));
+  }
+
+  response.success = true;
+  return true;
 }
 
-
 std::vector<std::string> SceneServices::removePedsInPedsim(){
-    //Remove all agents
-    QList<Agent*> agents = SCENE.getAgents();
-    int num_agents = agents.size();
+  //Remove all agents
+  QList<Agent*> agents = SCENE.getAgents();
+  int num_agents = agents.size();
 
-    std::vector<std::string> flatland_ids;
-    int count = 1;
-    for(Agent* a:agents){
-      int i = a->getId();
-      //We don't want to delete the robot agent
-      if(i == 0){
-        continue;
-      }
-      // Deleting pedestrian and waypoints in SCENE
-      for(Waypoint* w: a->getWaypoints()){
-        SCENE.removeWaypoint(w);
-      }
-      SCENE.removeAgent(a);
-      flatland_ids.push_back("person_" + std::to_string(count));
-      count++;
-      // If all agents are deleted, stop.
-      if(count == num_agents){
-        break;
-      }
+  std::vector<std::string> flatland_ids;
+  int count = 1;
+  for(Agent* a:agents){
+    int i = a->getId();
+    //We don't want to delete the robot agent
+    if(i == 0){
+      continue;
     }
-    return flatland_ids;
+    // Deleting pedestrian and waypoints in SCENE
+    for(Waypoint* w: a->getWaypoints()){
+      SCENE.removeWaypoint(w);
+    }
+    SCENE.removeAgent(a);
+    flatland_ids.push_back("person_" + std::to_string(count));
+    count++;
+    // If all agents are deleted, stop.
+    if(count == num_agents){
+      break;
+    }
+  }
+  return flatland_ids;
 }
 
 bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response) {
@@ -235,7 +233,7 @@ AgentCluster* SceneServices::addAgentClusterToPedsimBehaviorModelling(pedsim_msg
   agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
 
   agentCluster->vmax = ped.vmax;
-  agentCluster->chatting_probability = ped.chatting_probability;
+  agentCluster->chattingProbability = ped.chatting_probability;
 
   int waypoint_mode = ped.waypoint_mode;
   agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);
@@ -328,7 +326,7 @@ std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_
 }
 
 bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
-                                pedsim_srvs::SpawnObstacle::Response &response){
+                                      pedsim_srvs::SpawnObstacle::Response &response){
   int k = (int)request.staticObstacles.obstacles.size();  
   for (int i = 0; i <= k; i++){
     pedsim_msgs::LineObstacle obstacle=request.staticObstacles.obstacles[i];

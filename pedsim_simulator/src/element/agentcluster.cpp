@@ -34,27 +34,32 @@
 #include <pedsim_simulator/rng.h>
 #include <pedsim_simulator/scene.h>
 
-
 int AgentCluster::lastID = 0;
 default_random_engine generator;
-AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
-  // static int lastID = 0;
 
-  // initialize values
+AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
   id = ++lastID;
   position = Ped::Tvector(xIn, yIn);
   count = countIn;
   distribution = QSizeF(0, 0);
   agentType = Ped::Tagent::ADULT;
   shallCreateGroups = true;
-    forceFactorDesired = 1.0;
+  forceFactorDesired = 1.0;
   forceFactorSocial = 2.0;
   forceFactorObstacle = 10.0;
   normal_distribution<double> distribution(0.6, 0.2);
   vmax = distribution(generator);
-  chatting_probability = 0.1;
+  chattingProbability = 0.1;
+  tellStoryProbability = 0.001;
+  groupTalkingProbability = 0.001;
+  talkingAndWalkingProbability = 0.001;
+  maxTalkingDistance = 0.001;
   waypoint_mode = Agent::WaypointMode::LOOP;
-};
+  stateTalkingBaseTime = 6.0;
+  stateTellStoryBaseTime = 6.0;
+  stateGroupTalkingBaseTime = 6.0;
+  stateTalkingAndWalkingBaseTime = 6.0;
+}
 
 AgentCluster::~AgentCluster() {}
 
@@ -66,6 +71,7 @@ std::vector<std::string> AgentCluster::generate_agent_names() {
   }
   return agent_names;
 }
+
 QList<Agent*> AgentCluster::dissolve() {
   QList<Agent*> agents;
 
@@ -75,6 +81,7 @@ QList<Agent*> AgentCluster::dissolve() {
                                                  distribution.height() / 2);
 
   std::vector<std::string> agent_names = this->generate_agent_names();
+
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
     Agent* a = new Agent(i, agent_names[i]);
@@ -90,7 +97,16 @@ QList<Agent*> AgentCluster::dissolve() {
     a->initialPosY = randomizedY;
     a->setType(agentType);
     a->setVmax(vmax);
-    a->chattingProbability = chatting_probability;
+    a->vmaxDefault = vmax;
+    a->chattingProbability = chattingProbability;
+    a->tellStoryProbability = tellStoryProbability;
+    a->groupTalkingProbability = groupTalkingProbability;
+    a->talkingAndWalkingProbability = talkingAndWalkingProbability;
+    a->stateMachine->stateTalkingBaseTime = stateTalkingBaseTime;
+    a->stateMachine->stateTellStoryBaseTime = stateTellStoryBaseTime;
+    a->stateMachine->stateGroupTalkingBaseTime = stateGroupTalkingBaseTime;
+    a->stateMachine->stateTalkingAndWalkingBaseTime = stateTalkingAndWalkingBaseTime;
+    a->maxTalkingDistance = maxTalkingDistance;
     a->waypointMode = waypoint_mode;
     a->setForceFactorDesired(forceFactorDesired);
     a->setForceFactorSocial(forceFactorSocial);

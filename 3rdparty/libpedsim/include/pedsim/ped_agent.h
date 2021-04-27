@@ -43,8 +43,13 @@ class Twaypoint;
 /// \date    2003-12-26
 class LIBEXPORT Tagent {
  public:
-  enum AgentType { ADULT = 0, CHILD = 1, ROBOT = 2, ELDER = 3,VEHICLE = 4,
-                  ADULT_AVOID_ROBOT = 10, ADULT_AVOID_ROBOT_REACTION_TIME = 11};
+  enum AgentType {
+    ADULT = 0,
+    CHILD = 1,
+    ELDER = 2,
+    VEHICLE = 3,
+    ROBOT = 4,
+  };
 
   Tagent();
   virtual ~Tagent();
@@ -114,7 +119,9 @@ class LIBEXPORT Tagent {
 
   int obstacleForceRange;
   double keepDistanceForceDistance;
+  double keepDistanceForceDistanceDefault;
   Tvector keepDistanceTo;
+  double vmaxDefault;
 
  protected:
   int id;
@@ -140,7 +147,6 @@ class LIBEXPORT Tagent {
 
   Ped::Tvector desiredDirection;
   set<const Ped::Tagent*> neighbors;
-  // set<const Ped::Tagent*> chatters;
 
   Ped::Tvector desiredforce;
   Ped::Tvector socialforce;

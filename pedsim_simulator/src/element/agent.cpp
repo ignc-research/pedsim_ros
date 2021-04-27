@@ -54,6 +54,7 @@ Agent::Agent() {
   group = nullptr;
 }
 Agent::Agent(int id, std::string name) {
+  ROS_INFO("created agent with id: %d", id);
   // initialize
   Ped::Tagent::setType(Ped::Tagent::ADULT);
   Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
@@ -66,17 +67,19 @@ Agent::Agent(int id, std::string name) {
   stateMachine = new AgentStateMachine(this);
   // group
   group = nullptr;
-  id = id;
+  // id = id;
   agentName = name;
   destinationIndex = 0;
   talkingToId = -1;
   listeningToId = -1;
   lastTellStoryCheck = ros::Time::now();
   lastStartTalkingCheck = ros::Time::now();
+  lastStartTalkingAndWalkingCheck = ros::Time::now();
   lastGroupTalkingCheck = ros::Time::now();
   maxTalkingDistance = 1.5;
   tellStoryProbability = 0.01;
   groupTalkingProbability = 0.01;
+  talkingAndWalkingProbability = 0.01;
   disableForce("KeepDistance");
 }
 
@@ -131,6 +134,7 @@ Ped::Tvector Agent::keepDistanceForce() {
 
   return force;
 }
+
 Ped::Tvector Agent::myForce(Ped::Tvector desired) const {
   // run additional forces
   Ped::Tvector forceValue;
@@ -176,6 +180,7 @@ void Agent::reset() {
   // reset state
   stateMachine->activateState(AgentStateMachine::AgentState::StateNone);
 }
+
 Ped::Twaypoint* Agent::updateDestination() {
   // assign new destination
   if (!destinations.isEmpty()) {
@@ -197,29 +202,56 @@ void Agent::updateState() {
   // check state
   stateMachine->doStateTransition();
 }
-void Agent::updateDirection() {
+
+// update direction the agent is facing based on the state
+void Agent::updateDirection(double h) {
+  // if (id == 8) ROS_INFO("curr dest angle: %lf", currentDestination->staticObstacleAngle);
   switch (stateMachine->getCurrentState()) {
-  case AgentStateMachine::AgentState::StateWalking:
-    facingDirection = v;
-    break;
-  case AgentStateMachine::AgentState::StateListening:
-    facingDirection = keepDistanceTo - p;
-    break;
-  case AgentStateMachine::AgentState::StateLiftingForks:
-    facingDirection = currentDestination != nullptr ? currentDestination->getPosition() - p : Ped::Tvector(1, 0);
-    break;
-  case AgentStateMachine::AgentState::StateLoading:
-    facingDirection = currentDestination != nullptr ? currentDestination->getPosition() - p : Ped::Tvector(1, 0);
-    break;
-  case AgentStateMachine::AgentState::StateLoweringForks:
-    facingDirection = currentDestination != nullptr ? currentDestination->getPosition() - p : Ped::Tvector(1, 0);
-    break;
-  
-  default:
-    break;
+    case AgentStateMachine::AgentState::StateWalking:
+      if (v.length() > 0.001) {
+        facingDirection = v.polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
+      }
+      break;
+    case AgentStateMachine::AgentState::StateListening:
+      facingDirection = (keepDistanceTo - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
+      break;
+    case AgentStateMachine::AgentState::StateLiftingForks:
+      facingDirection = currentDestination->staticObstacleAngle;
+      break;
+    case AgentStateMachine::AgentState::StateLoading:
+      facingDirection = currentDestination->staticObstacleAngle;
+      break;
+    case AgentStateMachine::AgentState::StateLoweringForks:
+      facingDirection = currentDestination->staticObstacleAngle;
+      break;
+    case AgentStateMachine::AgentState::StateReachedShelf:
+      rotate(h, 1.0);
+      break;
+    default:
+      if (v.length() > 0.001) {
+        facingDirection = v.polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
+      }
+      break;
+  }
+}
+
+void Agent::rotate(double time_step, double angular_v) {
+  double angle = time_step * angular_v;
+  double angle_diff = angleTarget - facingDirection;
+
+  while (angle_diff < 0) {
+    angle_diff += 2 * M_PI;
   }
 
-  facingDirection.normalize();
+  while (angle_diff > 2 * M_PI) {
+    angle_diff -= 2 * M_PI;
+  }
+
+  if (angle_diff > M_PI) {
+    angle *= -1;
+  }
+
+  facingDirection += angle;
 }
 
 void Agent::move(double h) {
@@ -254,8 +286,24 @@ void Agent::move(double h) {
       Ped::Tagent::move(h);
     }
   } else {
-    Ped::Tagent::move(h);
-    updateDirection();
+    // special case for listening and walking
+    auto state = stateMachine->getCurrentState();
+    if (state == AgentStateMachine::AgentState::StateListeningAndWalking) {
+      // simulate movement by always placing the agent next to listeningToAgent
+      Ped::Tvector neighbor_v = listeningToAgent->getVelocity();
+      double angle = 0.5 * M_PI;
+      Ped::Tvector neighbor_v_rotated = neighbor_v.x * Ped::Tvector(cos(angle), sin(angle)) + neighbor_v.y * Ped::Tvector(-1 * sin(angle), cos(angle));
+      neighbor_v_rotated.normalize();
+      // set new position every tick instead of "normal" movement
+      p = listeningToAgent->getPosition() + (keepDistanceForceDistanceDefault * neighbor_v_rotated);
+      // copy v from neighbor
+      v = neighbor_v;
+    } else if (state == AgentStateMachine::AgentState::StateReachedShelf){
+    } else {
+      // normal movement
+      Ped::Tagent::move(h);
+    }
+    updateDirection(h);
   }
 
   if (getType() == Ped::Tagent::ELDER) {
@@ -309,6 +357,7 @@ bool Agent::hasCompletedDestination() const {
   }
   return waypointplanner->hasCompletedDestination();
 }
+
 Ped::Twaypoint* Agent::getCurrentWaypoint() const {
   // sanity checks
   if (waypointplanner == nullptr) return nullptr;
@@ -362,53 +411,6 @@ QList<const Agent*> Agent::getNeighbors() const {
 
   return output;
 }
-//Added by Junhui Li (8.2.2021)
-QList<const Agent*> Agent::getPotentialChatters(double chattingDist) const{
-  // upcast chatters
-  QList<const Agent*> output;
-  Ped::Tvector position(getx(), gety());
-
-  auto agentIter = neighbors.begin();
-  while (agentIter != neighbors.end()) {
-    const Ped::Tagent & candidate = **agentIter;
-    Ped::Tvector candidatePos = candidate.getPosition();
-    double distance = (candidatePos - position).length();
-    // find the potential chatters
-    if (distance > chattingDist||distance == 0.0) {
-      agentIter++;
-    } else {
-      const Agent* upChatter = dynamic_cast<const Agent*>(*agentIter);      
-      output.append(upChatter);
-      agentIter++;
-    }
-  }
-  return output;
-}
-
-
-//Added by Junhui Li (8.2.2021)
-bool Agent::meetFriends(){
-    QList<const Agent*> potentialChatters=getPotentialChatters(1.8);// dist for start chatting later could be put into config
-    for (const Agent* chatter: potentialChatters) {
-      if(chatter !=nullptr){
-        if(chatter->meetFriend==true){
-          this->meetFriend=true;
-          return true;
-        }
-      }
-    }
-    if(!potentialChatters.isEmpty()){// possiblity for chatting which could be set in config later &&possiblityForChatting<0.9
-      this->meetFriend=true;
-      return true;
-    }else{ 
-    this->meetFriend=false;
-    return false;
-  }
-}
-
-void Agent::setMeetFriends(bool meetOrNot){
-  this->meetFriend=meetOrNot;
-}
 
 QList<const Agent*> Agent::getAgentsInRange(double distance) {
   QList<const Agent*> agents;
@@ -426,7 +428,6 @@ QList<const Agent*> Agent::getAgentsInRange(double distance) {
 }
 
 
-
 bool Agent::someoneTalkingToMe() {
   QList<const Agent*> neighbor_list = getAgentsInRange(maxTalkingDistance);
   for (const Agent* neighbor: neighbor_list) {
@@ -441,9 +442,9 @@ bool Agent::someoneTalkingToMe() {
       listeningToId = neighbor->getId();
       listeningToAgent = SCENE.getAgent(neighbor->getId());
       keepDistanceTo = listeningToAgent->getPosition();
+      keepDistanceForceDistance = keepDistanceForceDistanceDefault;
       return true;
-    }
-     else if (
+    } else if (
       neighbor->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateGroupTalking
     ) {
       // neighbor started a group talk
@@ -451,6 +452,15 @@ bool Agent::someoneTalkingToMe() {
       listeningToAgent = SCENE.getAgent(neighbor->getId());
       // copy talking center from neighbor
       keepDistanceTo = neighbor->keepDistanceTo;
+      keepDistanceForceDistance = keepDistanceForceDistanceDefault;
+      return true;
+    } else if (
+      neighbor->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalkingAndWalking && 
+      neighbor->talkingToId == id
+    ) {
+      // neighbor talks to me while walking
+      listeningToId = neighbor->getId();
+      listeningToAgent = SCENE.getAgent(neighbor->getId());
       return true;
     }
   }
@@ -546,20 +556,53 @@ bool Agent::startTalking(){
 }
 
 
+bool Agent::startTalkingAndWalking(){
+  // only do the probability check again after some time has passed
+  ros::Time now = ros::Time::now();
+  if ((now - lastStartTalkingAndWalkingCheck).toSec() > 0.5) {
+    // reset timer
+    lastStartTalkingAndWalkingCheck = ros::Time::now();
+
+    // start talking sometimes when there is someone near
+    QList<const Agent*> potentialChatters = getAgentsInRange(maxTalkingDistance);
+    if (!potentialChatters.isEmpty()) {
+      // roll a dice
+      uniform_real_distribution<double> Distribution(0, 1);
+      double roll = Distribution(RNG());
+      if (roll < talkingAndWalkingProbability) {
+        // start chatting to a random person in range
+        int idx = std::rand() % potentialChatters.length();
+        this->talkingToId = potentialChatters[idx]->getId();
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+
+bool Agent::finishedRotation() {
+  return abs(fmod(facingDirection, 2 * M_PI) - angleTarget) < 0.1;
+}
+
 void Agent::disableForce(const QString& forceNameIn) {
   // disable force by adding it to the list of disabled forces
   disabledForces.append(forceNameIn);
 }
+
 void Agent::enableForce(const QString& forceNameIn) {
   int idx = disabledForces.indexOf(forceNameIn);
   if (idx >= 0) {
     disabledForces.removeAt(idx);
   }
 }
+
 void Agent::enableAllForces() {
   // remove all forces from disabled list
   disabledForces.clear();
 }
+
 void Agent::disableAllForces() {
   disableForce("Obstacle");
   disableForce("Desired");
@@ -578,6 +621,27 @@ void Agent::stopMovement() {
   setv(Ped::Tvector());
   seta(Ped::Tvector());
 }
+
+void Agent::adjustKeepDistanceForceDistance() {
+  // This method is called while in StateListening
+  // Adjust listening distance based on how many agents are listening together with this one
+
+  // get number of agents that are listening to the same id as I do
+  auto agents = SCENE.getAgents();
+  int count = 0;
+  for (auto agent : agents) {
+    if (agent->listeningToId == listeningToId) {
+      count++;
+    }
+  }
+  double distance_between_listening_agents = 0.5;
+  double min_keep_distance_force_distance = 0.3;
+  keepDistanceForceDistance = count * distance_between_listening_agents / (2 * M_PI);
+  if (keepDistanceForceDistance < min_keep_distance_force_distance) {
+    keepDistanceForceDistance = min_keep_distance_force_distance;
+  }
+}
+
 void Agent::setPosition(double xIn, double yIn) {
   // call super class' method
   Ped::Tagent::setPosition(xIn, yIn);

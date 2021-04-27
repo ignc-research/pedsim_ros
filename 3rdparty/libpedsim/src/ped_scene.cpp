@@ -13,13 +13,14 @@
 #include <cstddef>
 #include <stack>
 #include <ros/ros.h>
+
 using namespace std;
 
 /// Default constructor. If this constructor is used, there will be no quadtree
 /// created.
 /// This is faster for small scenarios or less than 1000 Tagents.
 Ped::Tscene::Tscene() : tree(NULL) {
-    getMap();
+  getMap();
 }
 
 /// Constructor used to create a quadtree statial representation of the Tagents.
@@ -39,7 +40,7 @@ Ped::Tscene::Tscene() : tree(NULL) {
 /// down.
 Ped::Tscene::Tscene(double left, double top, double width, double height) {
   tree = new Ped::Ttree(this, 0, left, top, width, height);
-   getMap();
+  getMap();
 }
 
 /// Destructor
@@ -225,9 +226,9 @@ void Ped::Tscene::removeAllObstacles() {
   for (Ped::Tobstacle* currentObstacle : obstacles) delete currentObstacle;
   obstacles.clear();
 }
+
 void Ped::Tscene::getMap()
 {
-
   boost::shared_ptr<nav_msgs::OccupancyGrid const> published_map;
   while(!published_map) {
     published_map = ros::topic::waitForMessage<nav_msgs::OccupancyGrid>("/map", ros::Duration(2.0));
@@ -236,5 +237,5 @@ void Ped::Tscene::getMap()
     }
   }
   map_ = *published_map;
-  ROS_WARN("Got map h x w: %d x %d", map_.info.height, map_.info.width);
+  ROS_INFO("Got map h x w: %d x %d", map_.info.height, map_.info.width);
 }

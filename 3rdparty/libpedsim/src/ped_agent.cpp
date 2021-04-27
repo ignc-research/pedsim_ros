@@ -22,6 +22,7 @@ default_random_engine generator;
 Ped::Tagent::Tagent() {
   static int staticid = 0;
   id = staticid++;
+  ROS_WARN("created agent with id %d", id);
   p.x = 0;
   p.y = 0;
   p.z = 0;
@@ -35,6 +36,7 @@ Ped::Tagent::Tagent() {
   // assign random maximal speed in m/s
   normal_distribution<double> distribution(0.6, 0.2);
   vmax = distribution(generator);
+  vmaxDefault = vmax;
   forceFactorDesired = 1.0;
   forceFactorSocial = 2.1;
   forceFactorObstacle = 10.0;
@@ -44,11 +46,12 @@ Ped::Tagent::Tagent() {
   agentRadius = 0.35;
   relaxationTime = 0.5;
   robotPosDiffScalingFactor = 5;
- obstacleForceRange = 2.0;
+  obstacleForceRange = 2.0;
 
-  keepDistanceForceDistance = 1.0;
+  keepDistanceForceDistanceDefault = 0.8;
+  keepDistanceForceDistance = keepDistanceForceDistanceDefault;
   keepDistanceTo = Tvector(0.0, 0.0);
-  }
+}
 
 /// Destructor
 Ped::Tagent::~Tagent() {}
@@ -122,6 +125,7 @@ Ped::Tvector Ped::Tagent::keepDistanceForce() {
   Tvector force = direction * magnitude;
   return force;
 }
+
 /// Calculates the force between this agent and the next assigned waypoint.
 /// If the waypoint has been reached, the next waypoint in the list will be
 /// selected.
@@ -226,19 +230,14 @@ Ped::Tvector Ped::Tagent::robotForce(){
   Tvector force;
   for (const Ped::Tagent* other : neighbors) {
     if(other->getType() == ROBOT){
-      if (this->getType() == ADULT_AVOID_ROBOT_REACTION_TIME && (other->still_time < 0.7 || vel < 0.1)){
-        // reaction time not exceeded
-        continue;
-      }else{
-        // pedestrian is influenced robot force depending on the distance to the robot.
-        Tvector diff = other->p - p;
-        Tvector diffDirection = diff.normalized();
-        double distanceSquared = diff.lengthSquared();
-        double distance = sqrt(distanceSquared) - (agentRadius + 0.7);
-        double forceAmount = -1.0 * exp(-distance / forceSigmaRobot);
-        Tvector robot_force = forceAmount * diff.normalized();
-        force += robot_force;
-      }
+      // pedestrian is influenced robot force depending on the distance to the robot.
+      Tvector diff = other->p - p;
+      Tvector diffDirection = diff.normalized();
+      double distanceSquared = diff.lengthSquared();
+      double distance = sqrt(distanceSquared) - (agentRadius + 0.7);
+      double forceAmount = -1.0 * exp(-distance / forceSigmaRobot);
+      Tvector robot_force = forceAmount * diff.normalized();
+      force += robot_force;
       break;
     }
   }
@@ -358,7 +357,6 @@ std::vector<Ped::Tvector > Ped::Tagent::getSurroundingPositions(Ped::Tvector pos
   return considered_positions;
 }
 
-
 double Ped::Tagent::obstacleForceFunction(double distance)
 {
   if (distance <= 0)
@@ -371,7 +369,7 @@ double Ped::Tagent::obstacleForceFunction(double distance)
 /// Calculate force between this agent and the nearest occupied cell
 /// found in the map. Scans only the immediate area of the agent.
 /// The size of the area is dependent on the value of obstacleForceRange.
-Ped::Tvector Ped::Tagent::obstacleForce()  {
+Ped::Tvector Ped::Tagent::obstacleForce() {
   std::vector<Ped::Tvector > considered_positions = getSurroundingPositions(p);
   Ped::Tvector* closest_obstacle_pos = getClosestObstaclePos(considered_positions, p);
 
@@ -396,6 +394,7 @@ Ped::Tvector Ped::Tagent::obstacleForce()  {
   // }
   return force;
 }
+
 /// myForce() is a method that returns an "empty" force (all components set to
 /// 0).
 /// This method can be overridden in order to define own forces.
@@ -417,7 +416,7 @@ void Ped::Tagent::computeForces() {
   desiredforce = desiredForce();
   if (forceFactorSocial > 0) socialforce = socialForce();
   if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
-  robotforce = robotForce();  
+  robotforce = robotForce();
   keepdistanceforce = keepDistanceForce();
   myforce = myForce(desiredDirection);
 }
@@ -443,9 +442,10 @@ void Ped::Tagent::move(double stepSizeIn) {
 
   // Added by Ronja Gueldenring
   // add robot force, so that pedestrians avoid robot
-  if (this->getType() == ADULT_AVOID_ROBOT || this->getType() == ADULT_AVOID_ROBOT_REACTION_TIME){
-      a = a + forceFactorSocial * robotforce;
-  }
+  // if (this->getType() == ADULT_AVOID_ROBOT || this->getType() == ADULT_AVOID_ROBOT_REACTION_TIME){
+      // a = a + forceFactorSocial * robotforce;
+  // }
+  
   // calculate the new velocity
   if (getTeleop() == false) {
     v = v + stepSizeIn * a;
