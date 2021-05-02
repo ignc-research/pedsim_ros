@@ -50,7 +50,7 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   for (int ped_i = 0; ped_i < (int) request.peds.size(); ped_i++) {
     // add ped to pedsim
     pedsim_msgs::Ped ped = request.peds[ped_i];
-    AgentCluster* agentCluster = addAgentClusterToPedsimBehaviorModelling(ped);
+    AgentCluster* agentCluster = addAgentClusterToPedsim(ped);
 
     // add flatland models to spawn_models service request
     std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file);
@@ -68,7 +68,7 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   spawn_models_client_.call(srv);
   if (srv.response.success) {
     response.success = true;
-    ROS_INFO("Successfully called flatland spawn_models service");
+    ROS_DEBUG("Successfully called flatland spawn_models service");
   } else {
     response.success = false;
     ROS_ERROR("Failed to spawn all %ld agents", request.peds.size());
@@ -77,77 +77,25 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   return true;
 }
 
-
 bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                                 pedsim_srvs::SpawnPeds::Response &response){
-  // flatland_msgs::RespawnModels srv;
-  // srv.request.old_model_names = removePedsInPedsim();
+  ROS_INFO("called respawnPeds() with %ld peds", request.peds.size());
 
-  // for (int ped_i = 0; ped_i < (int) request.peds.size(); ped_i++) {
-  //   // add ped to pedsim
-  //   pedsim_msgs::Ped ped = request.peds[ped_i];
-  //   AgentCluster* agentCluster = addAgentClusterToPedsimBehaviorModelling(ped);
-
-  //   // add flatland models to spawn_models service request
-  //   std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file);
-  //   srv.request.new_models.insert(srv.request.new_models.end(), new_models.begin(), new_models.end());
-  // }
-
-  // // make sure client is valid
-  // while (!respawn_models_client_.isValid()) {
-  //   ROS_WARN("Reconnecting to flatland spawn_models service...");
-  //   respawn_models_client_.waitForExistence(ros::Duration(5.0));
-  //   respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
-  // }
-
-  // // call spawn_models service
-  // respawn_models_client_.call(srv);
-  // if (srv.response.success) {
-  //   response.success = true;
-  //   ROS_INFO("Successfully called flatland respawn_models service");
-  // } else {
-  //   response.success = false;
-  //   ROS_ERROR("Failed to spawn all %ld agents", request.peds.size());
-  // }
-  
-  // return true;
-
-  ROS_WARN("called respawnPeds() with %ld peds", request.peds.size());
-
-
-
-  
-  ros::Time begin = ros::Time::now();
-  flatland_msgs::RespawnModels srv;
-  srv.request.old_model_names = removePedsInPedsim();
-  for (int ped_i = 0; ped_i < (int)request.peds.size(); ped_i++){
-    pedsim_msgs::Ped ped = request.peds[ped_i];
-    std::vector<flatland_msgs::Model> new_models = addAgentClusterToPedsim(ped);
-    srv.request.new_models.insert(srv.request.new_models.end(), new_models.begin(), new_models.end());
-  }
-  response.success=false;
-  int count=0;
-
-  begin = ros::Time::now();
-  while(!respawn_models_client_.isValid()){
-    ROS_DEBUG("Reconnecting spawn_models_client_-server....");
-    respawn_models_client_.waitForExistence(ros::Duration(5.0));
-    respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
-  } 
-  while(!response.success&&count<10){
-  respawn_models_client_.call(srv);
-  if (!srv.response.success)
-  {
-      ROS_ERROR("Failed to respawn all %d humans", int(request.peds.size()));
-      response.success=false;
-      count++;
-  }else{
-    response.success = true;
-    break;
-  } 
-
+  std_srvs::SetBool::Request request_;
+  std_srvs::SetBool::Response response_;
+  bool res = removeAllPeds(request_, response_);
+  if (!res) {
+    response.success = false;
+    return false;
   }
 
+  res = spawnPeds(request, response);
+  if (!res) {
+    response.success = false;
+    return false;
+  }
+
+  response.success = true;
   return true;
 }
 
@@ -166,47 +114,35 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
   delete_models_client_.call(srv);
 
   if (!srv.response.success) {
-    ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted.", int(srv.request.name.size()));
+    ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted. %s", int(srv.request.name.size()), srv.response.message.c_str());
   }
 
   response.success = true;
   return true;
 }
 
-std::vector<std::string> SceneServices::removePedsInPedsim(){
-  //Remove all agents
-  QList<Agent*> agents = SCENE.getAgents();
-  int num_agents = agents.size();
-
-  std::vector<std::string> flatland_ids;
-  int count = 1;
-  for(Agent* a:agents){
-    int i = a->getId();
-    //We don't want to delete the robot agent
-    if(i == 0){
-      continue;
-    }
-    // Deleting pedestrian and waypoints in SCENE
-    for(Waypoint* w: a->getWaypoints()){
-      SCENE.removeWaypoint(w);
-    }
-    SCENE.removeAgent(a);
-    flatland_ids.push_back("person_" + std::to_string(count));
-    count++;
-    // If all agents are deleted, stop.
-    if(count == num_agents){
-      break;
-    }
+// remove all agents and return a list of their names
+std::vector<std::string> SceneServices::removePedsInPedsim() {
+  // Remove all waypoints
+  auto waypoints = SCENE.getWaypoints();
+  for (auto waypoint : waypoints.values()) {
+    SCENE.removeWaypoint(waypoint);
   }
-  return flatland_ids;
+
+  // Remove all agents
+  std::vector<std::string> names;
+  QList<Agent*> agents = SCENE.getAgents();
+  for (Agent* a : agents) {
+    names.push_back(a->agentName);
+    SCENE.removeAgent(a);
+  }
+  return names;
 }
 
 bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response) {
-  if (request.data)
-  {
+  if (request.data) {
     QList<Agent*> agents = SCENE.getAgents();
-    for (Agent* a : agents)
-    {
+    for (Agent* a : agents) {
       a->reset();
     }
   }
@@ -215,8 +151,7 @@ bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::Set
   return true;
 }
 
-
-AgentCluster* SceneServices::addAgentClusterToPedsimBehaviorModelling(pedsim_msgs::Ped ped) {
+AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped) {
   // create agentcluster
   const double x = ped.pos.x;
   const double y = ped.pos.y;
@@ -262,7 +197,6 @@ AgentCluster* SceneServices::addAgentClusterToPedsimBehaviorModelling(pedsim_msg
   return agentCluster;
 }
 
-
 std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file){
   std::vector<flatland_msgs::Model> flatland_msg;
 
@@ -276,51 +210,9 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentClust
     agents_index_++;
     model.pose.x = agentCluster->getPosition().x;
     model.pose.y = agentCluster->getPosition().y;
+    model.pose.theta = 0.0;
     flatland_msg.push_back(model);
   }  
-
-  return flatland_msg;
-}
-
-
-std::vector<flatland_msgs::Model> SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped){
-  const double x = ped.pos.x;
-  const double y = ped.pos.y;
-  const int n = ped.number_of_peds;
-  const double dx = 2;
-  const double dy = 2;
-  const int type = ped.type;
-  AgentCluster* agentCluster = new AgentCluster(x, y, n);
-  agentCluster->setDistribution(dx, dy);
-
-  agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
-  for(int i = 0; i < (int)ped.waypoints.size(); i++){
-    QString id;
-    id.sprintf("%d_%d", ped.id, i);
-    const double x = ped.waypoints[i].x;
-    const double y = ped.waypoints[i].y;
-    const double r = ped.waypoints[i].z;
-    // Waypoint behaviour always set to SIMPLE --> ToDo: Parametrize
-    AreaWaypoint* w = new AreaWaypoint(id, x, y, r);
-    w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
-    SCENE.addWaypoint(w);
-    agentCluster->addWaypoint(w);
-  }
-  SCENE.addAgentCluster(agentCluster);
-  std::vector<flatland_msgs::Model> flatland_msg;
-  for (int i = last_id_+1; i <= last_id_+n; i++){
-    flatland_msgs::Model model;
-    std::string name = "person_" + std::to_string(ped.id);
-    std::string ns = "pedsim_agent_" +  std::to_string(i);
-    model.yaml_path =ped.yaml_file;    
-    model.name = name;
-    model.ns = ns;
-    model.pose.x = x;
-    model.pose.y = y;
-    flatland_msg.push_back(model);
-  }  
-  last_id_+=n;
-  // last_id_=last_id_%8;//TODO: this line is added only since there is only a static number of human(8)
 
   return flatland_msg;
 }

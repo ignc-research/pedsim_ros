@@ -54,7 +54,7 @@ Agent::Agent() {
   group = nullptr;
 }
 Agent::Agent(int id, std::string name) {
-  ROS_INFO("created agent with id: %d", id);
+  // ROS_INFO("created agent with id: %d", id);
   // initialize
   Ped::Tagent::setType(Ped::Tagent::ADULT);
   Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);

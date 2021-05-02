@@ -85,7 +85,6 @@ QList<Agent*> AgentCluster::dissolve() {
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
     Agent* a = new Agent(i, agent_names[i]);
-    ROS_INFO("created new agent");
 
     double randomizedX = position.x;
     double randomizedY = position.y;

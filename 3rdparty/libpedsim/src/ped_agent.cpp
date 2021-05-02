@@ -22,7 +22,6 @@ default_random_engine generator;
 Ped::Tagent::Tagent() {
   static int staticid = 0;
   id = staticid++;
-  ROS_WARN("created agent with id %d", id);
   p.x = 0;
   p.y = 0;
   p.z = 0;
@@ -51,6 +50,7 @@ Ped::Tagent::Tagent() {
   keepDistanceForceDistanceDefault = 0.8;
   keepDistanceForceDistance = keepDistanceForceDistanceDefault;
   keepDistanceTo = Tvector(0.0, 0.0);
+  ROS_INFO("created agent with id: %d", id);
 }
 
 /// Destructor

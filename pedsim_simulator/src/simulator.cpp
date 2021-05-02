@@ -330,7 +330,7 @@ void Simulator::publishRobotPosition() {
 }
 
 void Simulator::publishAgents() {
-  if (SCENE.getAgents().size() < 2) {
+  if (SCENE.getAgents().size() < 1) {
     return;
   }
 

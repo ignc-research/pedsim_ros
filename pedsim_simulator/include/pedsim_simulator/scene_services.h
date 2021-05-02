@@ -86,15 +86,9 @@ class SceneServices {
 
   /**
   * @brief Adding pedestrian to pedsim.
-  * @return corresponding flatland model-message
+  * @return corresponding AgentCluster
   */
-  std::vector<flatland_msgs::Model> addAgentClusterToPedsim(pedsim_msgs::Ped ped);
-
-  /**
-  * @brief Adding pedestrian to pedsim.
-  * @return added agentcluster
-  */
-  AgentCluster* addAgentClusterToPedsimBehaviorModelling(pedsim_msgs::Ped ped);
+  AgentCluster* addAgentClusterToPedsim(pedsim_msgs::Ped ped);
 
   std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file);
 
