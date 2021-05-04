@@ -34,7 +34,6 @@
 #include <pedsim_simulator/rng.h>
 #include <pedsim_simulator/scene.h>
 
-int AgentCluster::lastID = 1;
 default_random_engine generator;
 
 AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
@@ -66,8 +65,7 @@ AgentCluster::~AgentCluster() {}
 std::vector<std::string> AgentCluster::generate_agent_names() {
   std::vector<std::string> agent_names;
   for (int i = 0; i < count; ++i) {
-    std::string agent_name = "person_" + std::to_string(lastID);
-    lastID++;
+    std::string agent_name = "person_" + std::to_string(Ped::Tagent::staticid + i);
     agent_names.push_back(agent_name);
   }
   return agent_names;

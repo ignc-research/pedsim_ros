@@ -21,7 +21,6 @@
 #include <iostream>
 #include <ros/package.h>
 
-int SceneServices::agents_index_ = 1;
 
 SceneServices::SceneServices(){
   // pedsim services
@@ -39,9 +38,6 @@ SceneServices::SceneServices(){
   respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
   delete_models_topic_ = ros::this_node::getNamespace() + "/delete_models";
   delete_models_client_ = nh_.serviceClient<flatland_msgs::DeleteModels>(delete_models_topic_, true);
-
-  // initialize values
-  last_id_ = 0;
 }
 
 bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response) {
@@ -136,6 +132,8 @@ std::vector<std::string> SceneServices::removePedsInPedsim() {
     names.push_back(a->agentName);
     SCENE.removeAgent(a);
   }
+  Ped::Tagent::staticid = 1;  // reset agent counter
+
   return names;
 }
 
@@ -206,8 +204,7 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentClust
     flatland_msgs::Model model;
     model.yaml_path = yaml_file;
     model.name = names[i];
-    model.ns = "pedsim_agent_" +  std::to_string(agents_index_);
-    agents_index_++;
+    model.ns = "pedsim_agent_" + std::to_string(Ped::Tagent::staticid + i);
     model.pose.x = agentCluster->getPosition().x;
     model.pose.y = agentCluster->getPosition().y;
     model.pose.theta = 0.0;

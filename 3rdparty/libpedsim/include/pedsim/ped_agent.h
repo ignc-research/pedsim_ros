@@ -117,6 +117,7 @@ class LIBEXPORT Tagent {
   std::vector<Ped::Tvector > getSurroundingPositions(Ped::Tvector pos);
   double obstacleForceFunction(double distance);
 
+  static int staticid;
   int obstacleForceRange;
   double keepDistanceForceDistance;
   double keepDistanceForceDistanceDefault;

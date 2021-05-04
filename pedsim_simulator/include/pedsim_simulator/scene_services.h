@@ -29,8 +29,6 @@ class SceneServices {
   SceneServices();
   virtual ~SceneServices() = default;
 
-  int last_id_;  //Keeping track of cluster id, that increases in pedsim automatically
-  
   ros::ServiceServer respawn_peds_service_;
   ros::ServiceServer remove_all_peds_service_;
   ros::ServiceServer remove_all_peds_behavior_modelling_service_;
@@ -39,8 +37,6 @@ class SceneServices {
   ros::ServiceServer move_peds_service_;
   ros::ServiceServer spawn_peds_service_;
   ros::ServiceServer reset_peds_service_;
-
-  static int agents_index_;
 
 
   /**

@@ -97,7 +97,6 @@ class AgentCluster : public ScenarioElement {
   QList<Waypoint*> waypoints;
 
  public:
-  static int lastID;
   double forceFactorDesired;
   double forceFactorSocial;
   double forceFactorObstacle;

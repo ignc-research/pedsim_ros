@@ -16,11 +16,11 @@
 
 using namespace std;
 
+int Ped::Tagent::staticid = 1;
 default_random_engine generator;
 
 /// Default Constructor
 Ped::Tagent::Tagent() {
-  static int staticid = 1;
   id = staticid++;
   p.x = 0;
   p.y = 0;
