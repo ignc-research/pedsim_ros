@@ -38,6 +38,7 @@ class SceneServices {
   ros::ServiceServer spawn_peds_service_;
   ros::ServiceServer reset_peds_service_;
 
+  static int agents_index_;
 
   /**
   * @brief Spawns pedestrian in pedsim and flatland.
@@ -84,9 +85,10 @@ class SceneServices {
   * @brief Adding pedestrian to pedsim.
   * @return corresponding AgentCluster
   */
-  AgentCluster* addAgentClusterToPedsim(pedsim_msgs::Ped ped);
+  AgentCluster* addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
 
-  std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file);
+  std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids);
+  std::vector<int> generateAgentIds(int n);
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;

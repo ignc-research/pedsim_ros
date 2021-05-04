@@ -36,7 +36,15 @@
 
 default_random_engine generator;
 
-AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
+AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<int> agent_ids) {
+  if (countIn != (int) agent_ids.size()) {
+    agentIds.clear();
+    for (int i = 0; i < countIn; i++) {
+      agentIds.push_back(Ped::Tagent::staticid + i);
+    }
+  } else {
+    agentIds = agent_ids;
+  }
   position = Ped::Tvector(xIn, yIn);
   count = countIn;
   distribution = QSizeF(0, 0);
@@ -57,19 +65,10 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
   stateTellStoryBaseTime = 6.0;
   stateGroupTalkingBaseTime = 6.0;
   stateTalkingAndWalkingBaseTime = 6.0;
-  agentNames = generate_agent_names();
 }
 
 AgentCluster::~AgentCluster() {}
 
-std::vector<std::string> AgentCluster::generate_agent_names() {
-  std::vector<std::string> agent_names;
-  for (int i = 0; i < count; ++i) {
-    std::string agent_name = "person_" + std::to_string(Ped::Tagent::staticid + i);
-    agent_names.push_back(agent_name);
-  }
-  return agent_names;
-}
 
 QList<Agent*> AgentCluster::dissolve() {
   QList<Agent*> agents;
@@ -81,7 +80,8 @@ QList<Agent*> AgentCluster::dissolve() {
 
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
-    Agent* a = new Agent(i, agentNames[i]);
+    std::string name = "person_" + std::to_string(agentIds[i]);
+    Agent* a = new Agent(i, name);
 
     double randomizedX = position.x;
     double randomizedY = position.y;

@@ -44,7 +44,7 @@ class AgentCluster : public ScenarioElement {
 
   // Constructor and Destructor
  public:
-  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1);
+  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1, std::vector<int> agent_ids = {});
   virtual ~AgentCluster();
 
   // Signals
@@ -53,9 +53,6 @@ class AgentCluster : public ScenarioElement {
   void typeChanged(int type);
 
   // Methods
- private:
-  std::vector<std::string> generate_agent_names();
-
  public:
   QList<Agent*> dissolve();
   int getId() const;
@@ -111,7 +108,7 @@ class AgentCluster : public ScenarioElement {
   double stateTellStoryBaseTime;  // in seconds
   double stateGroupTalkingBaseTime;  // in seconds
   double stateTalkingAndWalkingBaseTime;  // in seconds
-  std::vector<std::string> agentNames;
+  std::vector<int> agentIds;
 };
 
 #endif

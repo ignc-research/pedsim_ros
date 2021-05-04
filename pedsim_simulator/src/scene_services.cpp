@@ -21,6 +21,7 @@
 #include <iostream>
 #include <ros/package.h>
 
+int SceneServices::agents_index_ = 1;
 
 SceneServices::SceneServices(){
   // pedsim services
@@ -44,12 +45,14 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   flatland_msgs::SpawnModels srv;
 
   for (int ped_i = 0; ped_i < (int) request.peds.size(); ped_i++) {
-    // add ped to pedsim
     pedsim_msgs::Ped ped = request.peds[ped_i];
-    AgentCluster* agentCluster = addAgentClusterToPedsim(ped);
+    std::vector<int> new_agent_ids = generateAgentIds(ped.number_of_peds);
+
+    // add ped to pedsim
+    AgentCluster* agentCluster = addAgentClusterToPedsim(ped, new_agent_ids);
 
     // add flatland models to spawn_models service request
-    std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file);
+    std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file, new_agent_ids);
     srv.request.models.insert(srv.request.models.end(), new_models.begin(), new_models.end());
   }
 
@@ -132,7 +135,10 @@ std::vector<std::string> SceneServices::removePedsInPedsim() {
     names.push_back(a->agentName);
     SCENE.removeAgent(a);
   }
-  Ped::Tagent::staticid = 1;  // reset agent counter
+
+  // reset agent counters
+  Ped::Tagent::staticid = 1;
+  agents_index_ = 1;
 
   return names;
 }
@@ -149,12 +155,12 @@ bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::Set
   return true;
 }
 
-AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped) {
+AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids) {
   // create agentcluster
   const double x = ped.pos.x;
   const double y = ped.pos.y;
   const int n = ped.number_of_peds;
-  AgentCluster* agentCluster = new AgentCluster(x, y, n);
+  AgentCluster* agentCluster = new AgentCluster(x, y, n, ids);
 
   // set distribution
   const double dx = 2;
@@ -195,16 +201,14 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped) {
   return agentCluster;
 }
 
-std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file){
+std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids){
   std::vector<flatland_msgs::Model> flatland_msg;
-
-  std::vector<std::string> names = agentCluster->agentNames;
 
   for (int i = 0; i < agentCluster->getCount(); i++){
     flatland_msgs::Model model;
     model.yaml_path = yaml_file;
-    model.name = names[i];
-    model.ns = "pedsim_agent_" + std::to_string(Ped::Tagent::staticid + i);
+    model.name = "person_" + std::to_string(ids[i]);
+    model.ns = "pedsim_agent_" + std::to_string(ids[i]);
     model.pose.x = agentCluster->getPosition().x;
     model.pose.y = agentCluster->getPosition().y;
     model.pose.theta = 0.0;
@@ -235,4 +239,13 @@ bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &re
   SCENE.removeAllObstacles();
   response.finished=true;
   return true;
+}
+
+std::vector<int> SceneServices::generateAgentIds(int n) {
+  std::vector<int> ids;
+  for (int i = 0; i < n; i++) {
+    ids.push_back(agents_index_);
+    agents_index_++;
+  }
+  return ids;
 }
