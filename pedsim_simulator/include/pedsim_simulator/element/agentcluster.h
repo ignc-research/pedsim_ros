@@ -53,9 +53,11 @@ class AgentCluster : public ScenarioElement {
   void typeChanged(int type);
 
   // Methods
+ private:
+  std::vector<std::string> generate_agent_names();
+
  public:
   QList<Agent*> dissolve();
-  std::vector<std::string> generate_agent_names();
   int getId() const;
   int getCount() const;
   void setCount(int countIn);
@@ -110,6 +112,7 @@ class AgentCluster : public ScenarioElement {
   double stateTellStoryBaseTime;  // in seconds
   double stateGroupTalkingBaseTime;  // in seconds
   double stateTalkingAndWalkingBaseTime;  // in seconds
+  std::vector<std::string> agentNames;
 };
 
 #endif

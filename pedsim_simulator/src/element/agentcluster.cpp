@@ -34,11 +34,10 @@
 #include <pedsim_simulator/rng.h>
 #include <pedsim_simulator/scene.h>
 
-int AgentCluster::lastID = 0;
+int AgentCluster::lastID = 1;
 default_random_engine generator;
 
 AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
-  id = ++lastID;
   position = Ped::Tvector(xIn, yIn);
   count = countIn;
   distribution = QSizeF(0, 0);
@@ -59,6 +58,7 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
   stateTellStoryBaseTime = 6.0;
   stateGroupTalkingBaseTime = 6.0;
   stateTalkingAndWalkingBaseTime = 6.0;
+  agentNames = generate_agent_names();
 }
 
 AgentCluster::~AgentCluster() {}
@@ -66,7 +66,8 @@ AgentCluster::~AgentCluster() {}
 std::vector<std::string> AgentCluster::generate_agent_names() {
   std::vector<std::string> agent_names;
   for (int i = 0; i < count; ++i) {
-    std::string agent_name = "person_" + std::to_string(id) + "_" + std::to_string(i);
+    std::string agent_name = "person_" + std::to_string(lastID);
+    lastID++;
     agent_names.push_back(agent_name);
   }
   return agent_names;
@@ -80,11 +81,9 @@ QList<Agent*> AgentCluster::dissolve() {
   std::uniform_real_distribution<double> randomY(-distribution.height() / 2,
                                                  distribution.height() / 2);
 
-  std::vector<std::string> agent_names = this->generate_agent_names();
-
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
-    Agent* a = new Agent(i, agent_names[i]);
+    Agent* a = new Agent(i, agentNames[i]);
 
     double randomizedX = position.x;
     double randomizedY = position.y;

@@ -21,7 +21,7 @@
 #include <iostream>
 #include <ros/package.h>
 
-int SceneServices::agents_index_ = 0;
+int SceneServices::agents_index_ = 1;
 
 SceneServices::SceneServices(){
   // pedsim services
@@ -167,16 +167,16 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped) {
   const int type = ped.type;
   agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
 
-  agentCluster->vmax = ped.vmax;
+  // agentCluster->vmax = ped.vmax;
   agentCluster->chattingProbability = ped.chatting_probability;
 
   int waypoint_mode = ped.waypoint_mode;
   agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);
 
   // set force factors
-  agentCluster->forceFactorDesired = ped.force_factor_desired;
-  agentCluster->forceFactorObstacle = ped.force_factor_obstacle;
-  agentCluster->forceFactorSocial = ped.force_factor_social;
+  // agentCluster->forceFactorDesired = ped.force_factor_desired;
+  // agentCluster->forceFactorObstacle = ped.force_factor_obstacle;
+  // agentCluster->forceFactorSocial = ped.force_factor_social;
 
   // add waypoints to agentcluster and scene
   for(int i = 0; i < (int) ped.waypoints.size(); i++){
@@ -200,7 +200,7 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped) {
 std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file){
   std::vector<flatland_msgs::Model> flatland_msg;
 
-  std::vector<std::string> names = agentCluster->generate_agent_names();
+  std::vector<std::string> names = agentCluster->agentNames;
 
   for (int i = 0; i < agentCluster->getCount(); i++){
     flatland_msgs::Model model;
