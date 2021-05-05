@@ -171,16 +171,22 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   const int type = ped.type;
   agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
 
-  // agentCluster->vmax = ped.vmax;
+  agentCluster->vmax = ped.vmax;
+  if (agentCluster->vmax < 0.1) {
+    ROS_ERROR("vmax is very small. ped will probably not move");
+  }
   agentCluster->chattingProbability = ped.chatting_probability;
 
   int waypoint_mode = ped.waypoint_mode;
   agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);
 
   // set force factors
-  // agentCluster->forceFactorDesired = ped.force_factor_desired;
-  // agentCluster->forceFactorObstacle = ped.force_factor_obstacle;
-  // agentCluster->forceFactorSocial = ped.force_factor_social;
+  agentCluster->forceFactorDesired = ped.force_factor_desired;
+  if (agentCluster->forceFactorDesired < 0.1) {
+    ROS_ERROR("forceFactorDesired is very small. ped will probably not move");
+  }
+  agentCluster->forceFactorObstacle = ped.force_factor_obstacle;
+  agentCluster->forceFactorSocial = ped.force_factor_social;
 
   // add waypoints to agentcluster and scene
   for(int i = 0; i < (int) ped.waypoints.size(); i++){
