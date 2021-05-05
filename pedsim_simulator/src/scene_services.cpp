@@ -208,7 +208,7 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
     const double x = ped.waypoints[i].x;
     const double y = ped.waypoints[i].y;
     const double r = ped.waypoints[i].z;
-    AreaWaypoint* w = new AreaWaypoint(id, x, y, r);
+    AreaWaypoint* w = new AreaWaypoint(id, x, y, 0.3);
     w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
     SCENE.addWaypoint(w);
     agentCluster->addWaypoint(w);
