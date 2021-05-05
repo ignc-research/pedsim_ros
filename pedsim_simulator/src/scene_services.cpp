@@ -175,7 +175,20 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   if (agentCluster->vmax < 0.1) {
     ROS_ERROR("vmax is very small. ped will probably not move");
   }
+
   agentCluster->chattingProbability = ped.chatting_probability;
+  agentCluster->stateTalkingBaseTime = ped.talking_base_time;
+
+  agentCluster->tellStoryProbability = ped.tell_story_probability;
+  agentCluster->stateTellStoryBaseTime = ped.tell_story_base_time;
+
+  agentCluster->groupTalkingProbability = ped.group_talking_probability;
+  agentCluster->stateGroupTalkingBaseTime = ped.group_talking_base_time;
+
+  agentCluster->talkingAndWalkingProbability = ped.talking_and_walking_probability;
+  agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
+  
+  agentCluster->maxTalkingDistance = ped.max_talking_distance;
 
   int waypoint_mode = ped.waypoint_mode;
   agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);

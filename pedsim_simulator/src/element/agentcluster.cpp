@@ -59,7 +59,7 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<int>
   tellStoryProbability = 0.001;
   groupTalkingProbability = 0.001;
   talkingAndWalkingProbability = 0.001;
-  maxTalkingDistance = 0.001;
+  maxTalkingDistance = 1.5;
   waypoint_mode = Agent::WaypointMode::LOOP;
   stateTalkingBaseTime = 6.0;
   stateTellStoryBaseTime = 6.0;

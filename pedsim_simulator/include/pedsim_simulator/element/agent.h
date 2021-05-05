@@ -34,6 +34,7 @@
 
 #include <pedsim/ped_agent.h>
 #include <pedsim_simulator/element/scenarioelement.h>
+#include <pedsim_simulator/agentstatemachine.h>
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
@@ -121,6 +122,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getMyForce() const;
   QList<const Agent*> getNeighbors() const;
   QList<const Agent*> getAgentsInRange(double distance);
+  QList<const Agent*> getAgentsInRangeWithState(double distance, AgentStateMachine::AgentState state);
 
   // checks
   bool needNewDestination() const;

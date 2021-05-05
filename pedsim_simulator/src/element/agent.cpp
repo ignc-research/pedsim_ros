@@ -427,6 +427,17 @@ QList<const Agent*> Agent::getAgentsInRange(double distance) {
   return agents;
 }
 
+QList<const Agent*> Agent::getAgentsInRangeWithState(double distance, AgentStateMachine::AgentState state) {
+  QList<const Agent*> agents_with_state;
+  auto agents = getAgentsInRange(distance);
+  for (auto agent : agents) {
+    if (agent->getStateMachine()->getCurrentState() == state) {
+      agents_with_state.append(agent);
+    }
+  }
+  return agents_with_state;
+}
+
 
 bool Agent::someoneTalkingToMe() {
   QList<const Agent*> neighbor_list = getAgentsInRange(maxTalkingDistance);
@@ -505,7 +516,7 @@ bool Agent::startGroupTalking() {
     // reset timer
     lastGroupTalkingCheck = ros::Time::now();
 
-    QList<const Agent*> potentialChatters = getAgentsInRange(maxTalkingDistance);
+    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
     // only group talk if there are multiple people around
     if (potentialChatters.length() > 2) {
       // don't start a group talk if someone else already is
@@ -538,7 +549,7 @@ bool Agent::startTalking(){
     lastStartTalkingCheck = ros::Time::now();
 
     // start talking sometimes when there is someone near
-    QList<const Agent*> potentialChatters = getAgentsInRange(maxTalkingDistance);
+    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
     if (!potentialChatters.isEmpty()) {
       // roll a dice
       uniform_real_distribution<double> Distribution(0, 1);
@@ -564,7 +575,7 @@ bool Agent::startTalkingAndWalking(){
     lastStartTalkingAndWalkingCheck = ros::Time::now();
 
     // start talking sometimes when there is someone near
-    QList<const Agent*> potentialChatters = getAgentsInRange(maxTalkingDistance);
+    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
     if (!potentialChatters.isEmpty()) {
       // roll a dice
       uniform_real_distribution<double> Distribution(0, 1);
@@ -634,8 +645,8 @@ void Agent::adjustKeepDistanceForceDistance() {
       count++;
     }
   }
-  double distance_between_listening_agents = 0.5;
-  double min_keep_distance_force_distance = 0.3;
+  double distance_between_listening_agents = 2.0;
+  double min_keep_distance_force_distance = 1.0;
   keepDistanceForceDistance = count * distance_between_listening_agents / (2 * M_PI);
   if (keepDistanceForceDistance < min_keep_distance_force_distance) {
     keepDistanceForceDistance = min_keep_distance_force_distance;
