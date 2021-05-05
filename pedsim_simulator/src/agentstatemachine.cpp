@@ -89,7 +89,7 @@ void AgentStateMachine::doStateTransition() {
       if (destination == nullptr)
         activateState(StateWaiting);
       else
-        activateState(StateWalking);
+        activateState(StateDriving);
     }
 
 
@@ -149,7 +149,7 @@ void AgentStateMachine::doStateTransition() {
       ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
       if (timePassed.toSec() > stateMaxDuration)
       {
-        activateState(StateWalking);
+        activateState(StateDriving);
       }
       return;
     }
@@ -387,6 +387,15 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
       break;
+    case StateDriving:
+      if (individualPlanner == nullptr)
+        individualPlanner = new IndividualWaypointPlanner();
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault);
+      break;
     case StateRunning:
       if (individualPlanner == nullptr)
         individualPlanner = new IndividualWaypointPlanner();
@@ -599,6 +608,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "Waiting";
     case StateWalking:
       return "Walking";
+    case StateDriving:
+      return "Driving";
     case StateQueueing:
       return "Queueing";
     case StateGroupWalking:

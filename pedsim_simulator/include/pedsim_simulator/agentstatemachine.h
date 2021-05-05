@@ -61,6 +61,7 @@ class AgentStateMachine : public QObject {
     StateLiftingForks,
     StateLoading,
     StateLoweringForks,
+    StateDriving,
     StateTellStory,
     StateGroupTalking,
     StateListening,
