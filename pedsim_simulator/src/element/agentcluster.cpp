@@ -81,7 +81,7 @@ QList<Agent*> AgentCluster::dissolve() {
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
     std::string name = "person_" + std::to_string(agentIds[i]);
-    Agent* a = new Agent(i, name);
+    Agent* a = new Agent(name);
 
     double randomizedX = position.x;
     double randomizedY = position.y;

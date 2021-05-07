@@ -53,7 +53,7 @@ Agent::Agent() {
   // group
   group = nullptr;
 }
-Agent::Agent(int id, std::string name) {
+Agent::Agent(std::string name) {
   // ROS_INFO("created agent with id: %d", id);
   // initialize
   Ped::Tagent::setType(Ped::Tagent::ADULT);
@@ -67,7 +67,6 @@ Agent::Agent(int id, std::string name) {
   stateMachine = new AgentStateMachine(this);
   // group
   group = nullptr;
-  // id = id;
   agentName = name;
   destinationIndex = 0;
   talkingToId = -1;

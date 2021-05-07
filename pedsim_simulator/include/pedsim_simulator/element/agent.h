@@ -54,7 +54,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   // Constructor and Destructor
  public:
   Agent();
-  Agent(int id, std::string name);
+  Agent(std::string name);
   Agent(const Agent&);
   virtual ~Agent();
 
