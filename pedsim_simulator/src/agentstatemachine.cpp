@@ -305,6 +305,7 @@ void AgentStateMachine::doStateTransition() {
       {
         activateState(StateWalking);
       }
+      agent->adjustKeepDistanceForceDistance();
       return;
     }
 
@@ -498,11 +499,12 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       stateMaxDuration = getRandomDuration(stateGroupTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->enableForce("KeepDistance");
+      agent->setForceFactorSocial(15.0);
       break;
     case StateListening:
       agent->setWaypointPlanner(nullptr);
       agent->enableForce("KeepDistance");
-      agent->setForceFactorSocial(50.0);
+      agent->setForceFactorSocial(15.0);
       break;
     case StateReachedShelf:
       agent->angleTarget = agent->currentDestination->staticObstacleAngle;
