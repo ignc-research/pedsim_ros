@@ -75,10 +75,12 @@ Agent::Agent(std::string name) {
   lastStartTalkingCheck = ros::Time::now();
   lastStartTalkingAndWalkingCheck = ros::Time::now();
   lastGroupTalkingCheck = ros::Time::now();
+  lastSwitchRunningWalkingCheck = ros::Time::now();
   maxTalkingDistance = 1.5;
   tellStoryProbability = 0.01;
   groupTalkingProbability = 0.01;
   talkingAndWalkingProbability = 0.01;
+  switchRunningWalkingProbability = 0.1;
   disableForce("KeepDistance");
 }
 
@@ -594,6 +596,24 @@ bool Agent::startTalkingAndWalking(){
   return false;
 }
 
+bool Agent::switchRunningWalking(){
+  // only do the probability check again after some time has passed
+  ros::Time now = ros::Time::now();
+  if ((now - lastSwitchRunningWalkingCheck).toSec() > 0.5) {
+    // reset timer
+    lastSwitchRunningWalkingCheck = ros::Time::now();
+
+    // roll a dice
+    uniform_real_distribution<double> Distribution(0, 1);
+    double roll = Distribution(RNG());
+    if (roll < switchRunningWalkingProbability) {
+      // switch to running
+      return true;
+    }
+  }
+
+  return false;
+}
 
 bool Agent::finishedRotation() {
   return abs(fmod(facingDirection, 2 * M_PI) - angleTarget) < 0.1;

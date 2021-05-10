@@ -133,6 +133,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool startGroupTalking();
   bool startTalking();
   bool startTalkingAndWalking();
+  bool switchRunningWalking();
   bool finishedRotation();
 
   // misc
@@ -156,6 +157,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double tellStoryProbability;
   double groupTalkingProbability;
   double talkingAndWalkingProbability;
+  double switchRunningWalkingProbability;
   WaypointMode waypointMode;
   double maxTalkingDistance;
   // direction the agent is facing on a "higher" level, is dependent on current state
@@ -174,6 +176,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   ros::Time lastStartTalkingCheck;
   ros::Time lastStartTalkingAndWalkingCheck;
   ros::Time lastGroupTalkingCheck;
+  ros::Time lastSwitchRunningWalkingCheck;
 };
 
 #endif

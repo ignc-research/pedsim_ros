@@ -237,6 +237,18 @@ void AgentStateMachine::doStateTransition() {
 
     // ## do some checks wether to interrupt walking
 
+    // → switch to running sometimes
+    if (state == StateWalking && agent->switchRunningWalking()) {
+      activateState(StateRunning);
+      return;
+    }
+
+    // → switch to running sometimes
+    if (state == StateRunning && agent->switchRunningWalking()) {
+      activateState(StateWalking);
+      return;
+    }
+
     // → start telling a story sometimes
     if (state == StateWalking && agent->tellStory()) {
       activateState(StateTellStory);
@@ -403,6 +415,8 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       individualPlanner->setAgent(agent);
       individualPlanner->setDestination(destination);
       agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 2.0);
       break;
     case StateQueueing:
       if (queueingPlanner == nullptr)
@@ -610,6 +624,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "Waiting";
     case StateWalking:
       return "Walking";
+    case StateRunning:
+      return "Running";
     case StateDriving:
       return "Driving";
     case StateQueueing:

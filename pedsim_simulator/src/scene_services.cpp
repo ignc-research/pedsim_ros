@@ -189,6 +189,9 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
   
   agentCluster->maxTalkingDistance = ped.max_talking_distance;
+  if (agentCluster->maxTalkingDistance < 0.1) {
+    ROS_ERROR("maxTalkingDistance is very small. ped will probably not interact with others");
+  }
 
   int waypoint_mode = ped.waypoint_mode;
   agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);
