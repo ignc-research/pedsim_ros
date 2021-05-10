@@ -303,6 +303,7 @@ void Agent::move(double h) {
       // copy v from neighbor
       v = neighbor_v;
     } else if (state == AgentStateMachine::AgentState::StateReachedShelf){
+      // do nothing here
     } else {
       // normal movement
       Ped::Tagent::move(h);
@@ -316,11 +317,6 @@ void Agent::move(double h) {
     Ped::Tagent::setForceFactorDesired(0.5);
   }
 
-  if (stateMachine->getCurrentState() == AgentStateMachine::AgentState::StateRunning) {
-    // running should be fast!
-    Ped::Tagent::setVmax(1.6);
-    Ped::Tagent::setForceFactorDesired(4.2);
-  }
   // inform users
   emit positionChanged(getx(), gety());
   emit velocityChanged(getvx(), getvy());

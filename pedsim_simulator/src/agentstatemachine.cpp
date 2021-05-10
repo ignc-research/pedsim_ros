@@ -110,15 +110,6 @@ void AgentStateMachine::doStateTransition() {
     }
 
 
-    // // → do work
-    // if (state == StateWorking)
-    // {
-    //   activateState(StateReachedShelf);
-    //   // activateState(StateLiftingForks);
-    //   return;
-    // }
-
-
     // → lift forks
     if (state == StateLiftingForks)
     {
