@@ -122,7 +122,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getMyForce() const;
   QList<const Agent*> getNeighbors() const;
   QList<const Agent*> getAgentsInRange(double distance);
-  QList<const Agent*> getAgentsInRangeWithState(double distance, AgentStateMachine::AgentState state);
+  QList<const Agent*> getPotentialListeners(double distance);
 
   // checks
   bool needNewDestination() const;

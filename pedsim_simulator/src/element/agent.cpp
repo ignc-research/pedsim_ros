@@ -431,11 +431,14 @@ QList<const Agent*> Agent::getAgentsInRange(double distance) {
   return agents;
 }
 
-QList<const Agent*> Agent::getAgentsInRangeWithState(double distance, AgentStateMachine::AgentState state) {
+QList<const Agent*> Agent::getPotentialListeners(double distance) {
   QList<const Agent*> agents_with_state;
   auto agents = getAgentsInRange(distance);
   for (auto agent : agents) {
-    if (agent->getStateMachine()->getCurrentState() == state) {
+    if (
+      agent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateWalking ||
+      agent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateRunning
+    ) {
       agents_with_state.append(agent);
     }
   }
@@ -520,7 +523,7 @@ bool Agent::startGroupTalking() {
     // reset timer
     lastGroupTalkingCheck = ros::Time::now();
 
-    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
+    QList<const Agent*> potentialChatters = getPotentialListeners(maxTalkingDistance);
     // only group talk if there are multiple people around
     if (potentialChatters.length() > 2) {
       // don't start a group talk if someone else already is
@@ -553,7 +556,7 @@ bool Agent::startTalking(){
     lastStartTalkingCheck = ros::Time::now();
 
     // start talking sometimes when there is someone near
-    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
+    QList<const Agent*> potentialChatters = getPotentialListeners(maxTalkingDistance);
     if (!potentialChatters.isEmpty()) {
       // roll a dice
       uniform_real_distribution<double> Distribution(0, 1);
@@ -579,7 +582,7 @@ bool Agent::startTalkingAndWalking(){
     lastStartTalkingAndWalkingCheck = ros::Time::now();
 
     // start talking sometimes when there is someone near
-    QList<const Agent*> potentialChatters = getAgentsInRangeWithState(maxTalkingDistance, AgentStateMachine::AgentState::StateWalking);
+    QList<const Agent*> potentialChatters = getPotentialListeners(maxTalkingDistance);
     if (!potentialChatters.isEmpty()) {
       // roll a dice
       uniform_real_distribution<double> Distribution(0, 1);
