@@ -19,6 +19,7 @@
 #include <flatland_msgs/DeleteModels.h>
 #include <flatland_msgs/RespawnModels.h>
 #include <iostream>
+#include <pedsim_simulator/rng.h>
 #include <ros/package.h>
 
 int SceneServices::agents_index_ = 1;
@@ -50,6 +51,10 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
 
     // add ped to pedsim
     AgentCluster* agentCluster = addAgentClusterToPedsim(ped, new_agent_ids);
+
+    if (agentCluster->getType() == Ped::Tagent::AgentType::VEHICLE) {
+      spawnStaticObstacles(agentCluster, new_agent_ids);
+    }
 
     // add flatland models to spawn_models service request
     std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file, new_agent_ids);
@@ -155,6 +160,40 @@ bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::Set
   return true;
 }
 
+bool SceneServices::spawnStaticObstacles(AgentCluster* cluster, std::vector<int> ids) {
+  std::string yaml_path = ros::package::getPath("simulator_setup") + "/obstacles/shelf.yaml";
+  flatland_msgs::SpawnModels srv;
+  for (int i = 0; i < cluster->getCount(); i++) {
+    auto waypoints = cluster->getWaypoints();
+    for (int j = 0; j < waypoints.length(); j++) {
+      auto waypoint = waypoints[j];
+      flatland_msgs::Model model;
+      model.name = "agent_" + std::to_string(ids[i]) + "_static_obstacle_" + std::to_string(j);
+      model.ns = "pedsim_agent_" +  std::to_string(ids[i]);
+      auto pos = Ped::Tvector(waypoint->getx(), waypoint->gety());
+      auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(waypoint->staticObstacleAngle), 2.0);
+      auto new_pos = pos + direction;
+      model.pose.x = new_pos.x;
+      model.pose.y = new_pos.y;
+      model.pose.theta = waypoint->staticObstacleAngle;
+      model.yaml_path = yaml_path;
+      srv.request.models.push_back(model);
+    }
+  }
+
+  // make sure client is valid
+  while (!spawn_models_client_.isValid()) {
+    ROS_WARN("Reconnecting to flatland spawn_models service...");
+    spawn_models_client_.waitForExistence(ros::Duration(5.0));
+    spawn_models_client_ = nh_.serviceClient<flatland_msgs::SpawnModels>(spawn_models_topic_, true);
+  }
+
+  // call spawn_models service
+  spawn_models_client_.call(srv);
+
+  return srv.response.success;
+}
+
 AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids) {
   // create agentcluster
   const double x = ped.pos.x;
@@ -189,8 +228,14 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
   
   agentCluster->maxTalkingDistance = ped.max_talking_distance;
-  if (agentCluster->maxTalkingDistance < 0.1) {
-    ROS_ERROR("maxTalkingDistance is very small. ped will probably not interact with others");
+  if (
+    agentCluster->getType() == Ped::Tagent::AgentType::ADULT ||
+    agentCluster->getType() == Ped::Tagent::AgentType::ELDER ||
+    agentCluster->getType() == Ped::Tagent::AgentType::CHILD
+    ) {
+    if (agentCluster->maxTalkingDistance < 0.1) {
+      ROS_WARN("maxTalkingDistance is very small. ped will probably not interact with others");
+    }
   }
 
   int waypoint_mode = ped.waypoint_mode;
@@ -212,6 +257,8 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
     const double y = ped.waypoints[i].y;
     const double r = ped.waypoints[i].z;
     AreaWaypoint* w = new AreaWaypoint(id, x, y, 0.3);
+    uniform_real_distribution<double> Distribution(0.0, 2*M_PI);
+    w->staticObstacleAngle = Distribution(RNG());
     w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
     SCENE.addWaypoint(w);
     agentCluster->addWaypoint(w);

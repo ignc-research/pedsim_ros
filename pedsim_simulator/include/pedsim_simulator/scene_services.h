@@ -56,6 +56,11 @@ class SceneServices {
   bool resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
+  * @brief Spawns shelfes for the forklift.
+  */
+  bool spawnStaticObstacles(AgentCluster* cluster, std::vector<int> ids);
+
+  /**
   * @brief Respawning means reusing objects from previous tasks.
   * It is a more efficient way to setup a task during learning.
   */

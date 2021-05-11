@@ -69,6 +69,7 @@ class AgentStateMachine : public QObject {
     StateListeningAndWalking,
     StateReachedShelf,
     StateRunning,
+    StateBackUp,
   } AgentState;
 
   // Constructor and Destructor

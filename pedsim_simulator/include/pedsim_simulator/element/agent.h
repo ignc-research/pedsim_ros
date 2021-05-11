@@ -35,6 +35,7 @@
 #include <pedsim/ped_agent.h>
 #include <pedsim_simulator/element/scenarioelement.h>
 #include <pedsim_simulator/agentstatemachine.h>
+#include <pedsim_simulator/agent_pose_stamped.h>
 
 #ifndef Q_MOC_RUN
 #include <ros/ros.h>
@@ -82,7 +83,13 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   // → Ped::Tagent Overrides/Overloads
   void updateState();
   void updateDirection(double h);
-  void rotate(double time_step, double angular_v);
+  double normalizeAngle(double angle_in);
+  double rotate(double current_angle, double target_angle, double time_step, double angular_v);
+  bool completedMoveList();
+  void moveByMoveList();
+  std::vector<AgentPoseStamped> createMoveListStateReachedShelf();
+  std::vector<AgentPoseStamped> createMoveListStateBackUp();
+  std::vector<AgentPoseStamped> createMoveList(AgentStateMachine::AgentState state);
   void move(double h);
   Ped::Tvector desiredForce();
   Ped::Tvector socialForce() const;
@@ -90,6 +97,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector keepDistanceForce();
   Ped::Tvector myForce(Ped::Tvector desired) const;
   Ped::Twaypoint* getCurrentWaypoint() const;
+  Waypoint* getPreviousDestination();
   Ped::Twaypoint* updateDestination();
   void setPosition(double xIn, double yIn);
   void setX(double xIn);
@@ -148,6 +156,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   std::string agentName;
   QList<Waypoint*> destinations;
   int destinationIndex;
+  int previousDestinationIndex;
+  int nextDestinationIndex;
   double initialPosX;
   double initialPosY;
   int talkingToId;
@@ -163,6 +173,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   // direction the agent is facing on a "higher" level, is dependent on current state
   double facingDirection;
   double angleTarget;
+  double timeStepSize;  // step size used for special moves
+  std::vector<AgentPoseStamped> moveList;  // move list used for special moves
   Waypoint* currentDestination;
   AgentStateMachine* stateMachine;
 

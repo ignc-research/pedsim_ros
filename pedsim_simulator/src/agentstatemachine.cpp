@@ -103,7 +103,7 @@ void AgentStateMachine::doStateTransition() {
 
     if (state == StateReachedShelf)
     {
-      if (agent->finishedRotation()) {
+      if (agent->completedMoveList()) {
         activateState(StateLiftingForks);
       }
       return;
@@ -140,11 +140,19 @@ void AgentStateMachine::doStateTransition() {
       ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
       if (timePassed.toSec() > stateMaxDuration)
       {
-        activateState(StateDriving);
+        activateState(StateBackUp);
       }
       return;
     }
 
+    // drive backwards and turn to next destination
+    if (state == StateBackUp)
+    {
+      if (agent->completedMoveList()) {
+        activateState(StateDriving);
+      }
+      return;
+    }
 
   } else {
     // ## normal pedestrian behavior ##
@@ -438,7 +446,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       // keep other agents informed about the attraction
       AgentGroup* group = agent->getGroup();
       if (group != nullptr) {
-        foreach (Agent* member, group->getMembers()) {
+        for (Agent* member : group->getMembers()) {
           if (member == agent) continue;
 
           AgentStateMachine* memberStateMachine = member->getStateMachine();
@@ -512,7 +520,12 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setForceFactorSocial(15.0);
       break;
     case StateReachedShelf:
-      agent->angleTarget = agent->currentDestination->staticObstacleAngle;
+      agent->angleTarget = agent->getPreviousDestination()->staticObstacleAngle;
+      agent->moveList = agent->createMoveList(StateReachedShelf);
+      agent->setWaypointPlanner(nullptr);
+      break;
+    case StateBackUp:
+      agent->moveList = agent->createMoveList(StateBackUp);
       agent->setWaypointPlanner(nullptr);
       break;
   }
@@ -647,6 +660,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "Listening";
     case StateReachedShelf:
       return "ReachedShelf";
+    case StateBackUp:
+      return "BackUp";
     default:
       return "UnknownState";
   }

@@ -51,6 +51,7 @@ set(SOURCES
   	src/scenarioreader.cpp
 	src/rng.cpp
 	src/scene_services.cpp
+	src/agent_pose_stamped.cpp
 
 	# elements
 	src/element/agent.cpp
@@ -86,6 +87,7 @@ set(MOC_FILES
 	include/pedsim_simulator/scene.h
 	include/pedsim_simulator/agentstatemachine.h
 	include/pedsim_simulator/scene_services.h
+	include/pedsim_simulator/agent_pose_stamped.h
 
 	include/pedsim_simulator/element/scenarioelement.h
 	include/pedsim_simulator/element/agent.h

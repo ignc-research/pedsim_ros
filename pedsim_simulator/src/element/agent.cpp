@@ -52,6 +52,11 @@ Agent::Agent() {
   stateMachine = new AgentStateMachine(this);
   // group
   group = nullptr;
+
+  destinationIndex = 0;
+  previousDestinationIndex = 0;
+  nextDestinationIndex = 0;
+  timeStepSize = 0.02;
 }
 Agent::Agent(std::string name) {
   // ROS_INFO("created agent with id: %d", id);
@@ -69,6 +74,8 @@ Agent::Agent(std::string name) {
   group = nullptr;
   agentName = name;
   destinationIndex = 0;
+  previousDestinationIndex = 0;
+  nextDestinationIndex = 0;
   talkingToId = -1;
   listeningToId = -1;
   lastTellStoryCheck = ros::Time::now();
@@ -81,6 +88,7 @@ Agent::Agent(std::string name) {
   groupTalkingProbability = 0.01;
   talkingAndWalkingProbability = 0.01;
   switchRunningWalkingProbability = 0.1;
+  timeStepSize = 0.02;
   disableForce("KeepDistance");
 }
 
@@ -182,18 +190,26 @@ void Agent::reset() {
   stateMachine->activateState(AgentStateMachine::AgentState::StateNone);
 }
 
+Waypoint* Agent::getPreviousDestination() {
+  return destinations[previousDestinationIndex];
+}
+
 Ped::Twaypoint* Agent::updateDestination() {
   // assign new destination
   if (!destinations.isEmpty()) {
+    previousDestinationIndex = destinationIndex;
+    destinationIndex = nextDestinationIndex;
+    currentDestination = destinations[destinationIndex];
+
     if (waypointMode == WaypointMode::RANDOM) {
       // choose random destination
-      destinationIndex = rand() % destinations.count();
+      while (nextDestinationIndex == destinationIndex && destinations.length() > 1) {
+        nextDestinationIndex = rand() % destinations.count();
+      }
     } else {
       // cycle through destinations
-      destinationIndex = (destinationIndex + 1) % destinations.count();
+      nextDestinationIndex = (nextDestinationIndex + 1) % destinations.count();
     }
-    
-    currentDestination = destinations[destinationIndex];
   }
 
   return currentDestination;
@@ -206,7 +222,6 @@ void Agent::updateState() {
 
 // update direction the agent is facing based on the state
 void Agent::updateDirection(double h) {
-  // if (id == 8) ROS_INFO("curr dest angle: %lf", currentDestination->staticObstacleAngle);
   switch (stateMachine->getCurrentState()) {
     case AgentStateMachine::AgentState::StateWalking:
       if (v.length() > 0.001) {
@@ -220,16 +235,19 @@ void Agent::updateDirection(double h) {
       facingDirection = (keepDistanceTo - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
       break;
     case AgentStateMachine::AgentState::StateLiftingForks:
-      facingDirection = currentDestination->staticObstacleAngle;
+      facingDirection = getPreviousDestination()->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoading:
-      facingDirection = currentDestination->staticObstacleAngle;
+      facingDirection = getPreviousDestination()->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoweringForks:
-      facingDirection = currentDestination->staticObstacleAngle;
+      facingDirection = getPreviousDestination()->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateReachedShelf:
-      rotate(h, 1.0);
+      // do nothing
+      break;
+    case AgentStateMachine::AgentState::StateBackUp:
+      // do nothing
       break;
     default:
       if (v.length() > 0.001) {
@@ -239,23 +257,146 @@ void Agent::updateDirection(double h) {
   }
 }
 
-void Agent::rotate(double time_step, double angular_v) {
+// in: angle in radians
+// out: angle in radians between 0 and 2*PI
+double Agent::normalizeAngle(double angle_in) {
+  double angle = angle_in;
+  while (angle < 0) {
+    angle += 2 * M_PI;
+  }
+
+  while (angle > 2 * M_PI) {
+    angle -= 2 * M_PI;
+  }
+
+  return angle;
+}
+
+double Agent::rotate(double current_angle, double target_angle, double time_step, double angular_v) {
+  double current_angle_normalized = normalizeAngle(current_angle);
+  double target_angle_normalized = normalizeAngle(target_angle);
   double angle = time_step * angular_v;
-  double angle_diff = angleTarget - facingDirection;
-
-  while (angle_diff < 0) {
-    angle_diff += 2 * M_PI;
-  }
-
-  while (angle_diff > 2 * M_PI) {
-    angle_diff -= 2 * M_PI;
-  }
+  double angle_diff = normalizeAngle(target_angle_normalized - current_angle_normalized);
 
   if (angle_diff > M_PI) {
     angle *= -1;
   }
 
-  facingDirection += angle;
+  return current_angle_normalized + angle;
+}
+
+bool Agent::completedMoveList() {
+  auto last_move = moveList.back();
+  return ros::Time::now() > last_move.timestamp;
+}
+
+void Agent::moveByMoveList() {
+  // TODO this can be sped up by projecting the current time onto the range between start time and end time to find the right move index
+  auto now = ros::Time::now();
+  double min_time_diff = INFINITY;
+  AgentPoseStamped new_pose;
+  for (auto pose : moveList) {
+    double time_diff = abs((now - pose.timestamp).toSec());
+    if (time_diff < min_time_diff) {
+      min_time_diff = time_diff;
+      new_pose = pose;
+    }
+  }
+  p = new_pose.pos;
+  facingDirection = new_pose.theta;
+}
+
+std::vector<AgentPoseStamped> Agent::createMoveListStateReachedShelf() {
+  std::vector<AgentPoseStamped> moves;
+  double linear_v = 0.5;
+  double angular_v = 0.5;
+  double temp_direction = facingDirection;
+  Ped::Tvector temp_pos = p;
+  ros::Time temp_time = ros::Time::now();
+
+  // do rotation
+  // while not reached target angle
+  while (abs(fmod(temp_direction, 2 * M_PI) - angleTarget) > 0.1) {
+    AgentPoseStamped pose = AgentPoseStamped(temp_time, temp_pos, temp_direction);
+    moves.push_back(pose);
+
+    temp_direction = rotate(temp_direction, angleTarget, timeStepSize, angular_v);
+    temp_time += ros::Duration(timeStepSize);
+  }
+
+  // do short move forward
+  Ped::Tvector target_pos = temp_pos + Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(temp_direction), 1.0);  // 1.0m forward in the current direction
+  double original_diff = (target_pos - temp_pos).length();
+  while ((temp_pos - target_pos).length() > 0.1) {
+    if ((temp_pos - target_pos).length() > original_diff + 1.0) {
+      ROS_ERROR("overshot target");
+      break;
+    }
+    AgentPoseStamped pose = AgentPoseStamped(temp_time, temp_pos, temp_direction);
+    moves.push_back(pose);
+
+    // move linearly in direction with linear_v
+    temp_pos += Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(temp_direction), 1.0) * linear_v * timeStepSize;
+    temp_time += ros::Duration(timeStepSize);
+  }
+
+  return moves;
+}
+
+std::vector<AgentPoseStamped> Agent::createMoveListStateBackUp() {
+  std::vector<AgentPoseStamped> moves;
+  double linear_v = 0.5;
+  double angular_v = 0.5;
+  double temp_direction = facingDirection;
+  Ped::Tvector temp_pos = p;
+  ros::Time temp_time = ros::Time::now();
+
+  // move backwards
+  Ped::Tvector target_pos = temp_pos + Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(temp_direction + M_PI), 1.0);  // 1.0m backwards in the current direction
+  double original_diff = (target_pos - temp_pos).length();
+  while ((temp_pos - target_pos).length() > 0.1) {
+    if ((temp_pos - target_pos).length() > original_diff + 1.0) {
+      ROS_ERROR("overshot target");
+      break;
+    }
+
+    AgentPoseStamped pose = AgentPoseStamped(temp_time, temp_pos, temp_direction);
+    moves.push_back(pose);
+
+    // move linearly in direction with linear_v
+    temp_pos += Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(temp_direction + M_PI), 1.0) * linear_v * timeStepSize;
+    temp_time += ros::Duration(timeStepSize);
+  }
+
+  // turn to next destination
+  // auto next_destination = destinations[nextDestinationIndex];
+  auto next_destination_direction = currentDestination->getPosition() - temp_pos;
+  double angle_target = next_destination_direction.polarAngle().toRadian(Ped::Tangle::AngleRange::PositiveOnlyRange);
+  // while not reached target angle
+  while (abs(fmod(temp_direction, 2 * M_PI) - angle_target) > 0.1) {
+    AgentPoseStamped pose = AgentPoseStamped(temp_time, temp_pos, temp_direction);
+    moves.push_back(pose);
+
+    temp_direction = rotate(temp_direction, angle_target, timeStepSize, angular_v);
+    temp_time += ros::Duration(timeStepSize);
+  }
+
+  return moves;
+}
+
+std::vector<AgentPoseStamped> Agent::createMoveList(AgentStateMachine::AgentState state) {
+  std::vector<AgentPoseStamped> moves;
+  switch (state) {
+  case AgentStateMachine::AgentState::StateReachedShelf:
+    moves = createMoveListStateReachedShelf();
+    break;
+  case AgentStateMachine::AgentState::StateBackUp:
+    moves = createMoveListStateBackUp();
+    break;
+  default:
+    break;
+  }
+  return moves;
 }
 
 void Agent::move(double h) {
@@ -303,7 +444,9 @@ void Agent::move(double h) {
       // copy v from neighbor
       v = neighbor_v;
     } else if (state == AgentStateMachine::AgentState::StateReachedShelf){
-      // do nothing here
+      moveByMoveList();
+    } else if (state == AgentStateMachine::AgentState::StateBackUp){
+      moveByMoveList();
     } else {
       // normal movement
       Ped::Tagent::move(h);
