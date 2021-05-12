@@ -214,7 +214,15 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   agentCluster->setDistribution(dx, dy);
 
   // set type
-  const int type = ped.type;
+  std::string type_string = ped.type;
+  int type = 0;
+  // convert type string to enum value
+  auto types = SCENE.types;
+  auto it = find(types.begin(), types.end(), type_string);
+  // If element was found
+  if (it != types.end()) {
+      type = it - types.begin();
+  }
   agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
 
   agentCluster->vmax = ped.vmax;

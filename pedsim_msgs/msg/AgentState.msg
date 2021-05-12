@@ -1,6 +1,6 @@
 Header header
 uint64 id
-uint16 type
+string type
 string social_state
 geometry_msgs/Pose pose
 geometry_msgs/Twist twist

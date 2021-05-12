@@ -350,7 +350,7 @@ void Simulator::publishAgents() {
     state.header = createMsgHeader();
 
     state.id = a->getId();
-    state.type = a->getType();
+    state.type = SCENE.types[a->getType()];
     state.pose.position.x = a->getx();
     state.pose.position.y = a->gety();
     state.pose.position.z = a->getz();

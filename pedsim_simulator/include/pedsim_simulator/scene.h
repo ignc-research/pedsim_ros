@@ -161,6 +161,7 @@ class Scene : public QObject, protected Ped::Tscene {
 
   // obstacle cell locations
   std::vector<Location> obstacle_cells_;
+  std::vector<std::string> types {"adult", "child", "elder", "forklift"};
 
   // Attributes
  protected:

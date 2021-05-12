@@ -2,7 +2,7 @@
 # For spawning agents dynamically in pedsim and forwarding them to flatland
 int16 id
 geometry_msgs/Point pos
-int16 type
+string type
 int16 number_of_peds
 float64 vmax
 float64 chatting_probability
