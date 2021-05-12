@@ -263,7 +263,7 @@ void AgentStateMachine::doStateTransition() {
 
 
     // → check wether someone is talking to me
-    if ((state == StateWalking) && agent->someoneTalkingToMe()) {
+    if ((state == StateWalking || state == StateRunning) && agent->someoneTalkingToMe()) {
       if (agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalkingAndWalking) {
         activateState(StateListeningAndWalking);
       } else {
@@ -473,6 +473,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 0.3);  // walk slower when talking
+      agent->disableForce("Social");
       break;
     case StateListeningAndWalking:
       agent->setWaypointPlanner(nullptr);
