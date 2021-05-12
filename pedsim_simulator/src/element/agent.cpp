@@ -77,7 +77,9 @@ Agent::Agent(std::string name) {
   previousDestinationIndex = 0;
   nextDestinationIndex = 0;
   talkingToId = -1;
+  talkingToAgent = nullptr;
   listeningToId = -1;
+  listeningToAgent = nullptr;
   lastTellStoryCheck = ros::Time::now();
   lastStartTalkingCheck = ros::Time::now();
   lastStartTalkingAndWalkingCheck = ros::Time::now();
@@ -248,6 +250,9 @@ void Agent::updateDirection(double h) {
       break;
     case AgentStateMachine::AgentState::StateBackUp:
       // do nothing
+      break;
+    case AgentStateMachine::AgentState::StateTalking:
+      facingDirection = (talkingToAgent->getPosition() - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
       break;
     default:
       if (v.length() > 0.001) {
@@ -712,7 +717,8 @@ bool Agent::startTalking(){
       if (roll < chattingProbability) {
         // start chatting to a random person in range
         int idx = std::rand() % potentialChatters.length();
-        this->talkingToId = potentialChatters[idx]->getId();
+        talkingToId = potentialChatters[idx]->getId();
+        talkingToAgent = potentialChatters[idx];
         return true;
       }
     }

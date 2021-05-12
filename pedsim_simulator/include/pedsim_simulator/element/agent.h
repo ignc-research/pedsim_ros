@@ -162,6 +162,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double initialPosX;
   double initialPosY;
   int talkingToId;
+  const Agent* talkingToAgent;
   int listeningToId;
   Agent* listeningToAgent;
   double chattingProbability;
