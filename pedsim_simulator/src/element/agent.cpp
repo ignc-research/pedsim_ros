@@ -624,6 +624,15 @@ bool Agent::someoneTalkingToMe() {
   return false;
 }
 
+bool Agent::isListeningToIndividual() {
+  if (listeningToAgent != nullptr) {
+    if (listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalking) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 bool Agent::tellStory() {
   ros::Time now = ros::Time::now();

@@ -137,6 +137,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool hasCompletedDestination() const;
   bool isInGroup() const;
   bool someoneTalkingToMe();
+  bool isListeningToIndividual();
   bool tellStory();
   bool startGroupTalking();
   bool startTalking();

@@ -516,8 +516,12 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateListening:
       agent->setWaypointPlanner(nullptr);
-      agent->enableForce("KeepDistance");
-      agent->setForceFactorSocial(15.0);
+      if (agent->isListeningToIndividual()) {
+        agent->stopMovement();
+      } else {
+        agent->enableForce("KeepDistance");
+        agent->setForceFactorSocial(15.0);
+      }
       break;
     case StateReachedShelf:
       agent->angleTarget = agent->getPreviousDestination()->staticObstacleAngle;
