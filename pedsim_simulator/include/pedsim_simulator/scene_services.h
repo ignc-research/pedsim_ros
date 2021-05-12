@@ -39,6 +39,7 @@ class SceneServices {
   ros::ServiceServer reset_peds_service_;
 
   static int agents_index_;
+  static std::vector<std::string> static_obstacle_names_;
 
   /**
   * @brief Spawns pedestrian in pedsim and flatland.

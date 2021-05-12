@@ -23,6 +23,7 @@
 #include <ros/package.h>
 
 int SceneServices::agents_index_ = 1;
+std::vector<std::string> SceneServices::static_obstacle_names_;
 
 SceneServices::SceneServices(){
   // pedsim services
@@ -107,6 +108,7 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
                                 std_srvs::SetBool::Response &response){
   flatland_msgs::DeleteModels srv;
   srv.request.name = removePedsInPedsim();
+  srv.request.name.insert(srv.request.name.end(), static_obstacle_names_.begin(), static_obstacle_names_.end());
 
   // Deleting pedestrian in flatland
   while (!delete_models_client_.isValid()) {
@@ -119,8 +121,11 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
 
   if (!srv.response.success) {
     ROS_ERROR("Failed to delete all %d agents. Maybe a few were deleted. %s", int(srv.request.name.size()), srv.response.message.c_str());
+    response.success = false;
+    return false;
   }
 
+  static_obstacle_names_.clear();
   response.success = true;
   return true;
 }
@@ -168,7 +173,9 @@ bool SceneServices::spawnStaticObstacles(AgentCluster* cluster, std::vector<int>
     for (int j = 0; j < waypoints.length(); j++) {
       auto waypoint = waypoints[j];
       flatland_msgs::Model model;
-      model.name = "agent_" + std::to_string(ids[i]) + "_static_obstacle_" + std::to_string(j);
+      std::string name = "agent_" + std::to_string(ids[i]) + "_static_obstacle_" + std::to_string(j);
+      static_obstacle_names_.push_back(name);
+      model.name = name;
       model.ns = "pedsim_agent_" +  std::to_string(ids[i]);
       auto pos = Ped::Tvector(waypoint->getx(), waypoint->gety());
       auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(waypoint->staticObstacleAngle), 2.0);
