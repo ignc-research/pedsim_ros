@@ -76,6 +76,9 @@ Agent::Agent(std::string name) {
   destinationIndex = 0;
   previousDestinationIndex = 0;
   nextDestinationIndex = 0;
+  lastInteractedWithWaypointId = -1;
+  lastInteractedWithWaypoint = nullptr;
+  isInteracting = false;
   talkingToId = -1;
   talkingToAgent = nullptr;
   listeningToId = -1;
@@ -237,13 +240,13 @@ void Agent::updateDirection(double h) {
       facingDirection = (keepDistanceTo - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
       break;
     case AgentStateMachine::AgentState::StateLiftingForks:
-      facingDirection = getPreviousDestination()->staticObstacleAngle;
+      facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoading:
-      facingDirection = getPreviousDestination()->staticObstacleAngle;
+      facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoweringForks:
-      facingDirection = getPreviousDestination()->staticObstacleAngle;
+      facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateReachedShelf:
       // do nothing
@@ -300,6 +303,7 @@ void Agent::moveByMoveList() {
   auto now = ros::Time::now();
   double min_time_diff = INFINITY;
   AgentPoseStamped new_pose;
+  // find pose in move list that is closest to ros::Time::now()
   for (auto pose : moveList) {
     double time_diff = abs((now - pose.timestamp).toSec());
     if (time_diff < min_time_diff) {
@@ -317,7 +321,7 @@ std::vector<AgentPoseStamped> Agent::createMoveListStateReachedShelf() {
   double angular_v = 0.5;
   double temp_direction = facingDirection;
   Ped::Tvector temp_pos = p;
-  ros::Time temp_time = ros::Time::now();
+  ros::Time temp_time = ros::Time::now() + ros::Duration(1.0);
 
   // do rotation
   // while not reached target angle
@@ -354,7 +358,7 @@ std::vector<AgentPoseStamped> Agent::createMoveListStateBackUp() {
   double angular_v = 0.5;
   double temp_direction = facingDirection;
   Ped::Tvector temp_pos = p;
-  ros::Time temp_time = ros::Time::now();
+  ros::Time temp_time = ros::Time::now() + ros::Duration(1.0);
 
   // move backwards
   Ped::Tvector target_pos = temp_pos + Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(temp_direction + M_PI), 1.0);  // 1.0m backwards in the current direction
@@ -589,6 +593,18 @@ QList<const Agent*> Agent::getPotentialListeners(double distance) {
   return agents_with_state;
 }
 
+Waypoint* Agent::getInteractiveObstacleInRange(int type) {
+  auto waypoints = SCENE.getWaypoints();
+  for (auto waypoint : waypoints.values()) {
+    if (waypoint->getType() == type) {
+      auto diff = waypoint->getPosition() - p;
+      if (diff.lengthSquared() < pow(waypoint->interactionRadius, 2)) {
+        return waypoint;
+      }
+    }
+  }
+  return nullptr;
+}
 
 bool Agent::someoneTalkingToMe() {
   QList<const Agent*> neighbor_list = getAgentsInRange(maxTalkingDistance);

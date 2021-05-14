@@ -95,9 +95,32 @@ void AgentStateMachine::doStateTransition() {
 
     // → update destination on arrival
     if (agent->hasCompletedDestination()) {
-      agent->updateDestination();
-      activateState(StateReachedShelf);
+      if (agent->getCurrentDestination()->isInteractive())
+      {
+        agent->updateDestination();
+        activateState(StateReachedShelf);
+      }
+      else
+      {
+        agent->updateDestination();
+        activateState(StateDriving);
+      }
       return;
+    }
+
+
+    // → check if interactive obstacle is in range
+    if (state == StateDriving && agent->isInteracting == false)
+    {
+      auto destination = agent->getInteractiveObstacleInRange(Ped::Twaypoint::WaypointType::Shelf);
+      if (destination != nullptr && agent->lastInteractedWithWaypointId != destination->getId())
+      {
+        agent->lastInteractedWithWaypointId = destination->getId();
+        agent->lastInteractedWithWaypoint = destination;
+        agent->isInteracting = true;
+        agent->getWaypointPlanner()->setDestination(destination);
+        agent->currentDestination = destination;
+      }
     }
 
 
@@ -149,6 +172,7 @@ void AgentStateMachine::doStateTransition() {
     if (state == StateBackUp)
     {
       if (agent->completedMoveList()) {
+        agent->isInteracting = false;
         activateState(StateDriving);
       }
       return;
@@ -525,7 +549,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       }
       break;
     case StateReachedShelf:
-      agent->angleTarget = agent->getPreviousDestination()->staticObstacleAngle;
+      agent->angleTarget = agent->lastInteractedWithWaypoint->staticObstacleAngle;
       agent->moveList = agent->createMoveList(StateReachedShelf);
       agent->setWaypointPlanner(nullptr);
       break;

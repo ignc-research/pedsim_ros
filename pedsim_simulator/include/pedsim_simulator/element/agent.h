@@ -131,6 +131,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   QList<const Agent*> getNeighbors() const;
   QList<const Agent*> getAgentsInRange(double distance);
   QList<const Agent*> getPotentialListeners(double distance);
+  Waypoint* getInteractiveObstacleInRange(int type);
 
   // checks
   bool needNewDestination() const;
@@ -159,6 +160,9 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   int destinationIndex;
   int previousDestinationIndex;
   int nextDestinationIndex;
+  int lastInteractedWithWaypointId;
+  Waypoint* lastInteractedWithWaypoint;
+  bool isInteracting;
   double initialPosX;
   double initialPosY;
   int talkingToId;
