@@ -13,11 +13,13 @@
 #include <pedsim_simulator/scene.h>
 #include <pedsim_srvs/SpawnPeds.h>
 #include <pedsim_srvs/SpawnObstacle.h>
+#include <pedsim_srvs/SpawnInteractiveObstacles.h>
 #include <pedsim_srvs/MovePeds.h>
 #include <flatland_msgs/Model.h>
 #include <pedsim_msgs/Ped.h>
 #include <pedsim_msgs/LineObstacle.h>
 #include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/InteractiveObstacle.h>
 #include <std_srvs/SetBool.h>
 
 /**
@@ -37,8 +39,10 @@ class SceneServices {
   ros::ServiceServer move_peds_service_;
   ros::ServiceServer spawn_peds_service_;
   ros::ServiceServer reset_peds_service_;
+  ros::ServiceServer spawn_interactive_obstacles_service_;
 
   static int agents_index_;
+  static int static_obstacles_index_;
   static std::vector<std::string> static_obstacle_names_;
 
   /**
@@ -57,9 +61,9 @@ class SceneServices {
   bool resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
-  * @brief Spawns shelfes for the forklift.
+  * @brief Spawns interactive obstacles
   */
-  bool spawnStaticObstacles(AgentCluster* cluster, std::vector<int> ids);
+  bool spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
 
   /**
   * @brief Respawning means reusing objects from previous tasks.
