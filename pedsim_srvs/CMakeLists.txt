@@ -28,6 +28,7 @@ add_service_files( DIRECTORY srv
   SpawnPeds.srv
   SpawnObstacle.srv
   MovePeds.srv
+  SpawnInteractiveObstacles.srv
 )
 
 generate_messages(DEPENDENCIES ${MESSAGE_DEPENDENCIES})

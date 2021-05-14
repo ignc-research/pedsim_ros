@@ -34,6 +34,7 @@ add_message_files( DIRECTORY msg
   Waypoint.msg
   Waypoints.msg
   Ped.msg
+  InteractiveObstacle.msg
 )
 
 # generate the messages
