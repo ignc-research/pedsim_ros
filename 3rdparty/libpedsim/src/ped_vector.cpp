@@ -97,6 +97,11 @@ Ped::Tvector Ped::Tvector::rotated(double angle) const {
   return temp;
 }
 
+std::string Ped::Tvector::toString() const {
+  return "vector(" + std::to_string(x) + ", " + std::to_string(y) + ")";
+}
+
+
 Ped::Tvector Ped::Tvector::leftNormalVector() const {
   return Ped::Tvector(-y, x);
 }

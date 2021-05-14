@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <cmath>
+#include <string>
 #include "ped_angle.h"
 
 namespace Ped {
@@ -42,6 +43,7 @@ class LIBEXPORT Tvector {
   void scale(double factor);
   Tvector scaled(double factor) const;
   Ped::Tvector rotated(double angle) const;
+  std::string toString() const;
 
   Tvector leftNormalVector() const;
   Tvector rightNormalVector() const;
