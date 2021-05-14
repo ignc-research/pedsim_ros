@@ -267,6 +267,7 @@ void Scene::dissolveClusters() {
       if (currentGroup->memberCount() == 1) {
         // we don't need one agent groups
         delete currentGroup;
+        continue;
       } else if (currentGroup->memberCount() > 1) {
         // keep track of groups
         agentGroups.append(currentGroup);
