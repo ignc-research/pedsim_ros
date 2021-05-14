@@ -53,3 +53,12 @@ Ped::Tvector Ped::Twaypoint::closestPoint(const Ped::Tvector& p,
                                           bool* withinWaypoint) const {
   return position;
 }
+
+bool Ped::Twaypoint::isInteractive() {
+  auto it = find(interactiveTypes.begin(), interactiveTypes.end(), type);
+  // If element was found
+  if (it != interactiveTypes.end()) {
+    return true;
+  }
+  return false;
+}
