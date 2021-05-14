@@ -64,8 +64,6 @@ class GroupWaypointPlanner : public WaypointPlanner {
  protected:
   AgentGroup* group;
 
-  // → Waypoints
-  Waypoint* destination;
 };
 
 #endif

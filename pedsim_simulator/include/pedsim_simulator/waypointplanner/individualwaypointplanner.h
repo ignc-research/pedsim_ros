@@ -64,8 +64,6 @@ class IndividualWaypointPlanner : public WaypointPlanner {
  protected:
   Agent* agent;
 
-  // → Waypoints
-  Waypoint* destination;
 };
 
 #endif
