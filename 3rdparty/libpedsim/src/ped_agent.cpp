@@ -135,7 +135,7 @@ Ped::Tvector Ped::Tagent::desiredForce() {
   Twaypoint* waypoint = getCurrentWaypoint();
 
   // if there is no destination, don't move
-  if (waypoint == NULL) {
+  if (waypoint == nullptr) {
     desiredDirection = Ped::Tvector();
     Tvector antiMove = -v / relaxationTime;
     return antiMove;
