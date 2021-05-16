@@ -21,7 +21,6 @@
 #include <iostream>
 #include <pedsim_simulator/rng.h>
 #include <ros/package.h>
-// #include <tf2/LinearMath/Matrix3x3.h>
 
 int SceneServices::agents_index_ = 1;
 int SceneServices::static_obstacles_index_ = 1;
@@ -35,7 +34,9 @@ SceneServices::SceneServices(){
   reset_peds_service_ = nh_.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::resetPeds, this);
   add_obstacle_service_ = nh_.advertiseService("pedsim_simulator/add_obstacle", &SceneServices::addStaticObstacles, this);
   move_peds_service_ = nh_.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
+  respawn_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/respawn_interactive_obstacles", &SceneServices::respawnInteractiveObstacles, this);
   spawn_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/spawn_interactive_obstacles", &SceneServices::spawnInteractiveObstacles, this);
+  remove_all_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_interactive_obstacles", &SceneServices::removeAllInteractiveObstacles, this);
   
   //flatland service clients
   spawn_models_topic_ = ros::this_node::getNamespace() + "/spawn_models";
@@ -107,7 +108,6 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
                                 std_srvs::SetBool::Response &response){
   flatland_msgs::DeleteModels srv;
   srv.request.name = removePedsInPedsim();
-  srv.request.name.insert(srv.request.name.end(), static_obstacle_names_.begin(), static_obstacle_names_.end());
 
   // Deleting pedestrian in flatland
   while (!delete_models_client_.isValid()) {
@@ -124,7 +124,6 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
     return false;
   }
 
-  static_obstacle_names_.clear();
   response.success = true;
   return true;
 }
@@ -134,7 +133,9 @@ std::vector<std::string> SceneServices::removePedsInPedsim() {
   // Remove all waypoints
   auto waypoints = SCENE.getWaypoints();
   for (auto waypoint : waypoints.values()) {
-    SCENE.removeWaypoint(waypoint);
+    if (!waypoint->isInteractive()) {
+      SCENE.removeWaypoint(waypoint);
+    }
   }
 
   // Remove all agents
@@ -153,6 +154,25 @@ std::vector<std::string> SceneServices::removePedsInPedsim() {
   return names;
 }
 
+bool SceneServices::respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response) {
+  std_srvs::Trigger::Request request_;
+  std_srvs::Trigger::Response response_;
+  bool res = removeAllInteractiveObstacles(request_, response_);
+  if (!res) {
+    response.success = false;
+    return false;
+  }
+
+  res = spawnInteractiveObstacles(request, response);
+  if (!res) {
+    response.success = false;
+    return false;
+  }
+
+  response.success = true;
+  return true;
+}
+
 bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response) {
   flatland_msgs::SpawnModels spawn_models_srv;
   for (auto obstacle : request.obstacles) {
@@ -160,16 +180,6 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     auto name = "interactive_waypoint_" + std::to_string(static_obstacles_index_);
     static_obstacles_index_++;
     static_obstacle_names_.push_back(name);
-
-    // // convert quaternion to theta angle
-    // tf2::Quaternion q(
-    //   obstacle.pose.orientation.x,
-    //   obstacle.pose.orientation.y,
-    //   obstacle.pose.orientation.z,
-    //   obstacle.pose.orientation.w);
-    // tf2::Matrix3x3 m(q);
-    // double roll, pitch, yaw;
-    // m.getRPY(roll, pitch, yaw);
 
     // get random angle
     uniform_real_distribution<double> Distribution(0.0, 2*M_PI);
@@ -211,6 +221,64 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
 
   response.success = spawn_models_srv.response.success;
   return spawn_models_srv.response.success;
+}
+
+bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response) {
+  // check agents that are referencing interactive waypoints
+  auto agents = SCENE.getAgents();
+  for (auto agent : agents) {
+    // check lastInteractedWithWaypoint
+    if (agent->lastInteractedWithWaypoint != nullptr) {
+      if (agent->lastInteractedWithWaypoint->isInteractive()) {
+        agent->lastInteractedWithWaypoint = nullptr;
+        agent->lastInteractedWithWaypointId = -1;
+      }
+    }
+
+    // check lastInteractedWithWaypointId
+    if (agent->lastInteractedWithWaypointId != -1) {
+      agent->lastInteractedWithWaypoint = nullptr;
+      agent->lastInteractedWithWaypointId = -1;
+    }
+
+    // check currentDestination
+    if (agent->currentDestination != nullptr) {
+      if (agent->currentDestination->isInteractive()) {
+        agent->updateDestination();
+      }
+    }
+
+    // check waypointplanner
+    auto waypointplanner = agent->getWaypointPlanner();
+    if (waypointplanner != nullptr) {
+      auto waypoint = waypointplanner->getCurrentWaypoint();
+      if (waypoint != nullptr) {
+        if (waypoint->isInteractive()) {
+          // waypointplanner is pointing to an interactive obstacle
+          // -> just copy destination from agent
+          // we ensured above that the current agent destination is not interactive
+          waypointplanner->setDestination(agent->getCurrentDestination());
+        }
+      }
+    }
+  }
+
+  // actually remove waypoints from scene
+  auto waypoints = SCENE.getWaypoints();
+  for (auto waypoint : waypoints.values()) {
+    if (waypoint->isInteractive()) {
+      SCENE.removeWaypoint(waypoint);
+    }
+  }
+
+  // remove models from flatland
+  bool res = removeModelsInFlatland(static_obstacle_names_);
+
+  // clear names from local list
+  static_obstacle_names_.clear();
+
+  response.success = res;
+  return res;
 }
 
 bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response) {
@@ -356,4 +424,26 @@ std::vector<int> SceneServices::generateAgentIds(int n) {
     agents_index_++;
   }
   return ids;
+}
+
+bool SceneServices::removeModelsInFlatland(std::vector<std::string> model_names) {
+  ROS_WARN("deleting %ld models", model_names.size());
+  flatland_msgs::DeleteModels srv;
+  srv.request.name = model_names;
+
+  // check validity of client
+  while (!delete_models_client_.isValid()) {
+    ROS_WARN("Reconnecting delete_models_client_-server....");
+    delete_models_client_.waitForExistence(ros::Duration(5.0));
+    delete_models_client_ = nh_.serviceClient<flatland_msgs::DeleteModels>(delete_models_topic_, true);
+  }
+
+  delete_models_client_.call(srv);
+
+  if (!srv.response.success) {
+    ROS_ERROR("Failed to delete all %d models. Maybe a few were deleted. Flatland response: %s", int(srv.request.name.size()), srv.response.message.c_str());
+    return false;
+  }
+
+  return true; 
 }

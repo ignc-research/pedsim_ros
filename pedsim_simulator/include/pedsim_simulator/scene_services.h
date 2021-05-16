@@ -11,6 +11,7 @@
 
 #include <ros/ros.h>
 #include <pedsim_simulator/scene.h>
+#include <pedsim_simulator/waypointplanner/waypointplanner.h>
 #include <pedsim_srvs/SpawnPeds.h>
 #include <pedsim_srvs/SpawnObstacle.h>
 #include <pedsim_srvs/SpawnInteractiveObstacles.h>
@@ -21,6 +22,7 @@
 #include <pedsim_msgs/LineObstacles.h>
 #include <pedsim_msgs/InteractiveObstacle.h>
 #include <std_srvs/SetBool.h>
+#include <std_srvs/Trigger.h>
 
 /**
  * This class provides services to spawn and remove pedestrians dynamically.
@@ -39,7 +41,9 @@ class SceneServices {
   ros::ServiceServer move_peds_service_;
   ros::ServiceServer spawn_peds_service_;
   ros::ServiceServer reset_peds_service_;
+  ros::ServiceServer respawn_interactive_obstacles_service_;
   ros::ServiceServer spawn_interactive_obstacles_service_;
+  ros::ServiceServer remove_all_interactive_obstacles_service_;
 
   static int agents_index_;
   static int static_obstacles_index_;
@@ -61,9 +65,19 @@ class SceneServices {
   bool resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
-  * @brief Spawns interactive obstacles
+  * @brief Repawn interactive obstacles
+  */
+  bool respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+
+  /**
+  * @brief Spawn interactive obstacles
   */
   bool spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+
+  /**
+  * @brief Remove all interactive obstacles
+  */
+  bool removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
   * @brief Respawning means reusing objects from previous tasks.
@@ -99,6 +113,7 @@ class SceneServices {
 
   std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids);
   std::vector<int> generateAgentIds(int n);
+  bool removeModelsInFlatland(std::vector<std::string> model_names);
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
