@@ -117,7 +117,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool removeWaypoint(Waypoint* waypointIn);
   WaypointPlanner* getWaypointPlanner() const;
   void setWaypointPlanner(WaypointPlanner* plannerIn);
-  Ped::Twaypoint* getCurrentDestination() const;
+  Waypoint* getCurrentDestination() const;
   AgentGroup* getGroup() const;
   void setGroup(AgentGroup* groupIn);
   bool addForce(Force* forceIn);

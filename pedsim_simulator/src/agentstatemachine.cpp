@@ -549,6 +549,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       }
       break;
     case StateReachedShelf:
+      assert(agent->lastInteractedWithWaypoint != nullptr);
       agent->angleTarget = agent->lastInteractedWithWaypoint->staticObstacleAngle;
       agent->moveList = agent->createMoveList(StateReachedShelf);
       agent->setWaypointPlanner(nullptr);

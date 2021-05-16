@@ -180,7 +180,7 @@ Ped::Tvector Agent::myForce(Ped::Tvector desired) const {
   return forceValue;
 }
 
-Ped::Twaypoint* Agent::getCurrentDestination() const {
+Waypoint* Agent::getCurrentDestination() const {
   return currentDestination;
 }
 
@@ -240,12 +240,15 @@ void Agent::updateDirection(double h) {
       facingDirection = (keepDistanceTo - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
       break;
     case AgentStateMachine::AgentState::StateLiftingForks:
+      assert(lastInteractedWithWaypoint != nullptr);
       facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoading:
+      assert(lastInteractedWithWaypoint != nullptr);
       facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateLoweringForks:
+      assert(lastInteractedWithWaypoint != nullptr);
       facingDirection = lastInteractedWithWaypoint->staticObstacleAngle;
       break;
     case AgentStateMachine::AgentState::StateReachedShelf:
