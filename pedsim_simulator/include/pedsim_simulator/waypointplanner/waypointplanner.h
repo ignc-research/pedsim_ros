@@ -48,16 +48,17 @@ class WaypointPlanner : public QObject {
 
   // Constructor and Destructor
  protected:
-  WaypointPlanner();
+  WaypointPlanner() { destination = nullptr; };
 
   // Methods
  public:
-  static Type getPlannerType();
-  virtual Waypoint* getCurrentWaypoint() = 0;
+  static Type getPlannerType() { return WaypointPlanner::All; };
+  Waypoint* getCurrentWaypoint() { return destination; };
   virtual bool hasCompletedDestination() const = 0;
 
   virtual QString name() const = 0;
-  void setDestination(Waypoint* waypointIn);
+  void setDestination(Waypoint* waypointIn) { destination = waypointIn; };
+
   Waypoint* destination;
 };
 

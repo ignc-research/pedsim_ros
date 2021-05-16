@@ -74,7 +74,6 @@ set(SOURCES
 	src/force/randomforce.cpp
 
 	# waypointplanner
-	src/waypointplanner/waypointplanner.cpp
 	src/waypointplanner/individualwaypointplanner.cpp
 	src/waypointplanner/queueingplanner.cpp
 	src/waypointplanner/shoppingplanner.cpp
