@@ -186,13 +186,14 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     double yaw = Distribution(RNG());
 
     // add to pedsim
-    auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y);
+    auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
+    auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
     auto waypoint = new AreaWaypoint(QString(name.c_str()), waypoint_pos, 0.3);
     waypoint->interactionRadius = obstacle.interaction_radius;
     if (obstacle.interaction_radius < 0.1) {
       ROS_WARN("interaction_radius is smaller than 0.1. agents will not interact with this obstacle");
     }
-    waypoint->staticObstacleAngle = yaw;
+    waypoint->staticObstacleAngle = fmod(yaw + M_PI, 2 * M_PI);
     waypoint->setType(Ped::Twaypoint::WaypointType::Shelf);
     SCENE.addWaypoint(waypoint);
 
@@ -200,10 +201,8 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     flatland_msgs::Model model;
     model.name = name;
     model.ns = name;
-    auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
-    auto model_pos = waypoint_pos + direction;
-    model.pose.x = model_pos.x;
-    model.pose.y = model_pos.y;
+    model.pose.x = obstacle.pose.position.x;
+    model.pose.y = obstacle.pose.position.y;
     model.pose.theta = yaw;
     model.yaml_path = obstacle.yaml_path;
     spawn_models_srv.request.models.push_back(model);
