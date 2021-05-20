@@ -172,13 +172,19 @@ Ped::Tvector Ped::Tagent::socialForce() const {
   // (set according to Moussaid-Helbing 2009)
   const double n_prime = 3;
 
-  Tvector force;
+  Tvector force(0.0, 0.0);
   for (const Ped::Tagent* other : neighbors) {
     // don't compute social force to yourself
     if (other->id == id) continue;
 
     // compute difference between both agents' positions
     Tvector diff = other->p - p;
+
+    // if both agents have the exact same position disable social force to avoid division by zero
+    if (diff.lengthSquared() <= 0.001) {
+      return Tvector(0.0, 0.0);
+    }
+
     if(other->getType() == ROBOT) diff /= robotPosDiffScalingFactor;
     Tvector diffDirection = diff.normalized();
     // compute difference between both agents' velocity vectors
@@ -188,6 +194,7 @@ Ped::Tvector Ped::Tagent::socialForce() const {
     // compute interaction direction t_ij
     Tvector interactionVector = lambdaImportance * velDiff + diffDirection;
     double interactionLength = interactionVector.length();
+    assert(interactionLength > 0.0);
     Tvector interactionDirection = interactionVector / interactionLength;
 
 
@@ -434,10 +441,11 @@ void Ped::Tagent::move(double stepSizeIn) {
   // sum of all forces --> acceleration
   a = forceFactorDesired * desiredforce + forceFactorSocial * socialforce 
     + forceFactorObstacle * obstacleforce + myforce + keepdistanceforce;
-    // ROS_INFO("desiredforce %lf,%lf,%lf, ", desiredforce.x,desiredforce.y,desiredforce.z);
-    // ROS_INFO("socialforce, %lf,%lf,%lf",socialforce.x,socialforce.y,socialforce.z);
-    // ROS_INFO("obstacleforce,%lf,%lf,%lf",obstacleforce.x,obstacleforce.y,obstacleforce.z);
-    // ROS_INFO("myforce, %lf,%lf,%lf",myforce.x,myforce.y,myforce.z);
+    // ROS_INFO("desiredforce: %lf, %lf, %lf", desiredforce.x, desiredforce.y, desiredforce.z);
+    // ROS_INFO("socialforce: %lf, %lf, %lf", socialforce.x, socialforce.y, socialforce.z);
+    // ROS_INFO("obstacleforce: %lf, %lf, %lf", obstacleforce.x, obstacleforce.y, obstacleforce.z);
+    // ROS_INFO("myforce: %lf, %lf, %lf", myforce.x, myforce.y, myforce.z);
+    // ROS_INFO("keepdistanceforce: %lf, %lf, %lf", keepdistanceforce.x, keepdistanceforce.y, keepdistanceforce.z);
     // ROS_INFO("stepSizeln%lf",stepSizeIn);
 
   // Added by Ronja Gueldenring
@@ -458,7 +466,6 @@ void Ped::Tagent::move(double stepSizeIn) {
 
   // internal position update = actual move
   p += stepSizeIn * v;
-    
 
   // notice scene of movement
   scene->moveAgent(this);
