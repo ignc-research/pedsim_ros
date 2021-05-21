@@ -50,6 +50,9 @@ Ped::Tagent::Tagent() {
   keepDistanceForceDistanceDefault = 0.8;
   keepDistanceForceDistance = keepDistanceForceDistanceDefault;
   keepDistanceTo = Tvector(0.0, 0.0);
+
+  obstacleforce = Ped::Tvector(0.0, 0.0);
+  
   ROS_INFO("created agent with id: %d", id);
 }
 
@@ -422,7 +425,7 @@ void Ped::Tagent::computeForces() {
   // update forces
   desiredforce = desiredForce();
   if (forceFactorSocial > 0) socialforce = socialForce();
-  if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
+  // if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
   robotforce = robotForce();
   keepdistanceforce = keepDistanceForce();
   myforce = myForce(desiredDirection);
