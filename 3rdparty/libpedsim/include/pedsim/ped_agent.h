@@ -44,11 +44,11 @@ class Twaypoint;
 class LIBEXPORT Tagent {
  public:
   enum AgentType {
-    ADULT = 0,
-    CHILD = 1,
-    ELDER = 2,
-    VEHICLE = 3,
-    ROBOT = 4,
+    ADULT,
+    CHILD,
+    ELDER,
+    VEHICLE,
+    ROBOT,
   };
 
   Tagent();
