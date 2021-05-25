@@ -841,7 +841,11 @@ bool Agent::someoneIsRequestingService() {
   for (auto agent : getAgentsInRange(maxServicingRadius)) {
     if (agent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateRequestingService) {
       servicingAgent = agent;
-      servicingWaypoint = new AreaWaypoint("service_destination", servicingAgent->getPosition().x, servicingAgent->getPosition().y, 1.0);
+      if (servicingWaypoint != nullptr) {
+        // remove old waypoint
+        SCENE.removeWaypoint(servicingWaypoint);
+      }
+      servicingWaypoint = new AreaWaypoint("service_destination", servicingAgent->getPosition(), 1.0);
       SCENE.addWaypoint(servicingWaypoint);
       getWaypointPlanner()->setDestination(servicingWaypoint);
       currentDestination = servicingWaypoint;
