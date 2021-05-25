@@ -444,11 +444,13 @@ void Ped::Tagent::move(double stepSizeIn) {
   // sum of all forces --> acceleration
   a = forceFactorDesired * desiredforce + forceFactorSocial * socialforce 
     + forceFactorObstacle * obstacleforce + myforce + keepdistanceforce;
-    // ROS_INFO("desiredforce: %lf, %lf, %lf", desiredforce.x, desiredforce.y, desiredforce.z);
-    // ROS_INFO("socialforce: %lf, %lf, %lf", socialforce.x, socialforce.y, socialforce.z);
-    // ROS_INFO("obstacleforce: %lf, %lf, %lf", obstacleforce.x, obstacleforce.y, obstacleforce.z);
-    // ROS_INFO("myforce: %lf, %lf, %lf", myforce.x, myforce.y, myforce.z);
-    // ROS_INFO("keepdistanceforce: %lf, %lf, %lf", keepdistanceforce.x, keepdistanceforce.y, keepdistanceforce.z);
+    // if (id == 1) {
+    //   ROS_INFO("desiredforce: %lf, %lf, %lf", desiredforce.x, desiredforce.y, desiredforce.z);
+    //   ROS_INFO("socialforce: %lf, %lf, %lf", socialforce.x, socialforce.y, socialforce.z);
+    //   ROS_INFO("obstacleforce: %lf, %lf, %lf", obstacleforce.x, obstacleforce.y, obstacleforce.z);
+    //   ROS_INFO("myforce: %lf, %lf, %lf", myforce.x, myforce.y, myforce.z);
+    //   ROS_INFO("keepdistanceforce: %lf, %lf, %lf", keepdistanceforce.x, keepdistanceforce.y, keepdistanceforce.z);
+    // }
     // ROS_INFO("stepSizeln%lf",stepSizeIn);
 
   // Added by Ronja Gueldenring

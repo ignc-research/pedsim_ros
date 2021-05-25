@@ -40,7 +40,6 @@
 #include <ros/ros.h>
 
 Agent::Agent() {
-  // initialize
   Ped::Tagent::setType(Ped::Tagent::ADULT);
   Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
   forceSigmaObstacle = CONFIG.sigmaObstacle;
@@ -56,50 +55,46 @@ Agent::Agent() {
   destinationIndex = 0;
   previousDestinationIndex = 0;
   nextDestinationIndex = 0;
-  timeStepSize = 0.02;
-}
-Agent::Agent(std::string name) {
-  // ROS_INFO("created agent with id: %d", id);
-  // initialize
-  Ped::Tagent::setType(Ped::Tagent::ADULT);
-  Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
-  forceSigmaObstacle = CONFIG.sigmaObstacle;
-  Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial);
-  // waypoints
-  currentDestination = nullptr;
-  waypointplanner = nullptr;
-  // state machine
-  stateMachine = new AgentStateMachine(this);
-  // group
-  group = nullptr;
-  agentName = name;
-  destinationIndex = 0;
-  previousDestinationIndex = 0;
-  nextDestinationIndex = 0;
+
   lastInteractedWithWaypointId = -1;
   lastInteractedWithWaypoint = nullptr;
+
   isInteracting = false;
+
   talkingToId = -1;
   talkingToAgent = nullptr;
   listeningToId = -1;
   listeningToAgent = nullptr;
+  servicingAgent = nullptr;
+  servicingWaypoint = nullptr;
+  currentServiceRobot = nullptr;
+
   lastTellStoryCheck = ros::Time::now();
   lastStartTalkingCheck = ros::Time::now();
   lastStartTalkingAndWalkingCheck = ros::Time::now();
   lastGroupTalkingCheck = ros::Time::now();
   lastSwitchRunningWalkingCheck = ros::Time::now();
+  lastRequestingServiceCheck = ros::Time::now();
+
   maxTalkingDistance = 1.5;
+  maxServicingRadius = 10.0;
+
   tellStoryProbability = 0.01;
   groupTalkingProbability = 0.01;
   talkingAndWalkingProbability = 0.01;
   switchRunningWalkingProbability = 0.1;
+  requestingServiceProbability = 0.1;
+
   timeStepSize = 0.02;
+
   disableForce("KeepDistance");
 }
 
-Agent::Agent(const Agent&) : ScenarioElement(){
-
+Agent::Agent(std::string name) : Agent() {
+  agentName = name;
 }
+
+Agent::Agent(const Agent&) : ScenarioElement() {}
 
 Agent::~Agent() {
   // clean up
@@ -226,7 +221,7 @@ void Agent::updateState() {
 }
 
 // update direction the agent is facing based on the state
-void Agent::updateDirection(double h) {
+void Agent::updateDirection() {
   switch (stateMachine->getCurrentState()) {
     case AgentStateMachine::AgentState::StateWalking:
       if (v.length() > 0.001) {
@@ -259,6 +254,11 @@ void Agent::updateDirection(double h) {
       break;
     case AgentStateMachine::AgentState::StateTalking:
       facingDirection = (talkingToAgent->getPosition() - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
+      break;
+    case AgentStateMachine::AgentState::StateReceivingService:
+      if (currentServiceRobot != nullptr) {
+        facingDirection = (currentServiceRobot->getPosition() - p).polarAngle().toRadian(Ped::Tangle::PositiveOnlyRange);
+      }
       break;
     default:
       if (v.length() > 0.001) {
@@ -443,7 +443,7 @@ void Agent::move(double h) {
       Ped::Tagent::move(h);
     }
   } else {
-    // special case for listening and walking
+    // special cases for some states
     auto state = stateMachine->getCurrentState();
     if (state == AgentStateMachine::AgentState::StateListeningAndWalking) {
       // simulate movement by always placing the agent next to listeningToAgent
@@ -463,7 +463,7 @@ void Agent::move(double h) {
       // normal movement
       Ped::Tagent::move(h);
     }
-    updateDirection(h);
+    updateDirection();
   }
 
   if (getType() == Ped::Tagent::ELDER) {
@@ -772,6 +772,24 @@ bool Agent::startTalkingAndWalking(){
   return false;
 }
 
+bool Agent::startRequestingService() {
+  // only do the probability check again after some time has passed
+  ros::Time now = ros::Time::now();
+  if ((now - lastRequestingServiceCheck).toSec() > 0.5) {
+    // reset timer
+    lastRequestingServiceCheck = ros::Time::now();
+
+    // roll a die
+    uniform_real_distribution<double> Distribution(0, 1);
+    double roll = Distribution(RNG());
+    if (roll < requestingServiceProbability) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool Agent::switchRunningWalking(){
   // only do the probability check again after some time has passed
   ros::Time now = ros::Time::now();
@@ -793,6 +811,30 @@ bool Agent::switchRunningWalking(){
 
 bool Agent::finishedRotation() {
   return abs(fmod(facingDirection, 2 * M_PI) - angleTarget) < 0.1;
+}
+
+bool Agent::serviceRobotIsNear() {
+  for (auto agent : getAgentsInRange(1.0)) {
+    if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+      currentServiceRobot = agent;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Agent::someoneIsRequestingService() {
+  for (auto agent : getAgentsInRange(maxServicingRadius)) {
+    if (agent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateRequestingService) {
+      servicingAgent = agent;
+      servicingWaypoint = new AreaWaypoint("service_destination", servicingAgent->getPosition().x, servicingAgent->getPosition().y, 1.0);
+      SCENE.addWaypoint(servicingWaypoint);
+      getWaypointPlanner()->setDestination(servicingWaypoint);
+      currentDestination = servicingWaypoint;
+      return true;
+    }
+  }
+  return false;
 }
 
 void Agent::disableForce(const QString& forceNameIn) {

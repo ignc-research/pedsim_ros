@@ -98,11 +98,15 @@ QList<Agent*> AgentCluster::dissolve() {
     a->tellStoryProbability = tellStoryProbability;
     a->groupTalkingProbability = groupTalkingProbability;
     a->talkingAndWalkingProbability = talkingAndWalkingProbability;
+    a->requestingServiceProbability = requestingServiceProbability;
     a->stateMachine->stateTalkingBaseTime = stateTalkingBaseTime;
     a->stateMachine->stateTellStoryBaseTime = stateTellStoryBaseTime;
     a->stateMachine->stateGroupTalkingBaseTime = stateGroupTalkingBaseTime;
     a->stateMachine->stateTalkingAndWalkingBaseTime = stateTalkingAndWalkingBaseTime;
+    a->stateMachine->stateRequestingServiceBaseTime = stateRequestingServiceBaseTime;
+    a->stateMachine->stateReceivingServiceBaseTime = stateReceivingServiceBaseTime;
     a->maxTalkingDistance = maxTalkingDistance;
+    a->maxServicingRadius = maxServicingRadius;
     a->waypointMode = waypoint_mode;
     a->setForceFactorDesired(forceFactorDesired);
     a->setForceFactorSocial(forceFactorSocial);

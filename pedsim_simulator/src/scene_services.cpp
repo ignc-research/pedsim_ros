@@ -332,6 +332,10 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
 
   agentCluster->talkingAndWalkingProbability = ped.talking_and_walking_probability;
   agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
+
+  agentCluster->requestingServiceProbability = ped.requesting_service_probability;
+  agentCluster->stateRequestingServiceBaseTime = ped.state_requesting_service_base_time;
+  agentCluster->stateReceivingServiceBaseTime = ped.state_receiving_service_base_time;
   
   agentCluster->maxTalkingDistance = ped.max_talking_distance;
   if (
@@ -341,6 +345,13 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
     ) {
     if (agentCluster->maxTalkingDistance < 0.1) {
       ROS_WARN("maxTalkingDistance is very small. ped will probably not interact with others");
+    }
+  }
+
+  agentCluster->maxServicingRadius = ped.max_servicing_radius;
+  if (agentCluster->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+    if (agentCluster->maxServicingRadius < 0.1) {
+      ROS_WARN("maxServicingRadius is very small. service robot will not provide service");
     }
   }
 
@@ -361,7 +372,6 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
     id.sprintf("%d_%d", ped.id, i);
     const double x = ped.waypoints[i].x;
     const double y = ped.waypoints[i].y;
-    // const double r = ped.waypoints[i].z;
     AreaWaypoint* w = new AreaWaypoint(id, x, y, 0.3);
     uniform_real_distribution<double> Distribution(0.0, 2*M_PI);
     w->staticObstacleAngle = Distribution(RNG());

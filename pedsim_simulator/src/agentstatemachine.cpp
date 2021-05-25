@@ -63,6 +63,8 @@ AgentStateMachine::AgentStateMachine(Agent* agentIn) {
   stateTellStoryBaseTime = 6.0;
   stateGroupTalkingBaseTime = 12.0;
   stateTalkingAndWalkingBaseTime = 12.0;
+  stateRequestingServiceBaseTime = 30.0;
+  stateReceivingServiceBaseTime = 30.0;
 }
 
 AgentStateMachine::~AgentStateMachine() {
@@ -174,6 +176,57 @@ void AgentStateMachine::doStateTransition() {
       if (agent->completedMoveList()) {
         agent->isInteracting = false;
         activateState(StateDriving);
+      }
+      return;
+    }
+
+  } else if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+    // ## Service Robot behavior ##
+
+    if (state == StateNone) {
+      Ped::Twaypoint* destination = agent->updateDestination();
+      if (destination == nullptr)
+        activateState(StateWaiting);
+      else
+        activateState(StateDriving);
+    }
+
+    if (state == StateDriving) {
+      // update destination on arrival
+      if (agent->hasCompletedDestination()) {
+        agent->updateDestination();
+        activateState(StateDriving);
+        return;
+      }
+
+      // check if someone is requesting service
+      if (agent->someoneIsRequestingService()) {
+        activateState(StateDrivingToInteraction);
+        return;
+      }
+    }
+
+    if (state == StateDrivingToInteraction) {
+      // update position of destination
+      agent->servicingWaypoint->setPosition(agent->servicingAgent->getPosition());
+      // check if agent reached other agent calling for service (which is reflected by the state)
+      if (agent->servicingAgent->getStateMachine()->getCurrentState() == StateReceivingService) {
+        activateState(StateProvidingService);
+        return;
+      }
+      // stop if other agent is not waiting anymore
+      if (agent->servicingAgent->getStateMachine()->getCurrentState() != StateRequestingService) {
+        activateState(StateDriving);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateProvidingService) {
+      // provide service for as long as the receiving agent is in StateReceivingService
+      if (agent->servicingAgent->getStateMachine()->getCurrentState() != StateReceivingService) {
+        activateState(StateDriving);
+        return;
       }
       return;
     }
@@ -310,6 +363,34 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
 
+    // → request service sometimes
+    if ((state == StateWalking) && agent->startRequestingService()) {
+      activateState(StateRequestingService);
+      return;
+    }
+
+    // → requesting service for some time or until a service robot is near
+    if (state == StateRequestingService) {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration) {
+        activateState(StateWalking);
+        return;
+      }
+      if (agent->serviceRobotIsNear()) {
+        activateState(StateReceivingService);
+        return;
+      }
+      return;
+    }
+    
+    // → receiving service for some time
+    if (state == StateReceivingService) {
+      ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
+      if (timePassed.toSec() > stateMaxDuration) {
+        activateState(StateWalking);
+        return;
+      }
+    }
 
     // → talk and walk for some time
     if (state == StateTalkingAndWalking) {
@@ -558,6 +639,38 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->moveList = agent->createMoveList(StateBackUp);
       agent->setWaypointPlanner(nullptr);
       break;
+    case StateRequestingService:
+      startTimestamp = ros::WallTime::now();
+      stateMaxDuration = getRandomDuration(stateRequestingServiceBaseTime);
+      if (individualPlanner == nullptr) {
+        individualPlanner = new IndividualWaypointPlanner();
+      }
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 0.2);
+      break;
+    case StateReceivingService:
+      startTimestamp = ros::WallTime::now();
+      stateMaxDuration = getRandomDuration(stateReceivingServiceBaseTime);
+      // don't stop moving completely so the pedsimMovement animation can update
+      agent->setVmax(agent->vmaxDefault * 0.01);
+      break;
+    case StateDrivingToInteraction:
+      if (individualPlanner == nullptr) {
+        individualPlanner = new IndividualWaypointPlanner();
+      }
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 1.5);
+      break;
+    case StateProvidingService:
+      agent->setWaypointPlanner(nullptr);
+      agent->stopMovement();
+      break;
   }
 
   // inform users
@@ -692,6 +805,14 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "ReachedShelf";
     case StateBackUp:
       return "BackUp";
+    case StateRequestingService:
+      return "StateRequestingService";
+    case StateReceivingService:
+      return "StateReceivingService";
+    case StateDrivingToInteraction:
+      return "StateDrivingToInteraction";
+    case StateProvidingService:
+      return "StateProvidingService";
     default:
       return "UnknownState";
   }

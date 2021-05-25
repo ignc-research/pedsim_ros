@@ -102,12 +102,16 @@ class AgentCluster : public ScenarioElement {
   double tellStoryProbability;
   double groupTalkingProbability;
   double talkingAndWalkingProbability;
+  double requestingServiceProbability = 0.1;
   double maxTalkingDistance;
+  double maxServicingRadius = 10.0;
   Agent::WaypointMode waypoint_mode;
   double stateTalkingBaseTime;  // in seconds
   double stateTellStoryBaseTime;  // in seconds
   double stateGroupTalkingBaseTime;  // in seconds
   double stateTalkingAndWalkingBaseTime;  // in seconds
+  double stateRequestingServiceBaseTime = 30.0;
+  double stateReceivingServiceBaseTime = 30.0;
   std::vector<int> agentIds;
 };
 

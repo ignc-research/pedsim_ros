@@ -48,6 +48,7 @@ class LIBEXPORT Tagent {
     CHILD,
     ELDER,
     VEHICLE,
+    SERVICEROBOT,
     ROBOT,
   };
 

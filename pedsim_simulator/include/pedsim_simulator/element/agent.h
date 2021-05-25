@@ -34,6 +34,7 @@
 
 #include <pedsim/ped_agent.h>
 #include <pedsim_simulator/element/scenarioelement.h>
+#include <pedsim_simulator/element/areawaypoint.h>
 #include <pedsim_simulator/agentstatemachine.h>
 #include <pedsim_simulator/agent_pose_stamped.h>
 
@@ -82,7 +83,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
  public:
   // → Ped::Tagent Overrides/Overloads
   void updateState();
-  void updateDirection(double h);
+  void updateDirection();
   double normalizeAngle(double angle_in);
   double rotate(double current_angle, double target_angle, double time_step, double angular_v);
   bool completedMoveList();
@@ -143,8 +144,11 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool startGroupTalking();
   bool startTalking();
   bool startTalkingAndWalking();
+  bool startRequestingService();
   bool switchRunningWalking();
   bool finishedRotation();
+  bool serviceRobotIsNear();
+  bool someoneIsRequestingService();
 
   // misc
   void disableForce(const QString& forceNameIn);
@@ -173,9 +177,14 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double tellStoryProbability;
   double groupTalkingProbability;
   double talkingAndWalkingProbability;
+  double requestingServiceProbability;
   double switchRunningWalkingProbability;
   WaypointMode waypointMode;
   double maxTalkingDistance;
+  double maxServicingRadius;
+  const Agent* servicingAgent;
+  Waypoint* servicingWaypoint;
+  const Agent* currentServiceRobot;
   // direction the agent is facing on a "higher" level, is dependent on current state
   double facingDirection;
   double angleTarget;
@@ -195,6 +204,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   ros::Time lastStartTalkingAndWalkingCheck;
   ros::Time lastGroupTalkingCheck;
   ros::Time lastSwitchRunningWalkingCheck;
+  ros::Time lastRequestingServiceCheck;
 };
 
 #endif

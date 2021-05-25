@@ -70,6 +70,10 @@ class AgentStateMachine : public QObject {
     StateReachedShelf,
     StateRunning,
     StateBackUp,
+    StateRequestingService,
+    StateReceivingService,
+    StateDrivingToInteraction,
+    StateProvidingService
   } AgentState;
 
   // Constructor and Destructor
@@ -98,6 +102,8 @@ class AgentStateMachine : public QObject {
   double stateTellStoryBaseTime;  // in seconds
   double stateGroupTalkingBaseTime;  // in seconds
   double stateTalkingAndWalkingBaseTime;  // in seconds
+  double stateRequestingServiceBaseTime;  // in seconds
+  double stateReceivingServiceBaseTime;  // in seconds
 
  protected:
   void deactivateState(AgentState stateIn);
