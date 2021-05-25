@@ -160,51 +160,67 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void adjustKeepDistanceForceDistance();
 
   std::string agentName;
+  double initialPosX;
+  double initialPosY;
+
   QList<Waypoint*> destinations;
+  WaypointMode waypointMode;
+  Waypoint* currentDestination;
   int destinationIndex;
   int previousDestinationIndex;
   int nextDestinationIndex;
   int lastInteractedWithWaypointId;
   Waypoint* lastInteractedWithWaypoint;
   bool isInteracting;
-  double initialPosX;
-  double initialPosY;
+
+  double maxTalkingDistance;
   int talkingToId;
   const Agent* talkingToAgent;
   int listeningToId;
   Agent* listeningToAgent;
-  double chattingProbability;
-  double tellStoryProbability;
-  double groupTalkingProbability;
-  double talkingAndWalkingProbability;
-  double requestingServiceProbability;
-  double switchRunningWalkingProbability;
-  WaypointMode waypointMode;
-  double maxTalkingDistance;
   double maxServicingRadius;
   const Agent* servicingAgent;
   Waypoint* servicingWaypoint;
   const Agent* currentServiceRobot;
-  // direction the agent is facing on a "higher" level, is dependent on current state
-  double facingDirection;
+  
+  double facingDirection; // direction the agent is facing on a "higher" level, is dependent on current state
+
   double angleTarget;
   double timeStepSize;  // step size used for special moves
   std::vector<AgentPoseStamped> moveList;  // move list used for special moves
-  Waypoint* currentDestination;
+
   AgentStateMachine* stateMachine;
 
+  double chattingProbability;
+  double tellStoryProbability;
+  double groupTalkingProbability;
+  double talkingAndWalkingProbability;
+  double switchRunningWalkingProbability;
+  double requestingServiceProbability;
+  
+  ros::Time lastStartTalkingCheck;
+  ros::Time lastTellStoryCheck;
+  ros::Time lastGroupTalkingCheck;
+  ros::Time lastStartTalkingAndWalkingCheck;
+  ros::Time lastSwitchRunningWalkingCheck;
+  ros::Time lastRequestingServiceCheck;
+
+  double stateWorkingBaseTime;  // in seconds
+  double stateLiftingForksBaseTime;  // in seconds
+  double stateLoadingBaseTime;  // in seconds
+  double stateLoweringForksBaseTime;  // in seconds
+  double stateTalkingBaseTime;  // in seconds
+  double stateTellStoryBaseTime;  // in seconds
+  double stateGroupTalkingBaseTime;  // in seconds
+  double stateTalkingAndWalkingBaseTime;  // in seconds
+  double stateRequestingServiceBaseTime;  // in seconds
+  double stateReceivingServiceBaseTime;  // in seconds
 
  protected:
   AgentGroup* group;
   QList<Force*> forces;
   QStringList disabledForces;
   WaypointPlanner* waypointplanner;
-  ros::Time lastTellStoryCheck;
-  ros::Time lastStartTalkingCheck;
-  ros::Time lastStartTalkingAndWalkingCheck;
-  ros::Time lastGroupTalkingCheck;
-  ros::Time lastSwitchRunningWalkingCheck;
-  ros::Time lastRequestingServiceCheck;
 };
 
 #endif

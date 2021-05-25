@@ -55,16 +55,6 @@ AgentStateMachine::AgentStateMachine(Agent* agentIn) {
   shallLoseAttraction = false;
   // initialize state machine
   state = StateNone;
-  stateTalkingBaseTime = 6.0;
-  stateWorkingBaseTime = 6.0;
-  stateLiftingForksBaseTime = 1.0;
-  stateLoadingBaseTime = 1.0;
-  stateLoweringForksBaseTime = 1.0;
-  stateTellStoryBaseTime = 6.0;
-  stateGroupTalkingBaseTime = 12.0;
-  stateTalkingAndWalkingBaseTime = 12.0;
-  stateRequestingServiceBaseTime = 30.0;
-  stateReceivingServiceBaseTime = 30.0;
 }
 
 AgentStateMachine::~AgentStateMachine() {
@@ -563,13 +553,13 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateTalking:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateTalkingBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateTalkingAndWalking:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateTalkingAndWalkingBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateTalkingAndWalkingBaseTime);
       if (individualPlanner == nullptr){
         individualPlanner = new IndividualWaypointPlanner();
       }
@@ -585,37 +575,37 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateWorking:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateWorkingBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateWorkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateLiftingForks:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateLiftingForksBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateLiftingForksBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateLoading:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateLoadingBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateLoadingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateLoweringForks:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateLoweringForksBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateLoweringForksBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateTellStory:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateTellStoryBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateTellStoryBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->stopMovement();
       break;
     case StateGroupTalking:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateGroupTalkingBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateGroupTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->enableForce("KeepDistance");
       agent->setForceFactorSocial(15.0);
@@ -641,7 +631,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateRequestingService:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateRequestingServiceBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateRequestingServiceBaseTime);
       if (individualPlanner == nullptr) {
         individualPlanner = new IndividualWaypointPlanner();
       }
@@ -653,7 +643,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateReceivingService:
       startTimestamp = ros::WallTime::now();
-      stateMaxDuration = getRandomDuration(stateReceivingServiceBaseTime);
+      stateMaxDuration = getRandomDuration(agent->stateReceivingServiceBaseTime);
       // don't stop moving completely so the pedsimMovement animation can update
       agent->setVmax(agent->vmaxDefault * 0.01);
       break;

@@ -44,49 +44,63 @@ Agent::Agent() {
   Ped::Tagent::setForceFactorObstacle(CONFIG.forceObstacle);
   forceSigmaObstacle = CONFIG.sigmaObstacle;
   Ped::Tagent::setForceFactorSocial(CONFIG.forceSocial);
-  // waypoints
-  currentDestination = nullptr;
-  waypointplanner = nullptr;
-  // state machine
-  stateMachine = new AgentStateMachine(this);
-  // group
-  group = nullptr;
 
+  initialPosX = 0.0;
+  initialPosY = 0.0;
+
+  waypointMode = WaypointMode::LOOP;
+  currentDestination = nullptr;
   destinationIndex = 0;
   previousDestinationIndex = 0;
   nextDestinationIndex = 0;
-
   lastInteractedWithWaypointId = -1;
   lastInteractedWithWaypoint = nullptr;
-
   isInteracting = false;
 
+  maxTalkingDistance = 1.5;
   talkingToId = -1;
   talkingToAgent = nullptr;
   listeningToId = -1;
   listeningToAgent = nullptr;
+  maxServicingRadius = 10.0;
   servicingAgent = nullptr;
   servicingWaypoint = nullptr;
   currentServiceRobot = nullptr;
 
-  lastTellStoryCheck = ros::Time::now();
-  lastStartTalkingCheck = ros::Time::now();
-  lastStartTalkingAndWalkingCheck = ros::Time::now();
-  lastGroupTalkingCheck = ros::Time::now();
-  lastSwitchRunningWalkingCheck = ros::Time::now();
-  lastRequestingServiceCheck = ros::Time::now();
+  facingDirection = 0.0;
 
-  maxTalkingDistance = 1.5;
-  maxServicingRadius = 10.0;
+  angleTarget = 0.0;
+  timeStepSize = 0.02;
 
+  stateMachine = new AgentStateMachine(this);
+
+  chattingProbability = 0.01;
   tellStoryProbability = 0.01;
   groupTalkingProbability = 0.01;
   talkingAndWalkingProbability = 0.01;
   switchRunningWalkingProbability = 0.1;
   requestingServiceProbability = 0.1;
 
-  timeStepSize = 0.02;
+  lastStartTalkingCheck = ros::Time::now();
+  lastTellStoryCheck = ros::Time::now();
+  lastGroupTalkingCheck = ros::Time::now();
+  lastStartTalkingAndWalkingCheck = ros::Time::now();
+  lastSwitchRunningWalkingCheck = ros::Time::now();
+  lastRequestingServiceCheck = ros::Time::now();
 
+  stateWorkingBaseTime = 30.0;
+  stateLiftingForksBaseTime = 6.0;
+  stateLoadingBaseTime = 6.0;
+  stateLoweringForksBaseTime = 6.0;
+  stateTalkingBaseTime = 10.0;
+  stateTellStoryBaseTime = 20.0;
+  stateGroupTalkingBaseTime = 20.0;
+  stateTalkingAndWalkingBaseTime = 9.0;
+  stateRequestingServiceBaseTime = 30.0;
+  stateReceivingServiceBaseTime = 30.0;
+
+  group = nullptr;
+  waypointplanner = nullptr;
   disableForce("KeepDistance");
 }
 

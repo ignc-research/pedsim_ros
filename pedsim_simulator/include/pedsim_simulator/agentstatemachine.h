@@ -94,17 +94,6 @@ class AgentStateMachine : public QObject {
   void activateState(AgentState stateIn);
   static QString stateToName(AgentState stateIn);
 
-  double stateWorkingBaseTime;  // in seconds
-  double stateLiftingForksBaseTime;  // in seconds
-  double stateLoadingBaseTime;  // in seconds
-  double stateLoweringForksBaseTime;  // in seconds
-  double stateTalkingBaseTime;  // in seconds
-  double stateTellStoryBaseTime;  // in seconds
-  double stateGroupTalkingBaseTime;  // in seconds
-  double stateTalkingAndWalkingBaseTime;  // in seconds
-  double stateRequestingServiceBaseTime;  // in seconds
-  double stateReceivingServiceBaseTime;  // in seconds
-
  protected:
   void deactivateState(AgentState stateIn);
   bool checkGroupForAttractions(AttractionArea** attractionOut = nullptr) const;
