@@ -280,12 +280,10 @@ bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &re
   return res;
 }
 
-bool SceneServices::resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response) {
-  if (request.data) {
-    QList<Agent*> agents = SCENE.getAgents();
-    for (Agent* a : agents) {
-      a->reset();
-    }
+bool SceneServices::resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response) {
+  QList<Agent*> agents = SCENE.getAgents();
+  for (Agent* a : agents) {
+    a->reset();
   }
 
   response.success = true;
@@ -334,8 +332,8 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
 
   agentCluster->requestingServiceProbability = ped.requesting_service_probability;
-  agentCluster->stateRequestingServiceBaseTime = ped.state_requesting_service_base_time;
-  agentCluster->stateReceivingServiceBaseTime = ped.state_receiving_service_base_time;
+  agentCluster->stateRequestingServiceBaseTime = ped.requesting_service_base_time;
+  agentCluster->stateReceivingServiceBaseTime = ped.receiving_service_base_time;
   
   agentCluster->maxTalkingDistance = ped.max_talking_distance;
   if (

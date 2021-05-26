@@ -19,8 +19,8 @@ float64 talking_base_time
 float64 tell_story_base_time
 float64 group_talking_base_time
 float64 talking_and_walking_base_time
-float64 state_receiving_service_base_time
-float64 state_requesting_service_base_time
+float64 receiving_service_base_time
+float64 requesting_service_base_time
 
 # forces
 float64 force_factor_desired

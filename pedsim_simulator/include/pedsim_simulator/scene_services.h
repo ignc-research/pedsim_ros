@@ -62,7 +62,7 @@ class SceneServices {
   /**
   * @brief Resets all pedestrians to their initial position and state
   */
-  bool resetPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
+  bool resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
   * @brief Repawn interactive obstacles
