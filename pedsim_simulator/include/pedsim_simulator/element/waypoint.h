@@ -58,6 +58,8 @@ class Waypoint : public ScenarioElement, public Ped::Twaypoint {
   virtual void sety(double yIn);
   virtual void setRadius(double rIn);
 
+  double staticObstacleAngle = 0.0;
+
   // Attributes
  protected:
   const QString name;

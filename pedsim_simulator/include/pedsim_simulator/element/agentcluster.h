@@ -33,6 +33,7 @@
 #define _agentcluster_h_
 
 #include <pedsim_simulator/element/agent.h>
+#include <pedsim_simulator/agentstatemachine.h>
 
 // Forward Declarations
 class Waypoint;
@@ -43,7 +44,7 @@ class AgentCluster : public ScenarioElement {
 
   // Constructor and Destructor
  public:
-  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1);
+  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1, std::vector<int> agent_ids = {});
   virtual ~AgentCluster();
 
   // Signals
@@ -54,7 +55,6 @@ class AgentCluster : public ScenarioElement {
   // Methods
  public:
   QList<Agent*> dissolve();
-
   int getId() const;
   int getCount() const;
   void setCount(int countIn);
@@ -92,6 +92,27 @@ class AgentCluster : public ScenarioElement {
   Ped::Tagent::AgentType agentType;
   bool shallCreateGroups;
   QList<Waypoint*> waypoints;
+
+ public:
+  double forceFactorDesired;
+  double forceFactorSocial;
+  double forceFactorObstacle;
+  double vmax;
+  double chattingProbability;
+  double tellStoryProbability;
+  double groupTalkingProbability;
+  double talkingAndWalkingProbability;
+  double requestingServiceProbability = 0.1;
+  double maxTalkingDistance;
+  double maxServicingRadius = 10.0;
+  Agent::WaypointMode waypoint_mode;
+  double stateTalkingBaseTime;  // in seconds
+  double stateTellStoryBaseTime;  // in seconds
+  double stateGroupTalkingBaseTime;  // in seconds
+  double stateTalkingAndWalkingBaseTime;  // in seconds
+  double stateRequestingServiceBaseTime = 30.0;
+  double stateReceivingServiceBaseTime = 30.0;
+  std::vector<int> agentIds;
 };
 
 #endif

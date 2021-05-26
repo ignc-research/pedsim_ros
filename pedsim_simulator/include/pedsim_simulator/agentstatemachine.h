@@ -33,6 +33,7 @@
 #define _agentstatemachine_h_
 
 #include <QObject>
+#include <ros/ros.h>
 
 // Forward Declarations
 class Agent;
@@ -49,12 +50,30 @@ class AgentStateMachine : public QObject {
   // TODO - switch to enum classes
  public:
   typedef enum {
-    StateNone = 0,
-    StateWaiting = 1,
-    StateQueueing = 2,
-    StateWalking = 3,
-    StateGroupWalking = 4,
-    StateShopping = 5
+    StateNone,
+    StateWaiting,
+    StateQueueing,
+    StateWalking,
+    StateGroupWalking,
+    StateShopping,
+    StateTalking,
+    StateWorking,
+    StateLiftingForks,
+    StateLoading,
+    StateLoweringForks,
+    StateDriving,
+    StateTellStory,
+    StateGroupTalking,
+    StateListening,
+    StateTalkingAndWalking,
+    StateListeningAndWalking,
+    StateReachedShelf,
+    StateRunning,
+    StateBackUp,
+    StateRequestingService,
+    StateReceivingService,
+    StateDrivingToInteraction,
+    StateProvidingService
   } AgentState;
 
   // Constructor and Destructor
@@ -69,19 +88,17 @@ class AgentStateMachine : public QObject {
  public slots:
   void loseAttraction();
 
-  // Methods
  public:
   void doStateTransition();
   AgentState getCurrentState();
+  void activateState(AgentState stateIn);
+  static QString stateToName(AgentState stateIn);
 
  protected:
-  void activateState(AgentState stateIn);
   void deactivateState(AgentState stateIn);
   bool checkGroupForAttractions(AttractionArea** attractionOut = nullptr) const;
-  QString stateToName(AgentState stateIn) const;
+  double getRandomDuration(double baseTime);
 
-  // Attributes
- protected:
   Agent* agent;
 
   // → State Machine
@@ -97,6 +114,10 @@ class AgentStateMachine : public QObject {
   // → Attraction
   AttractionArea* groupAttraction;
   bool shallLoseAttraction;
+
+  ros::WallTime startTimestamp;
+  double stateMaxDuration;  // in seconds
+
 };
 
 #endif

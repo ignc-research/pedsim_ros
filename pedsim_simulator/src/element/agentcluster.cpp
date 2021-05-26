@@ -34,19 +34,41 @@
 #include <pedsim_simulator/rng.h>
 #include <pedsim_simulator/scene.h>
 
-AgentCluster::AgentCluster(double xIn, double yIn, int countIn) {
-  static int lastID = 0;
+default_random_engine generator;
 
-  // initialize values
-  id = ++lastID;
+AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<int> agent_ids) {
+  if (countIn != (int) agent_ids.size()) {
+    agentIds.clear();
+    for (int i = 0; i < countIn; i++) {
+      agentIds.push_back(Ped::Tagent::staticid + i);
+    }
+  } else {
+    agentIds = agent_ids;
+  }
   position = Ped::Tvector(xIn, yIn);
   count = countIn;
   distribution = QSizeF(0, 0);
   agentType = Ped::Tagent::ADULT;
   shallCreateGroups = true;
-};
+  forceFactorDesired = 1.0;
+  forceFactorSocial = 2.0;
+  forceFactorObstacle = 10.0;
+  normal_distribution<double> distribution(0.6, 0.2);
+  vmax = distribution(generator);
+  chattingProbability = 0.1;
+  tellStoryProbability = 0.001;
+  groupTalkingProbability = 0.001;
+  talkingAndWalkingProbability = 0.001;
+  maxTalkingDistance = 1.5;
+  waypoint_mode = Agent::WaypointMode::LOOP;
+  stateTalkingBaseTime = 6.0;
+  stateTellStoryBaseTime = 6.0;
+  stateGroupTalkingBaseTime = 6.0;
+  stateTalkingAndWalkingBaseTime = 6.0;
+}
 
 AgentCluster::~AgentCluster() {}
+
 
 QList<Agent*> AgentCluster::dissolve() {
   QList<Agent*> agents;
@@ -58,7 +80,8 @@ QList<Agent*> AgentCluster::dissolve() {
 
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
-    Agent* a = new Agent();
+    std::string name = "person_" + std::to_string(agentIds[i]);
+    Agent* a = new Agent(name);
 
     double randomizedX = position.x;
     double randomizedY = position.y;
@@ -66,7 +89,28 @@ QList<Agent*> AgentCluster::dissolve() {
     if (distribution.width() != 0) randomizedX += randomX(RNG());
     if (distribution.height() != 0) randomizedY += randomY(RNG());
     a->setPosition(randomizedX, randomizedY);
+    a->initialPosX = randomizedX;
+    a->initialPosY = randomizedY;
     a->setType(agentType);
+    a->setVmax(vmax);
+    a->vmaxDefault = vmax;
+    a->chattingProbability = chattingProbability;
+    a->tellStoryProbability = tellStoryProbability;
+    a->groupTalkingProbability = groupTalkingProbability;
+    a->talkingAndWalkingProbability = talkingAndWalkingProbability;
+    a->requestingServiceProbability = requestingServiceProbability;
+    a->stateTalkingBaseTime = stateTalkingBaseTime;
+    a->stateTellStoryBaseTime = stateTellStoryBaseTime;
+    a->stateGroupTalkingBaseTime = stateGroupTalkingBaseTime;
+    a->stateTalkingAndWalkingBaseTime = stateTalkingAndWalkingBaseTime;
+    a->stateRequestingServiceBaseTime = stateRequestingServiceBaseTime;
+    a->stateReceivingServiceBaseTime = stateReceivingServiceBaseTime;
+    a->maxTalkingDistance = maxTalkingDistance;
+    a->maxServicingRadius = maxServicingRadius;
+    a->waypointMode = waypoint_mode;
+    a->setForceFactorDesired(forceFactorDesired);
+    a->setForceFactorSocial(forceFactorSocial);
+    a->setForceFactorObstacle(forceFactorObstacle);
 
     // add waypoints to the agent
     foreach (Waypoint* waypoint, waypoints)

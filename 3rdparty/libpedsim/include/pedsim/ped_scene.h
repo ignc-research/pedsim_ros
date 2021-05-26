@@ -16,6 +16,7 @@
 #include <map>
 #include <set>
 #include <vector>
+#include <nav_msgs/OccupancyGrid.h>
 
 using namespace std;
 
@@ -75,11 +76,15 @@ class LIBEXPORT Tscene {
   virtual bool removeObstacle(Tobstacle* o);
   virtual bool removeWaypoint(Twaypoint* w);
 
+  virtual void removeAllObstacles();
+
   virtual void cleanup();
   virtual void moveAgents(double h);
 
   set<const Ped::Tagent*> getNeighbors(double x, double y, double dist) const;
   const vector<Tagent*>& getAllAgents() const { return agents; };
+
+  nav_msgs::OccupancyGrid map_;
 
  protected:
   vector<Tagent*> agents;
@@ -92,6 +97,7 @@ class LIBEXPORT Tscene {
   void moveAgent(const Ped::Tagent* a);
   void getNeighbors(std::vector<const Ped::Tagent*>& neighborList, double x,
                     double y, double dist) const;
+  void getMap();
 };
 }
 #endif

@@ -13,6 +13,7 @@
 #endif
 
 #include <cstddef>
+#include <vector>
 #include "ped_vector.h"
 
 using namespace std;
@@ -25,7 +26,11 @@ class Tagent;
 /// \author  chgloor
 class LIBEXPORT Twaypoint {
  public:
-  enum WaypointType { AreaWaypoint = 0, PointWaypoint = 1 };
+  enum WaypointType {
+    AreaWaypoint,
+    PointWaypoint,
+    Shelf
+    };
   enum Behavior { SIMPLE = 0, SOURCE = 1, SINK = 2 };
 
  public:
@@ -40,6 +45,7 @@ class LIBEXPORT Twaypoint {
   double getx() const { return position.x; };
   double gety() const { return position.y; };
   double getRadius() const { return radius; };
+  bool isInteractive();
 
   virtual void setPosition(double xIn, double yIn) {
     position.x = xIn;
@@ -60,6 +66,8 @@ class LIBEXPORT Twaypoint {
   virtual Tvector closestPoint(const Tvector& p,
                                bool* withinWaypoint = NULL) const;
 
+  double interactionRadius = 0;
+  
  protected:
   static int staticid;                   ///< last waypoint number
   int id;                                ///< waypoint number
@@ -67,6 +75,7 @@ class LIBEXPORT Twaypoint {
   WaypointType type;                     ///< type of the waypoint
   Behavior behavior = Behavior::SIMPLE;  ///< behavior of the waypoint
   double radius;                          ///< radius of the waypoint
+  std::vector<WaypointType> interactiveTypes = {Shelf};
 };
 }
 

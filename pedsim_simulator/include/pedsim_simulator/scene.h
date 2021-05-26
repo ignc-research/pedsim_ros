@@ -39,6 +39,7 @@
 #include <QRectF>
 
 #include <pedsim_simulator/utilities.h>
+#include <geometry_msgs/Point.h>
 
 // Forward Declarations
 class QGraphicsScene;
@@ -72,9 +73,11 @@ class Scene : public QObject, protected Ped::Tscene {
 #define SCENE Scene::getInstance()
  protected:
   static Scene* instance;
+  float time_step_size = 0.0;
 
  public:
   static Scene& getInstance();
+  void setTimeStepSize(float t);
 
   // Signals
  signals:
@@ -111,6 +114,7 @@ class Scene : public QObject, protected Ped::Tscene {
 
   // → elements
   const QList<Agent*>& getAgents() const;
+  Agent* getAgent(int id) const;
   Agent* getAgentById(int idIn) const;
   QList<AgentGroup*> getGroups();
   QMap<QString, AttractionArea*> getAttractions();
@@ -148,11 +152,16 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual bool removeWaitingQueue(WaitingQueue* queueIn);
   virtual bool removeAttraction(AttractionArea* attractionInIn);
 
+  //->move agent cluster directly to another place
+  virtual void moveClusters(int i);
+  virtual void removeAllObstacles();
+
   virtual std::set<const Ped::Tagent*> getNeighbors(double x, double y,
                                                     double maxDist);
 
   // obstacle cell locations
   std::vector<Location> obstacle_cells_;
+  std::vector<std::string> types {"adult", "child", "elder", "forklift", "servicerobot"};
 
   // Attributes
  protected:

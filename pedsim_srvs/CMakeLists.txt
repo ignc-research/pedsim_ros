@@ -24,6 +24,11 @@ add_service_files( DIRECTORY srv
   GetAgentState.srv
   SetAllAgentsState.srv
   GetAllAgentsState.srv
+  SpawnPed.srv
+  SpawnPeds.srv
+  SpawnObstacle.srv
+  MovePeds.srv
+  SpawnInteractiveObstacles.srv
 )
 
 generate_messages(DEPENDENCIES ${MESSAGE_DEPENDENCIES})

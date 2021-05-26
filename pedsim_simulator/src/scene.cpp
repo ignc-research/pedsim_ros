@@ -175,6 +175,15 @@ QRectF Scene::itemsBoundingRect() const {
 
 const QList<Agent*>& Scene::getAgents() const { return agents; }
 
+Agent* Scene::getAgent(int id) const {
+  for (Agent* agent : agents) {
+    if (agent->getId() == id) {
+      return agent;
+    }
+  }
+  return nullptr;
+}
+
 QList<AgentGroup*> Scene::getGroups() { return agentGroups; }
 
 QMap<QString, AttractionArea*> Scene::getAttractions() { return attractions; }
@@ -258,6 +267,7 @@ void Scene::dissolveClusters() {
       if (currentGroup->memberCount() == 1) {
         // we don't need one agent groups
         delete currentGroup;
+        continue;
       } else if (currentGroup->memberCount() > 1) {
         // keep track of groups
         agentGroups.append(currentGroup);
@@ -330,7 +340,7 @@ void Scene::addWaypoint(Waypoint* waypoint) {
   // keep track of the waypoints
   waypoints.insert(waypoint->getName(), waypoint);
 
-  // add the obstacle to the PedSim scene
+  // add the waypoint to the PedSim scene
   Ped::Tscene::addWaypoint(waypoint);
 
   // inform users
@@ -514,6 +524,9 @@ std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
 
   return potentialNeighbours;
 }
+void Scene::setTimeStepSize(float t){
+    time_step_size = t;
+}
 
 void Scene::moveAllAgents() {
   // inform users when there is going to be the first update
@@ -530,12 +543,18 @@ void Scene::moveAllAgents() {
   // dissolve agent clusters
   if (!agentClusters.isEmpty()) dissolveClusters();
 
-  // update scene time
-  sceneTime += CONFIG.getTimeStepSize();
+  // // update scene time
+  // sceneTime += CONFIG.getTimeStepSize();
+  // emit sceneTimeChanged(sceneTime);
+
+  // // move the agents
+  // Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
+    // update scene time
+  sceneTime += time_step_size; //CONFIG.getTimeStepSize();
   emit sceneTimeChanged(sceneTime);
 
   // move the agents
-  Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
+  Ped::Tscene::moveAgents(time_step_size);
 
   auto Dist = [](const double ax, const double ay, const double bx,
                  const double by) -> double {
@@ -565,6 +584,23 @@ void Scene::moveAllAgents() {
 
   // inform users
   emit movedAgents();
+}
+
+// move the agent cluster to another position directly
+// @param int i episode number to determine the next wp
+void Scene::moveClusters(int i) {
+  for(Agent* agent: agents){
+    int k = (int)agent->getWaypoints().size();
+    Waypoint *w=agent->getWaypoints()[i%k];
+    agent->setPosition(w->getx(), w->gety());
+    // ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
+  }
+}
+
+void Scene::removeAllObstacles(){
+  // remove all elements from the scene
+  Ped::Tscene::removeAllObstacles();
+  obstacles.clear();
 }
 
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }
