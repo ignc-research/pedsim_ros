@@ -1,5 +1,5 @@
 # Pedestrian Simulator
-Pedestrian Simulator (Pedsim) is a 2D pedestrian simulator based on the social force model of [Helbing et. al](http://arxiv.org/pdf/cond-mat/9805244.pdf). This repository is an extension of the original [Pedsim repository](https://github.com/srl-freiburg/pedsim_ros). It's supposed to be used in conjunction with [Arena-Rosnav](https://github.com/ignc-research/arena-rosnav/tree/sim_to_real).
+Pedestrian Simulator (Pedsim) is a 2D pedestrian simulator based on the social force model of [Helbing et. al](http://arxiv.org/pdf/cond-mat/9805244.pdf). This repository is an extension of the original [Pedsim repository](https://github.com/srl-freiburg/pedsim_ros) and also incorporating features from [Ronja Güldenring's fork](https://github.com/RGring/pedsim_ros/tree/rl_features). It's supposed to be used in conjunction with [Arena-Rosnav](https://github.com/ignc-research/arena-rosnav/tree/sim_to_real).
 
 Movement of the agents in the simulation is mostly controlled by three forces:
 - desired force (pulls agent towards the current destination)
