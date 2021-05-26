@@ -67,9 +67,9 @@ class LIBEXPORT Twaypoint {
                                bool* withinWaypoint = NULL) const;
 
   double interactionRadius = 0;
+  static int staticid;                   ///< last waypoint number
   
  protected:
-  static int staticid;                   ///< last waypoint number
   int id;                                ///< waypoint number
   Tvector position;                      ///< position of the waypoint
   WaypointType type;                     ///< type of the waypoint
