@@ -422,6 +422,14 @@ bool Scene::removeObstacle(Obstacle* obstacle) {
   return Ped::Tscene::removeObstacle(obstacle);
 }
 
+bool Scene::removeWaypoint(QString name) {
+  auto waypoint = getWaypointByName(name);
+  if (waypoint != nullptr) {
+    return removeWaypoint(waypoint);
+  }
+  return false;
+}
+
 bool Scene::removeWaypoint(Waypoint* waypoint) {
   // don't keep track of waypoint anymore
   waypoints.remove(waypoint->getName());

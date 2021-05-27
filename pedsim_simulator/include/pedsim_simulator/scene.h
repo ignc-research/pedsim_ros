@@ -147,6 +147,7 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual void addAttraction(AttractionArea* attractionIn);
   virtual bool removeAgent(Agent* agent);
   virtual bool removeObstacle(Obstacle* obstacle);
+  bool removeWaypoint(QString name);
   virtual bool removeWaypoint(Waypoint* waypoint);
   virtual bool removeAgentCluster(AgentCluster* clusterIn);
   virtual bool removeWaitingQueue(WaitingQueue* queueIn);
