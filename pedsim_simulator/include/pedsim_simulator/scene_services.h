@@ -114,6 +114,11 @@ class SceneServices {
   std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids);
   std::vector<int> generateAgentIds(int n);
   bool removeModelsInFlatland(std::vector<std::string> model_names);
+  bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);
+  bool respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models);
+  void removeAllReferencesToInteractiveObstacles();
+  void removeAllInteractiveObstaclesFromPedsim();
+  void removeAllInteractiveObstaclesFromFlatland();
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
