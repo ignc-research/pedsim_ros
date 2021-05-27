@@ -200,7 +200,7 @@ void Simulator::runSimulation() {
       // publishGroups();
       // // publishRobotPosition();
       // publishObstacles();  // TODO - no need to do this all the time.
-      // publishWaypoints();
+      publishWaypoints();
     }
     ros::spinOnce();
     r.sleep();
@@ -449,8 +449,10 @@ void Simulator::publishWaypoints() {
   for (const auto& waypoint : SCENE.getWaypoints()) {
     pedsim_msgs::Waypoint wp;
     wp.name = waypoint->getName().toStdString();
+    wp.type = waypoint->getType();
     wp.behavior = waypoint->getBehavior();
     wp.radius = waypoint->getRadius();
+    wp.interaction_radius = waypoint->interactionRadius;
     wp.position.x = waypoint->getPosition().x;
     wp.position.y = waypoint->getPosition().y;
     sim_waypoints.waypoints.push_back(wp);
