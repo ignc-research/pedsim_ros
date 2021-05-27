@@ -69,10 +69,6 @@ class AreaWaypoint : public Waypoint {
   virtual QPointF getVisiblePosition() const;
   virtual void setVisiblePosition(const QPointF& positionIn);
   QString toString() const;
-
-  // Attributes
- public:
-  // double radius;
 };
 
 #endif
