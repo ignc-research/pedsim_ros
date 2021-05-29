@@ -8,4 +8,5 @@ pedsim_msgs/AgentForce forces
 int64 talking_to_id
 int64 listening_to_id
 geometry_msgs/Vector3 acceleration
+geometry_msgs/Vector3 destination
 float64 direction

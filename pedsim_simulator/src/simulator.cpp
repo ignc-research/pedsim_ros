@@ -371,9 +371,9 @@ void Simulator::publishAgents() {
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
-    agent_forces.desired_force = VecToMsg(a->getDesiredDirection());
-    agent_forces.obstacle_force = VecToMsg(a->getObstacleForce());
-    agent_forces.social_force = VecToMsg(a->getSocialForce());
+    agent_forces.desired_force = VecToMsg(a->getDesiredDirection() * a->forceFactorDesired);
+    agent_forces.obstacle_force = VecToMsg(a->getObstacleForce() * a->forceFactorObstacle);
+    agent_forces.social_force = VecToMsg(a->getSocialForce() * a->forceFactorSocial);
     // agent_forces.group_coherence_force = a->getSocialForce();
     // agent_forces.group_gaze_force = a->getSocialForce();
     // agent_forces.group_repulsion_force = a->getSocialForce();
@@ -385,6 +385,11 @@ void Simulator::publishAgents() {
     state.listening_to_id = a->listeningToId;
 
     state.acceleration = VecToMsg(a->getAcceleration());
+    if (a->currentDestination == nullptr) {
+      state.destination = VecToMsg(a->getPosition());
+    } else {
+      state.destination = VecToMsg(a->getCurrentDestination()->getPosition());
+    }
     state.direction = a->facingDirection;
 
     all_status.agent_states.push_back(state);
