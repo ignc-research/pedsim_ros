@@ -89,9 +89,9 @@ Agent::Agent() {
   lastRequestingServiceCheck = ros::Time::now();
 
   stateWorkingBaseTime = 30.0;
-  stateLiftingForksBaseTime = 6.0;
-  stateLoadingBaseTime = 6.0;
-  stateLoweringForksBaseTime = 6.0;
+  stateLiftingForksBaseTime = 3.0;
+  stateLoadingBaseTime = 3.0;
+  stateLoweringForksBaseTime = 3.0;
   stateTalkingBaseTime = 10.0;
   stateTellStoryBaseTime = 20.0;
   stateGroupTalkingBaseTime = 20.0;
@@ -139,11 +139,28 @@ Ped::Tvector Agent::socialForce() const {
   return force;
 }
 
+double Agent::obstacleForceFunction(double distance) {
+  if (distance <= 0) {
+    return 0.0;
+  }
+  return 3.0 / distance;
+}
+
 /// Calculates the obstacle force. Same as in lib, but adds graphical
 /// representation
 Ped::Tvector Agent::obstacleForce() {
   Ped::Tvector force;
-  if (!disabledForces.contains("Obstacle")) force = Tagent::obstacleForce();
+  if (!disabledForces.contains("Obstacle")) {
+    Ped::Tvector closest_obstacle_pos;
+    if (!SCENE.getClosestObstaclePos(p, &closest_obstacle_pos)) {
+      return Ped::Tvector(0.0, 0.0);
+    }
+
+    Ped::Tvector diff = p - closest_obstacle_pos;
+    double force_magnitude = obstacleForceFunction(diff.length());
+    Ped::Tvector force_direction = diff.normalized();
+    force = force_direction * force_magnitude;
+  }
 
   // inform users
   emit obstacleForceChanged(force.x, force.y);

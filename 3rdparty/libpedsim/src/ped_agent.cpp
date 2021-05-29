@@ -280,128 +280,9 @@ Ped::Tvector Ped::Tagent::robotForce(){
 //   return forceAmount * minDiff.normalized();
 // }
 
-
-std::vector<double> Ped::Tagent::LinearSpacedArray(double a, double b, std::size_t N)
-{
-  // create array with N linearly spaced values between a and b
-  double h = (b - a) / static_cast<double>(N-1);
-  std::vector<double> xs(N);
-  std::vector<double>::iterator x;
-  double val;
-  for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h) {
-    *x = val;
-  }
-  return xs;
-}
-
-std::vector<int> Ped::Tagent::odomPosToMapIndex(Ped::Tvector pos)
-{
-  // translate a position in the "odom" frame to a map index
-  int index_y = static_cast<int> ((pos.y - scene->map_.info.origin.position.y) / scene->map_.info.resolution);
-  int index_x = static_cast<int> ((pos.x - scene->map_.info.origin.position.x) / scene->map_.info.resolution);
-  std::vector<int> v{index_y, index_x};
-  return v;
-}
-
-bool Ped::Tagent::isOccupied(Ped::Tvector pos)
-{
-  nav_msgs::OccupancyGrid map = scene->map_;
-  std::vector<int> index = odomPosToMapIndex(pos);
-  // check if indexes are within range
-  if (
-    0 <= index[0] &&
-    index[0] < map.info.height &&
-    0 <= index[1] &&
-    index[1] < map.info.width)
-  {
-    // translate 2d index to 1d index in row-major order
-    return map.data[index[0] * map.info.width + index[1]] > 0;
-  }
-
-  return true;
-}
-
-Ped::Tvector* Ped::Tagent::getClosestObstaclePos(std::vector<Ped::Tvector > considered_positions, Ped::Tvector pos)
-{
-  // find the closest position out of a list of considered positions
-  Ped::Tvector closest_obstacle_pos;
-  double closest_distance_squared = INFINITY;
-  bool found_something = false;
-  for (Ped::Tvector considered_pos : considered_positions)
-  {
-    // if (id == 0) { ROS_INFO("considered_pos x: %lf y: %lf %s", considered_pos.x, considered_pos.y, isOccupied(considered_pos) ? "full" : "empty");}
-    if (isOccupied(considered_pos))
-    {
-      found_something = true;
-      Ped::Tvector diff = pos - considered_pos;
-      double distance_squared = diff.lengthSquared();
-      if (distance_squared < closest_distance_squared)
-      {
-        closest_distance_squared = distance_squared;
-        closest_obstacle_pos = considered_pos;
-      }
-    }
-  }
-
-  if (found_something)
-  {
-    return new Ped::Tvector(closest_obstacle_pos);
-  }
-
-  return nullptr;
-}
-
-std::vector<Ped::Tvector > Ped::Tagent::getSurroundingPositions(Ped::Tvector pos)
-{
-  // create a grid of positions around the given pos
-  int resolution = 20;
-  std::vector<Ped::Tvector > considered_positions;
-  for (double value_x : LinearSpacedArray(pos.x - obstacleForceRange, pos.x + obstacleForceRange, resolution))
-  {
-    for (double value_y : LinearSpacedArray(pos.y - obstacleForceRange, pos.y + obstacleForceRange, resolution))
-    {
-      Ped::Tvector pos_temp(value_x, value_y);
-      considered_positions.push_back(pos_temp);
-    }
-  }
-  return considered_positions;
-}
-
-double Ped::Tagent::obstacleForceFunction(double distance)
-{
-  if (distance <= 0)
-  {
-    return 0.0;
-  }
-  return 3.0 / distance;
-}
-
-/// Calculate force between this agent and the nearest occupied cell
-/// found in the map. Scans only the immediate area of the agent.
-/// The size of the area is dependent on the value of obstacleForceRange.
 Ped::Tvector Ped::Tagent::obstacleForce() {
-  std::vector<Ped::Tvector > considered_positions = getSurroundingPositions(p);
-  Ped::Tvector* closest_obstacle_pos = getClosestObstaclePos(considered_positions, p);
-
-  if (closest_obstacle_pos == nullptr)
-  {
-    // return empty vector
-    return Ped::Tvector();
-  }
-
-  Ped::Tvector diff = p - *closest_obstacle_pos;
-  double force_magnitude = obstacleForceFunction(diff.length());
-  Ped::Tvector force_direction = diff.normalized();
-  Ped::Tvector force = force_direction * force_magnitude;
-  // if (id == 0)
-  // {
-  //   ROS_INFO("agent pos: x: %lf y: %lf", p.x, p.y);
-  //   ROS_INFO("closest_obstacle_pos: x: %lf y: %lf", closest_obstacle_pos->x, closest_obstacle_pos->y);
-  //   ROS_INFO("diff: x: %lf y: %lf", diff.x, diff.y);
-    // ROS_INFO("force: x: %lf y: %lf", force.x, force.y);
-    // ROS_INFO("force_magnitude: %lf", force_magnitude);
-  //   ROS_INFO("------------------");
-  // }
+  ROS_WARN("returning empty obstacle force in Ped::Tagent::obstacleForce(). Make sure to use Agent::obstacleForce() instead.");
+  Ped::Tvector force;
   return force;
 }
 
@@ -425,7 +306,7 @@ void Ped::Tagent::computeForces() {
   // update forces
   desiredforce = desiredForce();
   if (forceFactorSocial > 0) socialforce = socialForce();
-  // if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
+  if (forceFactorObstacle > 0) obstacleforce = obstacleForce();
   robotforce = robotForce();
   keepdistanceforce = keepDistanceForce();
   myforce = myForce(desiredDirection);

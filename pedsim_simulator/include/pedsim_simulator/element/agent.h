@@ -94,6 +94,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void move(double h);
   Ped::Tvector desiredForce();
   Ped::Tvector socialForce() const;
+  double obstacleForceFunction(double distance);
   Ped::Tvector obstacleForce();
   Ped::Tvector keepDistanceForce();
   Ped::Tvector myForce(Ped::Tvector desired) const;

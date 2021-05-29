@@ -612,3 +612,19 @@ void Scene::removeAllObstacles(){
 }
 
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }
+
+bool Scene::getClosestObstaclePos(Ped::Tvector pos_in, Ped::Tvector* closest) {
+  double min_dist_squared = INFINITY;
+  bool found_something = false;
+  for (auto pos : pointObstacles) {
+    auto diff = pos_in - pos;
+    auto dist_squared = diff.lengthSquared();
+    if (dist_squared < min_dist_squared) {
+      min_dist_squared = dist_squared;
+      *closest = pos;
+      found_something = true;
+    }
+  }
+
+  return found_something;
+}

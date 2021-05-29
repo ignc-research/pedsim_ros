@@ -124,6 +124,9 @@ class LIBEXPORT Tagent {
   double keepDistanceForceDistanceDefault;
   Tvector keepDistanceTo;
   double vmaxDefault;
+  double forceFactorDesired;
+  double forceFactorSocial;
+  double forceFactorObstacle;
 
  protected:
   int id;
@@ -138,9 +141,6 @@ class LIBEXPORT Tagent {
   bool teleop;
   double robotPosDiffScalingFactor;
 
-  double forceFactorDesired;
-  double forceFactorSocial;
-  double forceFactorObstacle;
   double forceSigmaObstacle;
   double forceSigmaRobot;
   double still_time;

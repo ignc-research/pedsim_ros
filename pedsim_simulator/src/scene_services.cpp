@@ -164,6 +164,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     waypoint->staticObstacleAngle = fmod(yaw + M_PI, 2 * M_PI);
     waypoint->setType(Ped::Twaypoint::WaypointType::Shelf);
     SCENE.addWaypoint(waypoint);
+    SCENE.pointObstacles.push_back(Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y));
 
     // create flatland model
     flatland_msgs::Model model;
@@ -232,6 +233,9 @@ void SceneServices::removeAllInteractiveObstaclesFromPedsim() {
       SCENE.removeWaypoint(waypoint);
     }
   }
+
+  // remove point obstacles
+  SCENE.pointObstacles.clear();
 }
 
 void SceneServices::removeAllInteractiveObstaclesFromFlatland() {
