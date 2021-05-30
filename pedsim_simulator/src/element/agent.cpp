@@ -497,12 +497,6 @@ void Agent::move(double h) {
     updateDirection();
   }
 
-  if (getType() == Ped::Tagent::ELDER) {
-    // Old people slow!
-    Ped::Tagent::setVmax(0.9);
-    Ped::Tagent::setForceFactorDesired(0.5);
-  }
-
   // inform users
   emit positionChanged(getx(), gety());
   emit velocityChanged(getvx(), getvy());

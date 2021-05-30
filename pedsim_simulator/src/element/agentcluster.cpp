@@ -93,7 +93,10 @@ QList<Agent*> AgentCluster::dissolve() {
     a->initialPosY = randomizedY;
     a->setType(agentType);
     a->setVmax(vmax);
-    a->vmaxDefault = vmax;
+    if (agentType == Ped::Tagent::ELDER) {
+      a->setVmax(vmax * 0.7);
+    }
+    a->vmaxDefault = a->getVmax();
     a->chattingProbability = chattingProbability;
     a->tellStoryProbability = tellStoryProbability;
     a->groupTalkingProbability = groupTalkingProbability;
