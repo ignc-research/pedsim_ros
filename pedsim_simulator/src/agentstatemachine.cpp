@@ -659,6 +659,9 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       break;
     case StateProvidingService:
       agent->setWaypointPlanner(nullptr);
+      SCENE.removeWaypoint(agent->servicingWaypoint);
+      agent->servicingWaypoint = nullptr;
+      agent->currentDestination = nullptr;
       agent->stopMovement();
       break;
   }
