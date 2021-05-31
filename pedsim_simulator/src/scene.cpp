@@ -613,15 +613,15 @@ void Scene::removeAllObstacles(){
 
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }
 
-bool Scene::getClosestObstaclePos(Ped::Tvector pos_in, Ped::Tvector* closest) {
+bool Scene::getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest) {
   double min_dist_squared = INFINITY;
   bool found_something = false;
-  for (auto pos : pointObstacles) {
-    auto diff = pos_in - pos;
+  for (auto wp : circleObstacles) {
+    auto diff = pos_in - wp.getPosition();
     auto dist_squared = diff.lengthSquared();
     if (dist_squared < min_dist_squared) {
       min_dist_squared = dist_squared;
-      *closest = pos;
+      *closest = wp;
       found_something = true;
     }
   }

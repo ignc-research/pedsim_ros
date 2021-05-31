@@ -67,6 +67,7 @@ class LIBEXPORT Twaypoint {
                                bool* withinWaypoint = NULL) const;
 
   double interactionRadius = 0;
+  float obstacleForceRadius = 1.0;
   static int staticid;                   ///< last waypoint number
   
  protected:

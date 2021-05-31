@@ -48,6 +48,8 @@ Agent::Agent() {
   initialPosX = 0.0;
   initialPosY = 0.0;
 
+  obstacleForceRadius = 1.0;
+
   waypointMode = WaypointMode::LOOP;
   currentDestination = nullptr;
   destinationIndex = 0;
@@ -139,11 +141,13 @@ Ped::Tvector Agent::socialForce() const {
   return force;
 }
 
-double Agent::obstacleForceFunction(double distance) {
-  if (distance <= 0) {
-    return 0.0;
+double Agent::obstacleForceFunction(double distanceIn) {
+  if (distanceIn <= 0) {
+    // distance < 0 means a collision so return a big force
+    return 100.0;
   }
-  return 3.0 / distance;
+
+  return 1.0 / distanceIn;
 }
 
 /// Calculates the obstacle force. Same as in lib, but adds graphical
@@ -151,13 +155,13 @@ double Agent::obstacleForceFunction(double distance) {
 Ped::Tvector Agent::obstacleForce() {
   Ped::Tvector force;
   if (!disabledForces.contains("Obstacle")) {
-    Ped::Tvector closest_obstacle_pos;
-    if (!SCENE.getClosestObstaclePos(p, &closest_obstacle_pos)) {
+    Ped::Twaypoint closest_obstacle;
+    if (!SCENE.getClosestObstacle(p, &closest_obstacle)) {
       return Ped::Tvector(0.0, 0.0);
     }
 
-    Ped::Tvector diff = p - closest_obstacle_pos;
-    double force_magnitude = obstacleForceFunction(diff.length());
+    Ped::Tvector diff = p - closest_obstacle.getPosition();
+    double force_magnitude = obstacleForceFunction(diff.length() - obstacleForceRadius - closest_obstacle.obstacleForceRadius);
     Ped::Tvector force_direction = diff.normalized();
     force = force_direction * force_magnitude;
   }

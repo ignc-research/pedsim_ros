@@ -160,12 +160,15 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual std::set<const Ped::Tagent*> getNeighbors(double x, double y,
                                                     double maxDist);
 
-  bool getClosestObstaclePos(Ped::Tvector pos_in, Ped::Tvector* closest);
+  bool getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest);
 
   // obstacle cell locations
   std::vector<Location> obstacle_cells_;
-  std::vector<std::string> types {"adult", "child", "elder", "forklift", "servicerobot"};
-  std::vector<Ped::Tvector> pointObstacles;
+  std::vector<std::string> agent_types {"adult", "child", "elder", "forklift", "servicerobot", "robot"};
+  std::vector<float> agent_radius {0.7, 0.7, 0.7, 1.8, 1.0, 1.0};  // used for obstacle force calculation
+  std::vector<std::string> obstacle_types {"areawaypoint", "pointwaypoint", "shelf"};
+  std::vector<float> obstacle_radius {1.0, 1.0, 1.0};  // used for obstacle force calculation
+  std::vector<Ped::Twaypoint> circleObstacles;
 
   // Attributes
  protected:

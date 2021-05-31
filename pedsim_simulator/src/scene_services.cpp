@@ -162,9 +162,32 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
       ROS_WARN("interaction_radius is smaller than 0.1. agents will not interact with this obstacle");
     }
     waypoint->staticObstacleAngle = fmod(yaw + M_PI, 2 * M_PI);
-    waypoint->setType(Ped::Twaypoint::WaypointType::Shelf);
+
+    // set type
+    std::string type_string = obstacle.type;
+    int type = 0;
+    // convert type string to enum value
+    auto types = SCENE.obstacle_types;
+    auto it = find(types.begin(), types.end(), type_string);
+    // If element was found
+    if (it != types.end()) {
+        type = it - types.begin();
+    }
+    waypoint->setType(static_cast<Ped::Twaypoint::WaypointType>(type));
+
+    // set radius for obstacle force calculation
+    int radius = 1.0;
+    int radius_index = waypoint->getType();
+    if (radius_index < SCENE.obstacle_radius.size()) {
+      radius = SCENE.obstacle_radius[radius_index];
+    }
+    waypoint->obstacleForceRadius = radius;
+
     SCENE.addWaypoint(waypoint);
-    SCENE.pointObstacles.push_back(Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y));
+    
+    auto circle_obstacle = Ped::Twaypoint(obstacle.pose.position.x, obstacle.pose.position.y);
+    circle_obstacle.obstacleForceRadius = radius;
+    SCENE.circleObstacles.push_back(circle_obstacle);
 
     // create flatland model
     flatland_msgs::Model model;
@@ -235,7 +258,7 @@ void SceneServices::removeAllInteractiveObstaclesFromPedsim() {
   }
 
   // remove point obstacles
-  SCENE.pointObstacles.clear();
+  SCENE.circleObstacles.clear();
 }
 
 void SceneServices::removeAllInteractiveObstaclesFromFlatland() {
@@ -276,7 +299,7 @@ AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::
   std::string type_string = ped.type;
   int type = 0;
   // convert type string to enum value
-  auto types = SCENE.types;
+  auto types = SCENE.agent_types;
   auto it = find(types.begin(), types.end(), type_string);
   // If element was found
   if (it != types.end()) {

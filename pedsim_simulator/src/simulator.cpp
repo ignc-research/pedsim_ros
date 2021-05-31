@@ -346,11 +346,16 @@ void Simulator::publishAgents() {
   };
 
   for (const Agent* a : SCENE.getAgents()) {
+    // Skip robot.
+    if (a->getType() == Ped::Tagent::ROBOT) {
+      continue;
+    }
+
     pedsim_msgs::AgentState state;
     state.header = createMsgHeader();
 
     state.id = a->getId();
-    state.type = SCENE.types[a->getType()];
+    state.type = SCENE.agent_types[a->getType()];
     state.pose.position.x = a->getx();
     state.pose.position.y = a->gety();
     state.pose.position.z = a->getz();
@@ -364,10 +369,6 @@ void Simulator::publishAgents() {
     AgentStateMachine::AgentState sc = a->getStateMachine()->getCurrentState();
     state.social_state = agentStateToActivity(sc);
 
-    // Skip robot.
-    // if (a->getType() == Ped::Tagent::ROBOT) {
-      // continue;
-    // }
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
