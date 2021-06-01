@@ -165,7 +165,7 @@ class Scene : public QObject, protected Ped::Tscene {
   // obstacle cell locations
   std::vector<Location> obstacle_cells_;
   std::vector<std::string> agent_types {"adult", "child", "elder", "forklift", "servicerobot", "robot"};
-  std::vector<float> agent_radius {0.7, 0.7, 0.7, 1.8, 1.0, 1.0};  // used for obstacle force calculation
+  std::vector<float> agent_radius {0.5, 0.5, 0.5, 1.8, 1.0, 1.0};  // used for obstacle force calculation
   std::vector<std::string> obstacle_types {"areawaypoint", "pointwaypoint", "shelf"};
   std::vector<float> obstacle_radius {1.0, 1.0, 1.0};  // used for obstacle force calculation
   std::vector<Ped::Twaypoint> circleObstacles;
