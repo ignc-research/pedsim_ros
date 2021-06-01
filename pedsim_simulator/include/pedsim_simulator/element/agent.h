@@ -164,7 +164,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double initialPosX;
   double initialPosY;
 
-  float obstacleForceRadius;
+  float modelRadius;
 
   QList<Waypoint*> destinations;
   WaypointMode waypointMode;

@@ -181,12 +181,12 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     if (radius_index < SCENE.obstacle_radius.size()) {
       radius = SCENE.obstacle_radius[radius_index];
     }
-    waypoint->obstacleForceRadius = radius;
+    waypoint->modelRadius = radius;
 
     SCENE.addWaypoint(waypoint);
     
     auto circle_obstacle = Ped::Twaypoint(obstacle.pose.position.x, obstacle.pose.position.y);
-    circle_obstacle.obstacleForceRadius = radius;
+    circle_obstacle.modelRadius = radius;
     SCENE.circleObstacles.push_back(circle_obstacle);
 
     // create flatland model

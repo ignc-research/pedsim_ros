@@ -48,7 +48,7 @@ Agent::Agent() {
   initialPosX = 0.0;
   initialPosY = 0.0;
 
-  obstacleForceRadius = 1.0;
+  modelRadius = 1.0;
 
   waypointMode = WaypointMode::LOOP;
   currentDestination = nullptr;
@@ -161,7 +161,7 @@ Ped::Tvector Agent::obstacleForce() {
     }
 
     Ped::Tvector diff = p - closest_obstacle.getPosition();
-    double force_magnitude = obstacleForceFunction(diff.length() - obstacleForceRadius - closest_obstacle.obstacleForceRadius);
+    double force_magnitude = obstacleForceFunction(diff.length() - modelRadius - closest_obstacle.modelRadius);
     Ped::Tvector force_direction = diff.normalized();
     force = force_direction * force_magnitude;
   }
