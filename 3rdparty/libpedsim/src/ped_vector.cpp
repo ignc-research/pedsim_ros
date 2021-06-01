@@ -101,6 +101,21 @@ std::string Ped::Tvector::toString() const {
   return "vector(" + std::to_string(x) + ", " + std::to_string(y) + ")";
 }
 
+int Ped::Tvector::getQuadrant() {
+  if (x > 0 && y > 0) {
+    return 1;
+  }
+  if (x < 0 && y > 0) {
+    return 2;
+  }
+  if (x < 0 && y < 0) {
+    return 3;
+  }
+  if (x > 0 && y < 0) {
+    return 4;
+  }
+  return -1;
+}
 
 Ped::Tvector Ped::Tvector::leftNormalVector() const {
   return Ped::Tvector(-y, x);
