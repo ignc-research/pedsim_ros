@@ -119,6 +119,7 @@ class LIBEXPORT Tagent {
   double obstacleForceFunction(double distance);
 
   static int staticid;
+  int id;
   int obstacleForceRange;
   double keepDistanceForceDistance;
   double keepDistanceForceDistanceDefault;
@@ -127,9 +128,9 @@ class LIBEXPORT Tagent {
   double forceFactorDesired;
   double forceFactorSocial;
   double forceFactorObstacle;
+  float modelRadius;
 
  protected:
-  int id;
   Tvector p;  ///< current position of the agent
   Tvector v;  ///< current velocity of the agent
   Tvector a;  ///< current acceleration of the agent
