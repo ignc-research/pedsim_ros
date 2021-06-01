@@ -98,6 +98,7 @@ class Config : public QObject {
   double forceGroupRepulsion;
   double forceRandom;
   double forceAlongWall;
+  bool use_wall_mode;
 
   // robot control
   RobotMode robot_mode;

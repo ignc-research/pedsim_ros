@@ -47,6 +47,7 @@ Config::Config(QObject* parent) {
   forceGroupRepulsion = 1.0;
   forceRandom = 0.1;
   forceAlongWall = 2.0;
+  use_wall_mode = true;
 
   cell_width = 1.0;
   cell_height = 1.0;

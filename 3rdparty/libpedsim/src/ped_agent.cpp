@@ -269,32 +269,26 @@ Ped::Tvector Ped::Tagent::robotForce(){
 /// scene.
 /// Iterates over all obstacles == O(N).
 /// \return  Tvector: the calculated force
-// Ped::Tvector Ped::Tagent::obstacleForce () const {
-//   // obstacle which is closest only
-//   Ped::Tvector minDiff;
-//   double minDistanceSquared = INFINITY;
-
-//   for (const Tobstacle* obstacle : scene->obstacles) {
-//     Ped::Tvector closestPoint = obstacle->closestPoint(p);
-//     Ped::Tvector diff = p - closestPoint;
-//     double distanceSquared = diff.lengthSquared();  // use squared distance to
-//     // avoid computing square
-//     // root
-//     if (distanceSquared < minDistanceSquared) {
-//       minDistanceSquared = distanceSquared;
-//       minDiff = diff;
-//     }
-//   }
-
-//   double distance = sqrt(minDistanceSquared) - agentRadius;
-//   double forceAmount = exp(-distance / forceSigmaObstacle);
-//   return forceAmount * minDiff.normalized();
-// }
-
 Ped::Tvector Ped::Tagent::obstacleForce() {
-  ROS_WARN("returning empty obstacle force in Ped::Tagent::obstacleForce(). Make sure to use Agent::obstacleForce() instead.");
-  Ped::Tvector force;
-  return force;
+  // obstacle which is closest only
+  Ped::Tvector minDiff;
+  double minDistanceSquared = INFINITY;
+
+  for (const Tobstacle* obstacle : scene->obstacles) {
+    Ped::Tvector closestPoint = obstacle->closestPoint(p);
+    Ped::Tvector diff = p - closestPoint;
+    double distanceSquared = diff.lengthSquared();  // use squared distance to
+    // avoid computing square
+    // root
+    if (distanceSquared < minDistanceSquared) {
+      minDistanceSquared = distanceSquared;
+      minDiff = diff;
+    }
+  }
+
+  double distance = sqrt(minDistanceSquared) - agentRadius;
+  double forceAmount = exp(-distance / forceSigmaObstacle);
+  return forceAmount * minDiff.normalized();
 }
 
 /// myForce() is a method that returns an "empty" force (all components set to

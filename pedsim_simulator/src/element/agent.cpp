@@ -155,15 +155,19 @@ double Agent::obstacleForceFunction(double distanceIn) {
 Ped::Tvector Agent::obstacleForce() {
   Ped::Tvector force;
   if (!disabledForces.contains("Obstacle")) {
-    Ped::Twaypoint closest_obstacle;
-    if (!SCENE.getClosestObstacle(p, &closest_obstacle)) {
-      return Ped::Tvector(0.0, 0.0);
-    }
+    if (CONFIG.use_wall_mode) {
+      force = Ped::Tagent::obstacleForce();
+    } else {
+      Ped::Twaypoint closest_obstacle;
+      if (!SCENE.getClosestObstacle(p, &closest_obstacle)) {
+        return Ped::Tvector(0.0, 0.0);
+      }
 
-    Ped::Tvector diff = p - closest_obstacle.getPosition();
-    double force_magnitude = obstacleForceFunction(diff.length() - modelRadius - closest_obstacle.modelRadius);
-    Ped::Tvector force_direction = diff.normalized();
-    force = force_direction * force_magnitude;
+      Ped::Tvector diff = p - closest_obstacle.getPosition();
+      double force_magnitude = obstacleForceFunction(diff.length() - modelRadius - closest_obstacle.modelRadius);
+      Ped::Tvector force_direction = diff.normalized();
+      force = force_direction * force_magnitude;
+    }
   }
 
   // inform users
