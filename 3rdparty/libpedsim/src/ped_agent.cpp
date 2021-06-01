@@ -189,7 +189,18 @@ Ped::Tvector Ped::Tagent::socialForce() const {
     }
 
     if(other->getType() == ROBOT) diff /= robotPosDiffScalingFactor;
+
     Tvector diffDirection = diff.normalized();
+    int quadrant_before = diff.getQuadrant();
+    // shorten the diff vector by the model radiuses
+    diff -= diffDirection * modelRadius;
+    diff -= diffDirection * other->modelRadius;
+    int quadrant_after = diff.getQuadrant();
+    if (quadrant_before != quadrant_after) {
+      // vector has changed direction i.e. models are already overlapping
+      diff = diffDirection * 0.01;
+    }
+
     // compute difference between both agents' velocity vectors
     // Note: the agent-other-order changed here
     Tvector velDiff = v - other->v;
