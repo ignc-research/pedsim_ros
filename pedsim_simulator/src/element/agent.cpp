@@ -144,7 +144,7 @@ Ped::Tvector Agent::socialForce() const {
 double Agent::obstacleForceFunction(double distanceIn) {
   if (distanceIn <= 0) {
     // distance < 0 means a collision so return a big force
-    return 100.0;
+    return 10.0;
   }
 
   return 1.0 / distanceIn;
