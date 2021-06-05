@@ -89,7 +89,10 @@ bool Simulator::initializeSimulation() {
       "unpause_simulation", &Simulator::onUnpauseSimulation, this);
 
   // setup TF listener and other pointers
-  transform_listener_.reset(new tf::TransformListener());
+  // transform_listener_.reset(new tf::TransformListener());
+  std::string odom_topic = ros::this_node::getNamespace() + "/odometry/ground_truth";
+  odom_sub_ = nh_.subscribe(odom_topic, 1, &Simulator::odomCallback, this);
+
   robot_ = nullptr;
 
   // load additional parameters
@@ -124,33 +127,19 @@ bool Simulator::initializeSimulation() {
 
   double spawn_period;
   nh_.param<double>("spawn_period", spawn_period, 5.0);
-  nh_.param<std::string>("frame_id", frame_id_, "odom");
+  nh_.param<std::string>("frame_id", frame_id_, ros::this_node::getNamespace() + "_odom");
   nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,
-      "base_footprint");
-  // ROS_INFO("frame_id%s robot_base_frame_id_ %s",frame_id_.c_str(),robot_base_frame_id_.c_str());
+      ros::this_node::getNamespace() + "_base_footprint");
+  
+  // spawn robot
+  Agent* a = new Agent("myrobot");
+  a->id = 0;
+  Ped::Tagent::staticid = 1;  // reset id so regular agents start at 1
+  a->setType(Ped::Tagent::AgentType::ROBOT);
+  SCENE.addAgent(a);
+  SCENE.robot = a;
+  robot_ = a;
 
-//   paused_ = false;
-
-//   spawn_timer_ =
-//       nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
-
-//   return true;
-// }
-
-// void Simulator::runSimulation() {
-//   ros::Rate r(CONFIG.updateRate);
-
-//   while (ros::ok()) {
-//     if (!robot_) {
-//       // setup the robot
-//       for (Agent* agent : SCENE.getAgents()) {
-//         if (agent->getType() == Ped::Tagent::ROBOT) {
-//           robot_ = agent;
-//           last_robot_orientation_ =
-//               poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
-//         }
-//       }
-//     }
   paused_ = false;
   last_sim_time = ros::Time::now();
   spawn_timer_ =
@@ -188,19 +177,17 @@ void Simulator::runSimulation() {
   // }
 
     if (!paused_) {
-
-      // updateRobotPositionFromTF(); not used in flatland
+      // updateRobotPositionFromTF();
       ros::Time now = ros::Time::now();
       ros::Duration diff = now - last_sim_time;
       last_sim_time = now;
-      // ROS_INFO("time step is%lf",diff.toSec());
-      SCENE.setTimeStepSize(diff.toSec()/5); // slow down the simulation
+      SCENE.setTimeStepSize(diff.toSec() / 5.0);  // slow down the simulation
       SCENE.moveAllAgents();
 
       publishAgents();
       // publishGroups();
-      // // publishRobotPosition();
-      // publishObstacles();  // TODO - no need to do this all the time.
+      // publishRobotPosition();
+      // publishObstacles();
       publishWaypoints();
     }
     ros::spinOnce();
@@ -376,6 +363,7 @@ void Simulator::publishAgents() {
     agent_forces.desired_force = VecToMsg(a->getDesiredDirection() * a->forceFactorDesired);
     agent_forces.obstacle_force = VecToMsg(a->getObstacleForce() * a->forceFactorObstacle);
     agent_forces.social_force = VecToMsg(a->getSocialForce() * a->forceFactorSocial);
+    agent_forces.keep_distance_force = VecToMsg(a->getKeepDistanceForce());
     // agent_forces.group_coherence_force = a->getSocialForce();
     // agent_forces.group_gaze_force = a->getSocialForce();
     // agent_forces.group_repulsion_force = a->getSocialForce();
@@ -478,4 +466,11 @@ std_msgs::Header Simulator::createMsgHeader() const {
   msg_header.stamp = ros::Time::now();
   msg_header.frame_id = frame_id_;
   return msg_header;
+}
+
+void Simulator::odomCallback(const nav_msgs::OdometryConstPtr &odom) {
+  robot_->setX(odom->pose.pose.position.x);
+  robot_->setY(odom->pose.pose.position.y);
+  robot_->setvx(odom->twist.twist.linear.x);
+  robot_->setvy(odom->twist.twist.linear.y);
 }

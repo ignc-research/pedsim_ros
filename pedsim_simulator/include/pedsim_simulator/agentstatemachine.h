@@ -73,7 +73,9 @@ class AgentStateMachine : public QObject {
     StateRequestingService,
     StateReceivingService,
     StateDrivingToInteraction,
-    StateProvidingService
+    StateProvidingService,
+    StateRequestingGuide,
+    StateFollowingGuide,
   } AgentState;
 
   // Constructor and Destructor
@@ -118,6 +120,7 @@ class AgentStateMachine : public QObject {
   ros::WallTime startTimestamp;
   double stateMaxDuration;  // in seconds
 
+  int currentEpisode;
 };
 
 #endif

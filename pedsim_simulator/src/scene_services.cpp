@@ -111,6 +111,10 @@ std::vector<std::string> SceneServices::removePedsInPedsim() {
   std::vector<std::string> names;
   QList<Agent*> agents = SCENE.getAgents();
   for (Agent* a : agents) {
+    // don't remove robot
+    if (a->getType() == Ped::Tagent::ROBOT) {
+      continue;
+    }
     names.push_back(a->agentName);
     SCENE.removeAgent(a);
   }
@@ -407,6 +411,7 @@ bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &requ
 
 bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
                                 pedsim_srvs::MovePeds::Response &response){
+  SCENE.episode = request.episode;
   SCENE.moveClusters(request.episode);
   // static obstacle infos are updated every episode too
   SCENE.removeAllObstacles();

@@ -89,6 +89,7 @@ class Simulator {
                            std_srvs::Empty::Response& response);
 
   void spawnCallback(const ros::TimerEvent& event);
+  void odomCallback(const nav_msgs::OdometryConstPtr &odom);
 
  protected:
   void reconfigureCB(SimConfig& config, uint32_t level);
@@ -129,6 +130,7 @@ class Simulator {
   Agent* robot_;
   tf::StampedTransform last_robot_pose_;
   geometry_msgs::Quaternion last_robot_orientation_;
+  ros::Subscriber odom_sub_;
 
   inline std::string agentStateToActivity(
       const AgentStateMachine::AgentState& state) const;

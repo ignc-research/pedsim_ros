@@ -54,6 +54,9 @@ Scene* Scene::Scene::instance = nullptr;
 Scene::Scene(QObject* parent) {
   // initialize values
   sceneTime = 0;
+  episode = 0;
+  guideActive = false;
+  robot = nullptr;
 
   // TODO: create this dynamically according to scenario
   QRect area(-500, -500, 1000, 1000);
@@ -598,6 +601,10 @@ void Scene::moveAllAgents() {
 // @param int i episode number to determine the next wp
 void Scene::moveClusters(int i) {
   for(Agent* agent: agents){
+    // skip robot
+    if (agent->getType() == Ped::Tagent::ROBOT) {
+      continue;
+    }
     int k = (int)agent->getWaypoints().size();
     Waypoint *w=agent->getWaypoints()[i%k];
     agent->setPosition(w->getx(), w->gety());

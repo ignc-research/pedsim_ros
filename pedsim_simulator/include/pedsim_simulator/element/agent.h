@@ -130,6 +130,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getSocialForce() const;
   Ped::Tvector getObstacleForce() const;
   Ped::Tvector getMyForce() const;
+  Ped::Tvector getKeepDistanceForce() const;
   QList<const Agent*> getNeighbors() const;
   QList<const Agent*> getAgentsInRange(double distance);
   QList<const Agent*> getPotentialListeners(double distance);
@@ -146,9 +147,11 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool startTalking();
   bool startTalkingAndWalking();
   bool startRequestingService();
+  bool startRequestingGuide();
   bool switchRunningWalking();
   bool finishedRotation();
   bool serviceRobotIsNear();
+  bool guideRobotIsNear();
   bool someoneIsRequestingService();
 
   // misc
@@ -183,6 +186,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   const Agent* servicingAgent;
   Waypoint* servicingWaypoint;
   const Agent* currentServiceRobot;
+  Waypoint* followWaypoint;
   
   double facingDirection; // direction the agent is facing on a "higher" level, is dependent on current state
 
@@ -198,6 +202,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double talkingAndWalkingProbability;
   double switchRunningWalkingProbability;
   double requestingServiceProbability;
+  double requestingGuideProbability;
   
   ros::Time lastStartTalkingCheck;
   ros::Time lastTellStoryCheck;
@@ -205,6 +210,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   ros::Time lastStartTalkingAndWalkingCheck;
   ros::Time lastSwitchRunningWalkingCheck;
   ros::Time lastRequestingServiceCheck;
+  ros::Time lastRequestingGuideCheck;
 
   double stateWorkingBaseTime;  // in seconds
   double stateLiftingForksBaseTime;  // in seconds

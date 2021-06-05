@@ -53,6 +53,7 @@ AgentStateMachine::AgentStateMachine(Agent* agentIn) {
   shoppingPlanner = nullptr;
   groupAttraction = nullptr;
   shallLoseAttraction = false;
+  currentEpisode = 0;
   // initialize state machine
   state = StateNone;
 }
@@ -382,6 +383,31 @@ void AgentStateMachine::doStateTransition() {
       }
     }
 
+    // → request guide sometimes
+    if ((state == StateWalking) && agent->startRequestingGuide()) {
+      activateState(StateRequestingGuide);
+      return;
+    }
+
+    if (state == StateRequestingGuide) {
+      if (agent->guideRobotIsNear()) {
+        activateState(StateFollowingGuide);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateFollowingGuide) {
+      if (SCENE.episode != currentEpisode) {
+        // end state after episode has ended
+        activateState(StateWalking);
+        return;
+      }
+      agent->followWaypoint->setPosition(SCENE.robot->getPosition());
+      agent->keepDistanceTo = SCENE.robot->getPosition();
+      return;
+    }
+
     // → talk and walk for some time
     if (state == StateTalkingAndWalking) {
       ros::WallDuration timePassed = ros::WallTime::now() - startTimestamp;
@@ -481,9 +507,11 @@ void AgentStateMachine::activateState(AgentState stateIn) {
   switch (state) {
     case StateNone:
       agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
       break;
     case StateWaiting:
       agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
       break;
     case StateWalking:
       if (individualPlanner == nullptr)
@@ -493,6 +521,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
+      agent->disableForce("KeepDistance");
       break;
     case StateDriving:
       if (individualPlanner == nullptr)
@@ -502,6 +531,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
+      agent->disableForce("KeepDistance");
       break;
     case StateRunning:
       if (individualPlanner == nullptr)
@@ -511,6 +541,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 2.0);
+      agent->disableForce("KeepDistance");
       break;
     case StateQueueing:
       if (queueingPlanner == nullptr)
@@ -569,9 +600,11 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 0.3);  // walk slower when talking
       agent->disableForce("Social");
+      agent->disableForce("KeepDistance");
       break;
     case StateListeningAndWalking:
       agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
       break;
     case StateWorking:
       startTimestamp = ros::WallTime::now();
@@ -624,10 +657,12 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->angleTarget = agent->lastInteractedWithWaypoint->staticObstacleAngle;
       agent->moveList = agent->createMoveList(StateReachedShelf);
       agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
       break;
     case StateBackUp:
       agent->moveList = agent->createMoveList(StateBackUp);
       agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
       break;
     case StateRequestingService:
       startTimestamp = ros::WallTime::now();
@@ -640,12 +675,14 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 0.2);
+      agent->disableForce("KeepDistance");
       break;
     case StateReceivingService:
       startTimestamp = ros::WallTime::now();
       stateMaxDuration = getRandomDuration(agent->stateReceivingServiceBaseTime);
       // don't stop moving completely so the pedsimMovement animation can update
       agent->setVmax(agent->vmaxDefault * 0.01);
+      agent->disableForce("KeepDistance");
       break;
     case StateDrivingToInteraction:
       if (individualPlanner == nullptr) {
@@ -656,6 +693,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 1.5);
+      agent->disableForce("KeepDistance");
       break;
     case StateProvidingService:
       agent->setWaypointPlanner(nullptr);
@@ -663,6 +701,33 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->servicingWaypoint = nullptr;
       agent->currentDestination = nullptr;
       agent->stopMovement();
+      break;
+    case StateRequestingGuide:
+      agent->setWaypointPlanner(nullptr);
+      // don't stop moving completely so the pedsimMovement animation can update
+      agent->setVmax(agent->vmaxDefault * 0.01);
+      currentEpisode = SCENE.episode;
+      agent->disableForce("KeepDistance");
+      break;
+    case StateFollowingGuide:
+      if (individualPlanner == nullptr) {
+        individualPlanner = new IndividualWaypointPlanner();
+      }
+      individualPlanner->setAgent(agent);
+      // remove old waypoint
+      if (agent->followWaypoint != nullptr) {
+        SCENE.removeWaypoint(agent->followWaypoint);
+      }
+      agent->followWaypoint = new AreaWaypoint("follow_destination", SCENE.robot->getPosition(), 0.0);  // make radius zero so destination will never be reached
+      SCENE.addWaypoint(agent->followWaypoint);
+      agent->currentDestination = agent->followWaypoint;
+      individualPlanner->setDestination(agent->followWaypoint);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->enableForce("KeepDistance");
+      agent->keepDistanceTo = SCENE.robot->getPosition();
+      agent->keepDistanceForceDistance = 2.0;
+      agent->setVmax(agent->vmaxDefault);
       break;
   }
 
@@ -710,6 +775,12 @@ void AgentStateMachine::deactivateState(AgentState state) {
 
       break;
     }
+    case StateRequestingGuide:
+      agent->setVmax(agent->vmaxDefault);
+      break;
+    case StateFollowingGuide:
+      SCENE.guideActive = false;
+      break;
     default:
       break;
   }
@@ -806,6 +877,10 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "StateDrivingToInteraction";
     case StateProvidingService:
       return "StateProvidingService";
+    case StateRequestingGuide:
+      return "StateRequestingGuide";
+    case StateFollowingGuide:
+      return "StateFollowingGuide";
     default:
       return "UnknownState";
   }

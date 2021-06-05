@@ -68,6 +68,7 @@ Agent::Agent() {
   servicingAgent = nullptr;
   servicingWaypoint = nullptr;
   currentServiceRobot = nullptr;
+  followWaypoint = nullptr;
 
   facingDirection = 0.0;
 
@@ -82,6 +83,7 @@ Agent::Agent() {
   talkingAndWalkingProbability = 0.01;
   switchRunningWalkingProbability = 0.1;
   requestingServiceProbability = 0.1;
+  requestingGuideProbability = 0.1;
 
   lastStartTalkingCheck = ros::Time::now();
   lastTellStoryCheck = ros::Time::now();
@@ -89,6 +91,7 @@ Agent::Agent() {
   lastStartTalkingAndWalkingCheck = ros::Time::now();
   lastSwitchRunningWalkingCheck = ros::Time::now();
   lastRequestingServiceCheck = ros::Time::now();
+  lastRequestingGuideCheck = ros::Time::now();
 
   stateWorkingBaseTime = 30.0;
   stateLiftingForksBaseTime = 3.0;
@@ -823,6 +826,28 @@ bool Agent::startRequestingService() {
   return false;
 }
 
+bool Agent::startRequestingGuide() {
+  // only do the probability check again after some time has passed
+  ros::Time now = ros::Time::now();
+  if ((now - lastRequestingGuideCheck).toSec() > 0.5) {
+    // reset timer
+    lastRequestingGuideCheck = ros::Time::now();
+
+    // only enter the state if no other guide interaction is going on
+    if (!SCENE.guideActive) {
+      // roll a die
+      uniform_real_distribution<double> Distribution(0, 1);
+      double roll = Distribution(RNG());
+      if (roll < requestingGuideProbability) {
+        SCENE.guideActive = true;
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 bool Agent::switchRunningWalking(){
   // only do the probability check again after some time has passed
   ros::Time now = ros::Time::now();
@@ -850,6 +875,17 @@ bool Agent::serviceRobotIsNear() {
   for (auto agent : getAgentsInRange(1.0)) {
     if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
       currentServiceRobot = agent;
+      return true;
+    }
+  }
+  return false;
+}
+
+bool Agent::guideRobotIsNear() {
+  if (SCENE.robot != nullptr) {
+    auto robotpos = SCENE.robot->getPosition();
+    auto diff = robotpos - p;
+    if (diff.length() < 3.0) {
       return true;
     }
   }
@@ -969,6 +1005,8 @@ Ped::Tvector Agent::getSocialForce() const { return socialforce; }
 Ped::Tvector Agent::getObstacleForce() const { return obstacleforce; }
 
 Ped::Tvector Agent::getMyForce() const { return myforce; }
+
+Ped::Tvector Agent::getKeepDistanceForce() const { return keepdistanceforce; }
 
 QPointF Agent::getVisiblePosition() const { return QPointF(getx(), gety()); }
 

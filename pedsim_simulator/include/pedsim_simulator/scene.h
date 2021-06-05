@@ -170,6 +170,10 @@ class Scene : public QObject, protected Ped::Tscene {
   std::vector<float> obstacle_radius {1.0, 1.0, 1.0};  // used for obstacle force calculation
   std::vector<Ped::Twaypoint> circleObstacles;
 
+  Agent* robot;
+  int episode;
+  bool guideActive;
+
   // Attributes
  protected:
   QList<Agent*> agents;
