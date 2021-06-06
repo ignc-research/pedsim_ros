@@ -99,19 +99,9 @@ class SceneServices {
   ros::NodeHandle nh_;
 
  private:
-  /**
-  * @brief Removing all pedestrians in pedsim.
-  * @return corresponding flatland namespaces of pedestrians
-  */
   std::vector<std::string> removePedsInPedsim();
-
-  /**
-  * @brief Adding pedestrian to pedsim.
-  * @return corresponding AgentCluster
-  */
-  AgentCluster* addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
-
-  std::vector<flatland_msgs::Model> getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids);
+  void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
+  std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids);
   std::vector<int> generateAgentIds(int n);
   bool removeModelsInFlatland(std::vector<std::string> model_names);
   bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);

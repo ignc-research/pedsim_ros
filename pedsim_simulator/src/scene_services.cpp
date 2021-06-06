@@ -55,10 +55,10 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
     std::vector<int> new_agent_ids = generateAgentIds(ped.number_of_peds);
 
     // add ped to pedsim
-    AgentCluster* agentCluster = addAgentClusterToPedsim(ped, new_agent_ids);
+    addAgentClusterToPedsim(ped, new_agent_ids);
 
     // add flatland models to spawn_models service request
-    std::vector<flatland_msgs::Model> new_models = getFlatlandModelsFromAgentCluster(agentCluster, ped.yaml_file, new_agent_ids);
+    std::vector<flatland_msgs::Model> new_models = getFlatlandModels(ped, new_agent_ids);
     flatland_models.insert(flatland_models.end(), new_models.begin(), new_models.end());
   }
 
@@ -182,7 +182,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     // set radius for obstacle force calculation
     int radius = 1.0;
     int radius_index = waypoint->getType();
-    if (radius_index < SCENE.obstacle_radius.size()) {
+    if (radius_index < (int) SCENE.obstacle_radius.size()) {
       radius = SCENE.obstacle_radius[radius_index];
     }
     waypoint->modelRadius = radius;
@@ -289,110 +289,107 @@ bool SceneServices::resetPeds(std_srvs::Trigger::Request &request, std_srvs::Tri
   return true;
 }
 
-AgentCluster* SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids) {
-  // create agentcluster
-  const double x = ped.pos.x;
-  const double y = ped.pos.y;
-  const int n = ped.number_of_peds;
-  AgentCluster* agentCluster = new AgentCluster(x, y, n, ids);
+void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids) {
+  uniform_real_distribution<double> distribution_x(ped.pos.x - 1.0, ped.pos.x + 1.0);
+  uniform_real_distribution<double> distribution_y(ped.pos.y - 1.0, ped.pos.y + 1.0);
 
-  // set distribution
-  const double dx = 2;
-  const double dy = 2;
-  agentCluster->setDistribution(dx, dy);
+  for (int i = 0; i < ped.number_of_peds; i++) {
+    std::string name = "person_" + std::to_string(ids[i]);
+    Agent* a = new Agent(name);
 
-  // set type
-  std::string type_string = ped.type;
-  int type = 0;
-  // convert type string to enum value
-  auto types = SCENE.agent_types;
-  auto it = find(types.begin(), types.end(), type_string);
-  // If element was found
-  if (it != types.end()) {
-      type = it - types.begin();
-  }
-  agentCluster->setType(static_cast<Ped::Tagent::AgentType>(type));
+    a->setPosition(distribution_x(RNG()), distribution_y(RNG()));
 
-  agentCluster->vmax = ped.vmax;
-  if (agentCluster->vmax < 0.1) {
-    ROS_ERROR("vmax is very small. ped will probably not move");
-  }
-
-  agentCluster->chattingProbability = ped.chatting_probability;
-  agentCluster->stateTalkingBaseTime = ped.talking_base_time;
-
-  agentCluster->tellStoryProbability = ped.tell_story_probability;
-  agentCluster->stateTellStoryBaseTime = ped.tell_story_base_time;
-
-  agentCluster->groupTalkingProbability = ped.group_talking_probability;
-  agentCluster->stateGroupTalkingBaseTime = ped.group_talking_base_time;
-
-  agentCluster->talkingAndWalkingProbability = ped.talking_and_walking_probability;
-  agentCluster->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
-
-  agentCluster->requestingServiceProbability = ped.requesting_service_probability;
-  agentCluster->stateRequestingServiceBaseTime = ped.requesting_service_base_time;
-  agentCluster->stateReceivingServiceBaseTime = ped.receiving_service_base_time;
-
-  agentCluster->requestingGuideProbability = ped.requesting_guide_probability;
-  
-  agentCluster->maxTalkingDistance = ped.max_talking_distance;
-  if (
-    agentCluster->getType() == Ped::Tagent::AgentType::ADULT ||
-    agentCluster->getType() == Ped::Tagent::AgentType::ELDER ||
-    agentCluster->getType() == Ped::Tagent::AgentType::CHILD
-    ) {
-    if (agentCluster->maxTalkingDistance < 0.1) {
-      ROS_WARN("maxTalkingDistance is very small. ped will probably not interact with others");
+    // set type
+    std::string type_string = ped.type;
+    int type = 0;
+    // convert type string to enum value
+    auto types = SCENE.agent_types;
+    auto it = find(types.begin(), types.end(), type_string);
+    // If element was found
+    if (it != types.end()) {
+        type = it - types.begin();
     }
-  }
+    a->setType(static_cast<Ped::Tagent::AgentType>(type));
 
-  agentCluster->maxServicingRadius = ped.max_servicing_radius;
-  if (agentCluster->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
-    if (agentCluster->maxServicingRadius < 0.1) {
-      ROS_WARN("maxServicingRadius is very small. service robot will not provide service");
+    a->setVmax(ped.vmax);
+    if (a->getType() == Ped::Tagent::ELDER) {
+      a->setVmax(ped.vmax * 0.7);
     }
+    a->vmaxDefault = a->getVmax();
+
+    a->chattingProbability = ped.chatting_probability;
+    a->stateTalkingBaseTime = ped.talking_base_time;
+
+    a->tellStoryProbability = ped.tell_story_probability;
+    a->stateTellStoryBaseTime = ped.tell_story_base_time;
+
+    a->groupTalkingProbability = ped.group_talking_probability;
+    a->stateGroupTalkingBaseTime = ped.group_talking_base_time;
+
+    a->talkingAndWalkingProbability = ped.talking_and_walking_probability;
+    a->stateTalkingAndWalkingBaseTime = ped.talking_and_walking_base_time;
+
+    a->requestingServiceProbability = ped.requesting_service_probability;
+    a->stateRequestingServiceBaseTime = ped.requesting_service_base_time;
+    a->stateReceivingServiceBaseTime = ped.receiving_service_base_time;
+
+    a->requestingGuideProbability = ped.requesting_guide_probability;
+    
+    a->maxTalkingDistance = ped.max_talking_distance;
+    if (
+      a->getType() == Ped::Tagent::AgentType::ADULT ||
+      a->getType() == Ped::Tagent::AgentType::ELDER ||
+      a->getType() == Ped::Tagent::AgentType::CHILD
+      ) {
+      if (a->maxTalkingDistance < 0.1) {
+        ROS_WARN("maxTalkingDistance is very small. ped will probably not interact with others");
+      }
+    }
+
+    a->maxServicingRadius = ped.max_servicing_radius;
+    if (a->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+      if (a->maxServicingRadius < 0.1) {
+        ROS_WARN("maxServicingRadius is very small. service robot will not provide service");
+      }
+    }
+
+    a->waypointMode = static_cast<Agent::WaypointMode>(ped.waypoint_mode);
+
+    // set force factors
+    a->forceFactorDesired = ped.force_factor_desired;
+    if (a->forceFactorDesired < 0.1) {
+      ROS_ERROR("forceFactorDesired is very small. ped will probably not move");
+    }
+    a->forceFactorObstacle = ped.force_factor_obstacle;
+    a->forceFactorSocial = ped.force_factor_social;
+
+    // add waypoints to agentcluster and scene
+    for(int i = 0; i < (int) ped.waypoints.size(); i++){
+      const double x = ped.waypoints[i].x;
+      const double y = ped.waypoints[i].y;
+      AreaWaypoint* w = new AreaWaypoint(QString(std::to_string(Ped::Twaypoint::staticid).c_str()), x, y, 0.3);
+      uniform_real_distribution<double> Distribution(0.0, 2*M_PI);
+      w->staticObstacleAngle = Distribution(RNG());
+      w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
+      SCENE.addWaypoint(w);
+      a->addWaypoint(w);
+    }
+
+    // add agent to scene
+    SCENE.addAgent(a);
   }
-
-  int waypoint_mode = ped.waypoint_mode;
-  agentCluster->waypoint_mode = static_cast<Agent::WaypointMode>(waypoint_mode);
-
-  // set force factors
-  agentCluster->forceFactorDesired = ped.force_factor_desired;
-  if (agentCluster->forceFactorDesired < 0.1) {
-    ROS_ERROR("forceFactorDesired is very small. ped will probably not move");
-  }
-  agentCluster->forceFactorObstacle = ped.force_factor_obstacle;
-  agentCluster->forceFactorSocial = ped.force_factor_social;
-
-  // add waypoints to agentcluster and scene
-  for(int i = 0; i < (int) ped.waypoints.size(); i++){
-    const double x = ped.waypoints[i].x;
-    const double y = ped.waypoints[i].y;
-    AreaWaypoint* w = new AreaWaypoint(QString(std::to_string(Ped::Twaypoint::staticid).c_str()), x, y, 0.3);
-    uniform_real_distribution<double> Distribution(0.0, 2*M_PI);
-    w->staticObstacleAngle = Distribution(RNG());
-    w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));
-    SCENE.addWaypoint(w);
-    agentCluster->addWaypoint(w);
-  }
-
-  // add agentcluster to scene
-  SCENE.addAgentCluster(agentCluster);
-
-  return agentCluster;
 }
 
-std::vector<flatland_msgs::Model> SceneServices::getFlatlandModelsFromAgentCluster(AgentCluster* agentCluster, std::string yaml_file, std::vector<int> ids){
+std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids){
   std::vector<flatland_msgs::Model> flatland_msg;
 
-  for (int i = 0; i < agentCluster->getCount(); i++){
+  for (int i = 0; i < ped.number_of_peds; i++){
     flatland_msgs::Model model;
-    model.yaml_path = yaml_file;
+    model.yaml_path = ped.yaml_file;
     model.name = "person_" + std::to_string(ids[i]);
     model.ns = "pedsim_agent_" + std::to_string(ids[i]);
-    model.pose.x = agentCluster->getPosition().x;
-    model.pose.y = agentCluster->getPosition().y;
+    model.pose.x = ped.pos.x;
+    model.pose.y = ped.pos.y;
     model.pose.theta = 0.0;
     flatland_msg.push_back(model);
   }  
