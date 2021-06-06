@@ -59,6 +59,7 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<int>
   tellStoryProbability = 0.001;
   groupTalkingProbability = 0.001;
   talkingAndWalkingProbability = 0.001;
+  requestingGuideProbability = 0.1;
   maxTalkingDistance = 1.5;
   waypoint_mode = Agent::WaypointMode::LOOP;
   stateTalkingBaseTime = 6.0;
@@ -102,6 +103,7 @@ QList<Agent*> AgentCluster::dissolve() {
     a->groupTalkingProbability = groupTalkingProbability;
     a->talkingAndWalkingProbability = talkingAndWalkingProbability;
     a->requestingServiceProbability = requestingServiceProbability;
+    a->requestingGuideProbability = requestingGuideProbability;
     a->stateTalkingBaseTime = stateTalkingBaseTime;
     a->stateTellStoryBaseTime = stateTellStoryBaseTime;
     a->stateGroupTalkingBaseTime = stateGroupTalkingBaseTime;

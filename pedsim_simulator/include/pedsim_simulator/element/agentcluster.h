@@ -103,6 +103,7 @@ class AgentCluster : public ScenarioElement {
   double groupTalkingProbability;
   double talkingAndWalkingProbability;
   double requestingServiceProbability = 0.1;
+  double requestingGuideProbability;
   double maxTalkingDistance;
   double maxServicingRadius = 10.0;
   Agent::WaypointMode waypoint_mode;
