@@ -274,6 +274,8 @@ bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &re
   removeAllInteractiveObstaclesFromFlatland();
   static_obstacles_index_ = 1;
   static_obstacle_names_.clear();
+  response.success = true;
+  response.message = "";
   return true;
 }
 
