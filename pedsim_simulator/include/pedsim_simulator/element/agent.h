@@ -132,7 +132,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getMyForce() const;
   Ped::Tvector getKeepDistanceForce() const;
   QList<const Agent*> getNeighbors() const;
-  QList<const Agent*> getAgentsInRange(double distance);
+  std::vector<Agent*> getAgentsInRange(double distance);
   QList<const Agent*> getPotentialListeners(double distance);
   Waypoint* getInteractiveObstacleInRange(int type);
 

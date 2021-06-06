@@ -603,18 +603,21 @@ QList<const Agent*> Agent::getNeighbors() const {
   return output;
 }
 
-QList<const Agent*> Agent::getAgentsInRange(double distance) {
-  QList<const Agent*> agents;
-  for (const Ped::Tagent* agent : neighbors) {
+std::vector<Agent*> Agent::getAgentsInRange(double distance) {
+  std::vector<Agent*> agents;
+  double distance_squared = distance * distance;
+  for (auto agent : SCENE.getAgents()) {
+    // skip self
     if (agent->getId() == id) {
       continue;
     }
-    Ped::Tvector diff = p - agent->getPosition();
-    double distance_between = diff.length();
-    if (distance_between < distance) {
-      agents.append(dynamic_cast<const Agent*>(agent));
+
+    auto diff = p - agent->getPosition();
+    if (diff.lengthSquared() < distance_squared) {
+      agents.push_back(agent);
     }
   }
+
   return agents;
 }
 
@@ -646,7 +649,7 @@ Waypoint* Agent::getInteractiveObstacleInRange(int type) {
 }
 
 bool Agent::someoneTalkingToMe() {
-  QList<const Agent*> neighbor_list = getAgentsInRange(maxTalkingDistance);
+  auto neighbor_list = getAgentsInRange(maxTalkingDistance);
   for (const Agent* neighbor: neighbor_list) {
     if (
       neighbor->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTellStory ||
@@ -701,11 +704,11 @@ bool Agent::tellStory() {
     // reset timer
     lastTellStoryCheck = ros::Time::now();
 
-    QList<const Agent*> potentialChatters = getAgentsInRange(maxTalkingDistance);
+    auto potentialChatters = getAgentsInRange(maxTalkingDistance);
     // only tell story if there are multiple people around
-    if (potentialChatters.length() > 2) {
+    if (potentialChatters.size() > 2) {
       // don't tell a story if someone else already is
-      for (const Agent* chatter: potentialChatters) {
+      for (auto chatter: potentialChatters) {
         if (chatter->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTellStory) {
           return false;
         }
