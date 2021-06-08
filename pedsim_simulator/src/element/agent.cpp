@@ -651,6 +651,11 @@ Waypoint* Agent::getInteractiveObstacleInRange(int type) {
 bool Agent::someoneTalkingToMe() {
   auto neighbor_list = getAgentsInRange(maxTalkingDistance);
   for (const Agent* neighbor: neighbor_list) {
+    if (neighbor == nullptr) {
+      ROS_WARN("neighbor is nullptr. skip it.");
+      continue;
+    }
+    
     if (
       neighbor->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTellStory ||
       (
