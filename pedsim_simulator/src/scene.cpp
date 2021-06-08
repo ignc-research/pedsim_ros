@@ -608,7 +608,20 @@ void Scene::moveClusters(int i) {
     int k = (int)agent->getWaypoints().size();
     Waypoint *w=agent->getWaypoints()[i%k];
     agent->setPosition(w->getx(), w->gety());
-    // ROS_INFO("moving peds++++++++++++++++=[%f][%f]",w->getx(), w->gety());
+
+    // reset states
+    if (
+      agent->getType() == Ped::Tagent::ADULT ||
+      agent->getType() == Ped::Tagent::ELDER ||
+      agent->getType() == Ped::Tagent::CHILD
+    ) {
+      agent->getStateMachine()->activateState(AgentStateMachine::AgentState::StateWalking);
+    } else if (
+      agent->getType() == Ped::Tagent::VEHICLE ||
+      agent->getType() == Ped::Tagent::SERVICEROBOT
+    ) {
+      agent->getStateMachine()->activateState(AgentStateMachine::AgentState::StateDriving);
+    }
   }
 }
 

@@ -165,7 +165,6 @@ void AgentStateMachine::doStateTransition() {
     if (state == StateBackUp)
     {
       if (agent->completedMoveList()) {
-        agent->isInteracting = false;
         activateState(StateDriving);
       }
       return;
@@ -780,6 +779,9 @@ void AgentStateMachine::deactivateState(AgentState state) {
       break;
     case StateFollowingGuide:
       SCENE.guideActive = false;
+      break;
+    case StateBackUp:
+        agent->isInteracting = false;
       break;
     default:
       break;
