@@ -255,10 +255,15 @@ void SceneServices::removeAllInteractiveObstaclesFromPedsim() {
 
   // actually remove waypoints from scene
   auto waypoints = SCENE.getWaypoints();
+  std::vector<Waypoint*> to_remove;
   for (auto waypoint : waypoints.values()) {
     if (waypoint->isInteractive()) {
-      SCENE.removeWaypoint(waypoint);
+      to_remove.push_back(waypoint);
     }
+  }
+
+  for (auto waypoint : to_remove) {
+    SCENE.removeWaypoint(waypoint);
   }
 
   // remove point obstacles
