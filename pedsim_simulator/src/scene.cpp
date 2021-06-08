@@ -329,6 +329,7 @@ void Scene::addAgent(Agent* agent) {
 }
 
 void Scene::addObstacle(Obstacle* obstacle) {
+  ROS_INFO("added wall from (%f, %f) to (%f, %f)", obstacle->getax(), obstacle->getay(), obstacle->getbx(), obstacle->getby());
   // keep track of the obstacle
   obstacles.append(obstacle);
 

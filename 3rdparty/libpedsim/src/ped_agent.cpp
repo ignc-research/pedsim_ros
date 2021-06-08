@@ -193,8 +193,8 @@ Ped::Tvector Ped::Tagent::socialForce() const {
     Tvector diffDirection = diff.normalized();
     int quadrant_before = diff.getQuadrant();
     // shorten the diff vector by the model radiuses
-    diff -= diffDirection * modelRadius;
-    diff -= diffDirection * other->modelRadius;
+    diff -= diffDirection * agentRadius;
+    diff -= diffDirection * other->agentRadius;
     int quadrant_after = diff.getQuadrant();
     if (quadrant_before != quadrant_after) {
       // vector has changed direction i.e. models are already overlapping

@@ -128,7 +128,6 @@ class LIBEXPORT Tagent {
   double forceFactorDesired;
   double forceFactorSocial;
   double forceFactorObstacle;
-  float modelRadius;
 
  protected:
   Tvector p;  ///< current position of the agent
