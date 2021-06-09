@@ -43,6 +43,7 @@ class LIBEXPORT Tvector {
   void scale(double factor);
   Tvector scaled(double factor) const;
   Ped::Tvector rotated(double angle) const;
+  void rotate(Tangle angle);
   std::string toString() const;
   int getQuadrant();
 
