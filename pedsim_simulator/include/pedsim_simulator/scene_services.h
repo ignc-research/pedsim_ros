@@ -110,7 +110,7 @@ class SceneServices {
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
-  std::vector<Obstacle*> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle);
+  std::vector<Obstacle*> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;

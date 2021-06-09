@@ -195,7 +195,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     SCENE.circleObstacles.push_back(circle_obstacle);
 
     // create wall obstacles along model footprint for applying obstacle force to agents
-    std::vector<Obstacle*> new_walls = getWallsFromFlatlandModel(obstacle);
+    std::vector<Obstacle*> new_walls = getWallsFromFlatlandModel(obstacle, yaw);
     // append to current list of walls
     walls.insert(walls.end(), new_walls.begin(), new_walls.end());
     // spawn walls in pedsim
@@ -429,7 +429,7 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
 bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
                                       pedsim_srvs::SpawnObstacle::Response &response){
   int k = (int) request.staticObstacles.obstacles.size();  
-  for (int i = 0; i <= k; i++) {
+  for (int i = 0; i < k; i++) {
     pedsim_msgs::LineObstacle obstacle = request.staticObstacles.obstacles[i];
     Obstacle* o = new Obstacle(obstacle.start.x, obstacle.start.y, obstacle.end.x, obstacle.end.y);
     SCENE.addObstacle(o);
@@ -523,7 +523,7 @@ bool SceneServices::respawnModelsInFlatland(std::vector<std::string> old_model_n
   return true; 
 }
 
-std::vector<Obstacle*> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle) {
+std::vector<Obstacle*> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw) {
   std::vector<Obstacle*> new_walls;
   YAML::Node model = YAML::LoadFile(obstacle.yaml_path);
   auto bodies = model["bodies"];
@@ -549,23 +549,29 @@ std::vector<Obstacle*> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Int
   if (type.as<std::string>() == "polygon") {
     auto points = footprint["points"];
     for (int i = 0; i < (int) points.size() - 1; i++) {
-      auto start = points[i];
-      auto end = points[i+1];
+      auto start = Ped::Tvector(points[i][0].as<float>(), points[i][1].as<float>());
+      start.rotate(Ped::Tangle::fromRadian(yaw));
+      auto end = Ped::Tvector(points[i+1][0].as<float>(), points[i+1][1].as<float>());
+      end.rotate(Ped::Tangle::fromRadian(yaw));
       Obstacle* wall = new Obstacle(
-                              pos.x + start[0].as<float>(),
-                              pos.y + start[1].as<float>(),
-                              pos.x + end[0].as<float>(),
-                              pos.y + end[1].as<float>()
+                              pos.x + start.x,
+                              pos.y + start.y,
+                              pos.x + end.x,
+                              pos.y + end.y
                             );
       new_walls.push_back(wall);
     }
 
     // connect last and first point
+    auto first = Ped::Tvector(points[0][0].as<float>(), points[0][1].as<float>());
+    first.rotate(Ped::Tangle::fromRadian(yaw));
+    auto last = Ped::Tvector(points[points.size() - 1][0].as<float>(), points[points.size() - 1][1].as<float>());
+    last.rotate(Ped::Tangle::fromRadian(yaw));
     Obstacle* closing_wall = new Obstacle(
-                            pos.x + points[0][0].as<float>(),
-                            pos.y + points[0][1].as<float>(),
-                            pos.x + points[points.size() - 1][0].as<float>(),
-                            pos.y + points[points.size() - 1][1].as<float>()
+                            pos.x + first.x,
+                            pos.y + first.y,
+                            pos.x + last.x,
+                            pos.y + last.y
                           );
     new_walls.push_back(closing_wall);
   } else if (type.as<std::string>() == "circle") {
