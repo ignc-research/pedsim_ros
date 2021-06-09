@@ -815,17 +815,19 @@ bool Agent::startTalkingAndWalking(){
 }
 
 bool Agent::startRequestingService() {
-  // only do the probability check again after some time has passed
-  ros::Time now = ros::Time::now();
-  if ((now - lastRequestingServiceCheck).toSec() > 0.5) {
-    // reset timer
-    lastRequestingServiceCheck = ros::Time::now();
+  if (SCENE.serviceRobotExists) {
+    // only do the probability check again after some time has passed
+    ros::Time now = ros::Time::now();
+    if ((now - lastRequestingServiceCheck).toSec() > 0.5) {
+      // reset timer
+      lastRequestingServiceCheck = ros::Time::now();
 
-    // roll a die
-    uniform_real_distribution<double> Distribution(0, 1);
-    double roll = Distribution(RNG());
-    if (roll < requestingServiceProbability) {
-      return true;
+      // roll a die
+      uniform_real_distribution<double> Distribution(0, 1);
+      double roll = Distribution(RNG());
+      if (roll < requestingServiceProbability) {
+        return true;
+      }
     }
   }
 

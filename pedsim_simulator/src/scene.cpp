@@ -57,6 +57,7 @@ Scene::Scene(QObject* parent) {
   episode = 0;
   guideActive = false;
   robot = nullptr;
+  serviceRobotExists = false;
 
   // TODO: create this dynamically according to scenario
   QRect area(-500, -500, 1000, 1000);
@@ -324,6 +325,10 @@ void Scene::addAgent(Agent* agent) {
   AlongWallForce* alongWallForce = new AlongWallForce(agent);
   agent->addForce(alongWallForce);
 
+  if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+    serviceRobotExists = true;
+  }
+
   // inform users
   emit agentAdded(agent->getId());
 }
@@ -390,6 +395,14 @@ void Scene::addAttraction(AttractionArea* attractionIn) {
 bool Scene::removeAgent(Agent* agent) {
   // don't keep track of agent anymore
   agents.removeAll(agent);
+
+  // update serviceRobotExists status
+  serviceRobotExists = false;
+  for (auto a : agents) {
+    if (a->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+      serviceRobotExists = true;
+    }
+  }
 
   // remove agent from all groups
   QList<AgentGroup*> groupsToRemove;

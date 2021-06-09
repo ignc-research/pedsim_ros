@@ -173,6 +173,7 @@ class Scene : public QObject, protected Ped::Tscene {
   Agent* robot;
   int episode;
   bool guideActive;
+  bool serviceRobotExists;
 
   // Attributes
  protected:
