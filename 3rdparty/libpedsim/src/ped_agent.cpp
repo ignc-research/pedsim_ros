@@ -287,7 +287,11 @@ Ped::Tvector Ped::Tagent::obstacleForce() {
   }
 
   double distance = sqrt(minDistanceSquared) - agentRadius;
-  double forceAmount = exp(-distance / forceSigmaObstacle);
+  // double forceAmount = exp(-distance / forceSigmaObstacle);
+  double forceAmount = 10.0;
+  if (distance > 0.0) {
+    forceAmount = 1.0 / distance;
+  }
   return forceAmount * minDiff.normalized();
 }
 
