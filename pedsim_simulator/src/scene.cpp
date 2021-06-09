@@ -600,11 +600,13 @@ void Scene::moveAllAgents() {
 // move the agent cluster to another position directly
 // @param int i episode number to determine the next wp
 void Scene::moveClusters(int i) {
+  guideActive = false ;
   for(Agent* agent: agents){
     // skip robot
     if (agent->getType() == Ped::Tagent::ROBOT) {
       continue;
     }
+    
     int k = (int)agent->getWaypoints().size();
     Waypoint *w=agent->getWaypoints()[i%k];
     agent->setPosition(w->getx(), w->gety());
