@@ -19,6 +19,10 @@ set(PEDSIM_SIMULATOR_DEPENDENCIES
   roslib
 )
 
+# Declaration of package required
+find_package(PkgConfig)
+pkg_check_modules(YAMLCPP REQUIRED yaml-cpp)
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -118,8 +122,12 @@ set(EXECUTABLE_NAME ${PROJECT_NAME})
 add_executable(${EXECUTABLE_NAME} ${SOURCES} ${MOC_SRCS_UI})
 add_dependencies(${EXECUTABLE_NAME} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${EXECUTABLE_NAME} ${PROJECT_NAME}_gencfg)
-target_link_libraries(${EXECUTABLE_NAME}
-  ${Qt5Widgets_LIBRARIES} ${BOOST_LIBRARIES} ${catkin_LIBRARIES}
+target_link_libraries(
+  ${EXECUTABLE_NAME}
+  ${Qt5Widgets_LIBRARIES}
+  ${BOOST_LIBRARIES}
+  ${catkin_LIBRARIES}
+  ${YAMLCPP_LIBRARIES}
 )
 
 add_executable(simulate_diff_drive_robot src/simulate_diff_drive_robot.cpp)

@@ -23,6 +23,7 @@
 #include <pedsim_msgs/InteractiveObstacle.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
+#include <yaml-cpp/yaml.h>
 
 /**
  * This class provides services to spawn and remove pedestrians dynamically.
@@ -109,6 +110,7 @@ class SceneServices {
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
+  std::vector<Obstacle*> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle);
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
@@ -118,6 +120,8 @@ class SceneServices {
 
   std::string delete_models_topic_;
   ros::ServiceClient delete_models_client_;
+
+  std::vector<Obstacle*> walls;
 };
 
 #endif /* _scene_service_h_ */

@@ -189,9 +189,19 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
 
     SCENE.addWaypoint(waypoint);
     
+    // create circular obstacles for applying obstacle force to agents
     auto circle_obstacle = Ped::Twaypoint(obstacle.pose.position.x, obstacle.pose.position.y);
     circle_obstacle.modelRadius = radius;
     SCENE.circleObstacles.push_back(circle_obstacle);
+
+    // create wall obstacles along model footprint for applying obstacle force to agents
+    std::vector<Obstacle*> new_walls = getWallsFromFlatlandModel(obstacle);
+    // append to current list of walls
+    walls.insert(walls.end(), new_walls.begin(), new_walls.end());
+    // spawn walls in pedsim
+    for (auto wall : new_walls) {
+      SCENE.addObstacle(wall);
+    }
 
     // create flatland model
     flatland_msgs::Model model;
@@ -268,6 +278,12 @@ void SceneServices::removeAllInteractiveObstaclesFromPedsim() {
 
   // remove point obstacles
   SCENE.circleObstacles.clear();
+
+  // remove walls
+  for (auto wall : walls) {
+    SCENE.removeObstacle(wall);
+  }
+  walls.clear();
 }
 
 void SceneServices::removeAllInteractiveObstaclesFromFlatland() {
@@ -315,6 +331,14 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
         type = it - types.begin();
     }
     a->setType(static_cast<Ped::Tagent::AgentType>(type));
+
+    // set agent radius
+    int radius = 1.0;
+    int radius_index = a->getType();
+    if (radius_index < (int) SCENE.agent_radius.size()) {
+      radius = SCENE.agent_radius[radius_index];
+    }
+    a->SetRadius(radius);
 
     a->setVmax(ped.vmax);
     if (a->getType() == Ped::Tagent::ELDER) {
@@ -404,14 +428,14 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
 
 bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
                                       pedsim_srvs::SpawnObstacle::Response &response){
-  int k = (int)request.staticObstacles.obstacles.size();  
-  for (int i = 0; i <= k; i++){
-    pedsim_msgs::LineObstacle obstacle=request.staticObstacles.obstacles[i];
-    Obstacle *o = new Obstacle(obstacle.start.x, obstacle.start.y, obstacle.end.x, obstacle.end.y);
+  int k = (int) request.staticObstacles.obstacles.size();  
+  for (int i = 0; i <= k; i++) {
+    pedsim_msgs::LineObstacle obstacle = request.staticObstacles.obstacles[i];
+    Obstacle* o = new Obstacle(obstacle.start.x, obstacle.start.y, obstacle.end.x, obstacle.end.y);
     SCENE.addObstacle(o);
   }
 
-  response.finished=true;
+  response.finished = true;
   return true;
 }
 
@@ -497,4 +521,55 @@ bool SceneServices::respawnModelsInFlatland(std::vector<std::string> old_model_n
   }
 
   return true; 
+}
+
+std::vector<Obstacle*> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle) {
+  std::vector<Obstacle*> new_walls;
+  YAML::Node model = YAML::LoadFile(obstacle.yaml_path);
+  auto bodies = model["bodies"];
+  if (bodies.size() < 1) {
+    ROS_ERROR("getWallsFromFlatlandModel(): No body found in yaml node.");
+    return std::vector<Obstacle*>();
+  }
+
+  auto footprints = bodies[0]["footprints"];
+  if (footprints.size() < 1) {
+    ROS_ERROR("getWallsFromFlatlandModel(): No footprint found in body.");
+    return std::vector<Obstacle*>();
+  }
+
+  auto footprint = footprints[0];
+  auto type = footprint["type"];
+  if (type == NULL) {
+    ROS_ERROR("getWallsFromFlatlandModel(): No type found in footprint.");
+    return std::vector<Obstacle*>();
+  }
+
+  auto pos = obstacle.pose.position;
+  if (type.as<std::string>() == "polygon") {
+    auto points = footprint["points"];
+    for (int i = 0; i < (int) points.size() - 1; i++) {
+      auto start = points[i];
+      auto end = points[i+1];
+      Obstacle* wall = new Obstacle(
+                              pos.x + start[0].as<float>(),
+                              pos.y + start[1].as<float>(),
+                              pos.x + end[0].as<float>(),
+                              pos.y + end[1].as<float>()
+                            );
+      new_walls.push_back(wall);
+    }
+
+    // connect last and first point
+    Obstacle* closing_wall = new Obstacle(
+                            pos.x + points[0][0].as<float>(),
+                            pos.y + points[0][1].as<float>(),
+                            pos.x + points[points.size() - 1][0].as<float>(),
+                            pos.y + points[points.size() - 1][1].as<float>()
+                          );
+    new_walls.push_back(closing_wall);
+  } else if (type.as<std::string>() == "circle") {
+    // TODO handle circles
+  }
+  return new_walls;
 }
