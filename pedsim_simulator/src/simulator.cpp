@@ -187,7 +187,7 @@ void Simulator::runSimulation() {
       publishAgents();
       // publishGroups();
       // publishRobotPosition();
-      // publishObstacles();
+      publishObstacles();
       publishWaypoints();
     }
     ros::spinOnce();
