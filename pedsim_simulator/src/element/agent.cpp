@@ -893,7 +893,7 @@ bool Agent::guideRobotIsNear() {
   if (SCENE.robot != nullptr) {
     auto robotpos = SCENE.robot->getPosition();
     auto diff = robotpos - p;
-    if (diff.length() < 3.0) {
+    if (diff.length() < 4.0) {
       return true;
     }
   }
