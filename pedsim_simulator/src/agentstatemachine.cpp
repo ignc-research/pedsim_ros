@@ -725,7 +725,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->enableForce("KeepDistance");
       agent->keepDistanceTo = SCENE.robot->getPosition();
-      agent->keepDistanceForceDistance = 3.5;
+      agent->keepDistanceForceDistance = 3.1;
       agent->setVmax(agent->vmaxDefault * 1.8);
       break;
   }
