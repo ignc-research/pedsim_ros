@@ -778,6 +778,9 @@ void AgentStateMachine::deactivateState(AgentState state) {
       agent->setVmax(agent->vmaxDefault);
       break;
     case StateFollowingGuide:
+      SCENE.removeWaypoint(agent->followWaypoint);
+      agent->followWaypoint = nullptr;
+      agent->updateDestination();
       SCENE.guideActive = false;
       break;
     case StateBackUp:
