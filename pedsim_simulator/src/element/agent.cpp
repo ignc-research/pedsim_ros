@@ -949,7 +949,6 @@ bool Agent::isStuck() {
         v_sum += recordedVelocities[i];
       }
       double v_mean = v_sum / numRecordedVelocities;
-      if (id == 1) printf("v mean: %lf\n", v_mean);
       if (v_mean < 0.3) {
         return true;
       }
