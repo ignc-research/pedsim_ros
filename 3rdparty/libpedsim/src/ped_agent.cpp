@@ -198,6 +198,7 @@ Ped::Tvector Ped::Tagent::socialForce() const {
     int quadrant_after = diff.getQuadrant();
     if (quadrant_before != quadrant_after) {
       // vector has changed direction i.e. models are already overlapping
+      // make diff length close to zero
       diff = diffDirection * 0.01;
     }
 

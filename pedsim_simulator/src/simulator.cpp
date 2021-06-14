@@ -184,6 +184,10 @@ void Simulator::runSimulation() {
       SCENE.setTimeStepSize(diff.toSec() / 5.0);  // slow down the simulation
       SCENE.moveAllAgents();
 
+      for (auto agent : SCENE.getAgents()) {
+        agent->recordVelocity();
+      }
+
       publishAgents();
       // publishGroups();
       // publishRobotPosition();

@@ -85,6 +85,13 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateDriving);
     }
 
+    if (state == StateDriving && agent->isStuck()) {
+      agent->updateDestination();
+      // don't check again for some time
+      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(5.0);
+      activateState(StateDriving);
+      return;
+    }
 
     // → update destination on arrival
     if (agent->hasCompletedDestination()) {
@@ -301,6 +308,14 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
 
+    if ((state == StateWalking || state == StateRunning) && agent->isStuck()) {
+      agent->updateDestination();
+      // don't check again for some time
+      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(5.0);
+      activateState(StateWalking);
+      return;
+    }
+
     // ## do some checks wether to interrupt walking
 
     // → switch to running sometimes
@@ -448,7 +463,6 @@ void AgentStateMachine::doStateTransition() {
         if (
           agent->listeningToAgent->getStateMachine()->getCurrentState() == AgentStateMachine::AgentState::StateTalkingAndWalking
         ) {
-          // agent->listenAndWalk();
           return;
         }
       }

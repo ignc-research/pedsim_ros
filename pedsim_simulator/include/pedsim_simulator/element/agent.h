@@ -153,6 +153,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool serviceRobotIsNear();
   bool guideRobotIsNear();
   bool someoneIsRequestingService();
+  bool isStuck();
 
   // misc
   void disableForce(const QString& forceNameIn);
@@ -162,6 +163,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void resumeMovement();
   void stopMovement();
   void adjustKeepDistanceForceDistance();
+  void recordVelocity();
 
   std::string agentName;
   double initialPosX;
@@ -222,6 +224,13 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double stateTalkingAndWalkingBaseTime;  // in seconds
   double stateRequestingServiceBaseTime;  // in seconds
   double stateReceivingServiceBaseTime;  // in seconds
+
+  ros::Time lastIsStuckCheck;
+  static const int numRecordedVelocities = 20;
+  ros::Time lastRecordedVelocityTime;
+  int recordedVelocitiesIndex;
+  int velocitiesRecorded;
+  double recordedVelocities[numRecordedVelocities];  // save velocities squared to save computation
 
  protected:
   AgentGroup* group;

@@ -102,6 +102,11 @@ Agent::Agent() {
   stateRequestingServiceBaseTime = 30.0;
   stateReceivingServiceBaseTime = 30.0;
 
+  lastIsStuckCheck = ros::Time::now();
+  lastRecordedVelocityTime = ros::Time::now();
+  recordedVelocitiesIndex = 0;
+  velocitiesRecorded = 0;
+
   group = nullptr;
   waypointplanner = nullptr;
   disableForce("KeepDistance");
@@ -913,6 +918,41 @@ bool Agent::someoneIsRequestingService() {
       getWaypointPlanner()->setDestination(servicingWaypoint);
       currentDestination = servicingWaypoint;
       return true;
+    }
+  }
+  return false;
+}
+
+void Agent::recordVelocity() {
+  // record velocities at a fixed time interval
+  ros::Time now = ros::Time::now();
+  if ((now - lastRecordedVelocityTime).toSec() > 1.5) {
+    // reset timer
+    lastRecordedVelocityTime = ros::Time::now();
+
+    recordedVelocitiesIndex = (recordedVelocitiesIndex + 1) % numRecordedVelocities;
+    recordedVelocities[recordedVelocitiesIndex] = v.lengthSquared();
+    velocitiesRecorded++;
+  }
+}
+
+bool Agent::isStuck() {
+  ros::Time now = ros::Time::now();
+  if ((now - lastIsStuckCheck).toSec() > 1.5) {
+    // reset timer
+    lastIsStuckCheck = ros::Time::now();
+
+    if (velocitiesRecorded > numRecordedVelocities) {  // make sure array is filled
+      // get mean velocity
+      double v_sum = 0;
+      for (int i = 0; i < numRecordedVelocities; i++) {
+        v_sum += recordedVelocities[i];
+      }
+      double v_mean = v_sum / numRecordedVelocities;
+      if (id == 1) printf("v mean: %lf\n", v_mean);
+      if (v_mean < 0.3) {
+        return true;
+      }
     }
   }
   return false;
