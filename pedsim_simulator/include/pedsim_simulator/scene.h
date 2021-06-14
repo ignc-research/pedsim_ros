@@ -40,6 +40,8 @@
 
 #include <pedsim_simulator/utilities.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseStamped.h>
+#include <ros/ros.h>
 
 // Forward Declarations
 class QGraphicsScene;
@@ -74,6 +76,7 @@ class Scene : public QObject, protected Ped::Tscene {
  protected:
   static Scene* instance;
   float time_step_size = 0.0;
+  ros::NodeHandle nh_;
 
  public:
   static Scene& getInstance();
@@ -161,6 +164,9 @@ class Scene : public QObject, protected Ped::Tscene {
                                                     double maxDist);
 
   bool getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest);
+  void arenaGoalCallback(const geometry_msgs::PoseStampedConstPtr& msg);
+  std::vector<int> odomPosToMapIndex(Ped::Tvector pos);
+  bool isOccupied(Ped::Tvector pos);
 
   // obstacle cell locations
   std::vector<Location> obstacle_cells_;
@@ -173,7 +179,11 @@ class Scene : public QObject, protected Ped::Tscene {
   Agent* robot;
   int episode;
   bool guideActive;
+  bool followerActive;
   bool serviceRobotExists;
+
+  Ped::Tvector* arenaGoal;
+  ros::Subscriber arenaGoalSub;
 
   // Attributes
  protected:

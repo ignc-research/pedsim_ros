@@ -82,6 +82,7 @@ Agent::Agent() {
   switchRunningWalkingProbability = 0.1;
   requestingServiceProbability = 0.1;
   requestingGuideProbability = 0.1;
+  requestingFollowerProbability = 0.1;
 
   lastStartTalkingCheck = ros::Time::now();
   lastTellStoryCheck = ros::Time::now();
@@ -90,6 +91,7 @@ Agent::Agent() {
   lastSwitchRunningWalkingCheck = ros::Time::now();
   lastRequestingServiceCheck = ros::Time::now();
   lastRequestingGuideCheck = ros::Time::now();
+  lastRequestingFollowerCheck = ros::Time::now();
 
   stateWorkingBaseTime = 30.0;
   stateLiftingForksBaseTime = 3.0;
@@ -106,6 +108,10 @@ Agent::Agent() {
   lastRecordedVelocityTime = ros::Time::now();
   recordedVelocitiesIndex = 0;
   velocitiesRecorded = 0;
+
+  subGoal = nullptr;
+  arenaGoal = nullptr;
+  hasRequestedFollower = false;
 
   group = nullptr;
   waypointplanner = nullptr;
@@ -861,6 +867,27 @@ bool Agent::startRequestingGuide() {
   return false;
 }
 
+bool Agent::startRequestingFollower() {
+  // only do the probability check again after some time has passed
+  ros::Time now = ros::Time::now();
+  if ((now - lastRequestingFollowerCheck).toSec() > 0.5) {
+    // reset timer
+    lastRequestingFollowerCheck = ros::Time::now();
+
+    // only enter the state if no other follower interaction is going on
+    if (!SCENE.followerActive && !hasRequestedFollower) {
+      // roll a die
+      uniform_real_distribution<double> Distribution(0, 1);
+      double roll = Distribution(RNG());
+      if (roll < requestingFollowerProbability) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 bool Agent::switchRunningWalking(){
   // only do the probability check again after some time has passed
   ros::Time now = ros::Time::now();
@@ -955,6 +982,48 @@ bool Agent::isStuck() {
     }
   }
   return false;
+}
+
+void Agent::updateSubGoal() {
+  if (subGoal != nullptr) {
+    SCENE.removeWaypoint(subGoal);
+    subGoal = nullptr;
+  }
+
+  if (arenaGoal == nullptr) {
+    ROS_WARN("Can't update subgoal. Agent::arenaGoal is nullptr.");
+    return;
+  }
+
+  // create new subgoal, some distance from the arena goal away
+  uniform_real_distribution<double> distribution_angle(0, 2 * M_PI);
+  uniform_real_distribution<double> distribution_distance(3, 5);
+  double random_angle;
+  double random_distance;
+  Ped::Tvector random_point;
+  do {
+    random_angle = distribution_angle(RNG());
+    random_distance = distribution_distance(RNG());
+    random_point = arenaGoal->getPosition() + Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(random_angle), random_distance);
+  } while (SCENE.isOccupied(random_point));
+  
+  subGoal = new AreaWaypoint("subgoal", random_point, 0.3);
+  SCENE.addWaypoint(subGoal);
+}
+
+void Agent::updateArenaGoal() {
+  if (arenaGoal != nullptr) {
+    SCENE.removeWaypoint(arenaGoal);
+    arenaGoal = nullptr;
+  }
+
+  if (SCENE.arenaGoal == nullptr) {
+    ROS_WARN("Can't update Agent::arenaGoal. Scene::arenaGoal is nullptr.");
+    return;
+  }
+
+  arenaGoal = new AreaWaypoint("arenagoal", *SCENE.arenaGoal, 0.3);
+  SCENE.addWaypoint(arenaGoal);
 }
 
 void Agent::disableForce(const QString& forceNameIn) {

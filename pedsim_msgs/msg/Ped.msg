@@ -12,6 +12,7 @@ float64 group_talking_probability
 float64 talking_and_walking_probability
 float64 requesting_service_probability
 float64 requesting_guide_probability
+float64 requesting_follower_probability
 
 float64 max_talking_distance
 float64 max_servicing_radius

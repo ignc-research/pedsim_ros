@@ -20,7 +20,7 @@ using namespace std;
 /// created.
 /// This is faster for small scenarios or less than 1000 Tagents.
 Ped::Tscene::Tscene() : tree(NULL) {
-  // getMap();
+  getMap();
 }
 
 /// Constructor used to create a quadtree statial representation of the Tagents.
@@ -40,7 +40,7 @@ Ped::Tscene::Tscene() : tree(NULL) {
 /// down.
 Ped::Tscene::Tscene(double left, double top, double width, double height) {
   tree = new Ped::Ttree(this, 0, left, top, width, height);
-  // getMap();
+  getMap();
 }
 
 /// Destructor

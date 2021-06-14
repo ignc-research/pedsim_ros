@@ -303,9 +303,29 @@ void AgentStateMachine::doStateTransition() {
 
     // → update destination on arrival
     if (agent->hasCompletedDestination()) {
-      agent->updateDestination();
-      activateState(StateWalking);
-      return;
+      if (state == StateGuideToGoal) {
+        AreaWaypoint* wp = dynamic_cast<AreaWaypoint*>(agent->currentDestination);
+
+        if (wp == agent->subGoal) {
+          // agent has reached subgoal
+          agent->currentDestination = agent->arenaGoal;
+          if (individualPlanner == nullptr) {
+            individualPlanner = new IndividualWaypointPlanner();
+          }
+          individualPlanner->setAgent(agent);
+          individualPlanner->setDestination(agent->currentDestination);
+          agent->setWaypointPlanner(individualPlanner);
+          return;
+        } else {
+          // agent has reached arenagoal
+          activateState(StateWalking);
+          return;
+        }
+      } else {
+        agent->updateDestination();
+        activateState(StateWalking);
+        return;
+      }
     }
 
     if ((state == StateWalking || state == StateRunning) && agent->isStuck()) {
@@ -497,6 +517,24 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWalking);
         return;
       }
+    }
+
+    // → request follower sometimes
+    if ((state == StateWalking) && agent->startRequestingFollower()) {
+      activateState(StateRequestingFollower);
+      return;
+    }
+
+    if (state == StateRequestingFollower) {
+      if (agent->guideRobotIsNear()) {
+        activateState(StateGuideToGoal);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateGuideToGoal) {
+      return;
     }
   }
 }
@@ -742,6 +780,31 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->keepDistanceForceDistance = 3.1;
       agent->setVmax(agent->vmaxDefault * 2.0);
       break;
+    case StateRequestingFollower:
+      SCENE.followerActive = true;
+      agent->setWaypointPlanner(nullptr);
+      // don't stop moving completely so the pedsimMovement animation can update
+      agent->setVmax(agent->vmaxDefault * 0.01);
+      agent->disableForce("KeepDistance");
+      agent->hasRequestedFollower = true;
+      break;
+    case StateGuideToGoal:      
+      SCENE.followerActive = true;
+      agent->updateArenaGoal();
+      agent->updateSubGoal();
+      if (individualPlanner == nullptr)
+        individualPlanner = new IndividualWaypointPlanner();
+      individualPlanner->setAgent(agent);
+      assert(agent->subGoal != nullptr);
+      individualPlanner->setDestination(agent->subGoal);
+      agent->currentDestination = agent->subGoal;
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 2.0);
+      agent->disableForce("KeepDistance");
+      break;
+    default:
+      break;
   }
 
   // inform users
@@ -777,7 +840,7 @@ void AgentStateMachine::deactivateState(AgentState state) {
       // don't worry about other group members
       AgentGroup* group = agent->getGroup();
       if (group != nullptr) {
-        foreach (Agent* member, group->getMembers()) {
+        for (Agent* member : group->getMembers()) {
           if (member == agent) continue;
 
           AgentStateMachine* memberStateMachine = member->getStateMachine();
@@ -799,6 +862,18 @@ void AgentStateMachine::deactivateState(AgentState state) {
       break;
     case StateBackUp:
         agent->isInteracting = false;
+      break;
+    case StateRequestingFollower:
+      agent->setVmax(agent->vmaxDefault);
+      SCENE.followerActive = false;
+      break;
+    case StateGuideToGoal:      
+      SCENE.removeWaypoint(agent->subGoal);
+      agent->subGoal = nullptr;
+      SCENE.removeWaypoint(agent->arenaGoal);
+      agent->arenaGoal = nullptr;
+      agent->updateDestination();
+      SCENE.followerActive = false;
       break;
     default:
       break;
@@ -824,7 +899,7 @@ bool AgentStateMachine::checkGroupForAttractions(
   }
 
   // check all group members
-  foreach (Agent* member, group->getMembers()) {
+  for (Agent* member : group->getMembers()) {
     // ignore agent himself
     if (member == agent) continue;
 
@@ -900,6 +975,10 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "StateRequestingGuide";
     case StateFollowingGuide:
       return "StateFollowingGuide";
+    case StateRequestingFollower:
+      return "StateRequestingFollower";
+    case StateGuideToGoal:
+      return "StateGuideToGoal";
     default:
       return "UnknownState";
   }

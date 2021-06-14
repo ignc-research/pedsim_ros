@@ -56,6 +56,7 @@ Scene::Scene(QObject* parent) {
   sceneTime = 0;
   episode = 0;
   guideActive = false;
+  followerActive = false;
   robot = nullptr;
   serviceRobotExists = false;
 
@@ -67,6 +68,9 @@ Scene::Scene(QObject* parent) {
       new Ped::Ttree(this, 0, area.x(), area.y(), area.width(), area.height());
 
   obstacle_cells_.clear();
+
+  arenaGoalSub = nh_.subscribe(ros::this_node::getNamespace() + "/goal", 1, &Scene::arenaGoalCallback, this);
+  arenaGoal = nullptr;
 }
 
 Scene::~Scene() {
@@ -638,6 +642,8 @@ void Scene::moveClusters(int i) {
     ) {
       agent->getStateMachine()->activateState(AgentStateMachine::AgentState::StateDriving);
     }
+
+    agent->hasRequestedFollower = false;
   }
 }
 
@@ -663,4 +669,36 @@ bool Scene::getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest) {
   }
 
   return found_something;
+}
+
+void Scene::arenaGoalCallback(const geometry_msgs::PoseStampedConstPtr& msg) {
+  if (arenaGoal == nullptr) {
+    arenaGoal = new Ped::Tvector();
+  }
+  arenaGoal->x = msg->pose.position.x;
+  arenaGoal->y = msg->pose.position.y;
+}
+
+std::vector<int> Scene::odomPosToMapIndex(Ped::Tvector pos) {
+  // translate a position in the "odom" frame to a map index
+  int index_y = static_cast<int> ((pos.y - map_.info.origin.position.y) / map_.info.resolution);
+  int index_x = static_cast<int> ((pos.x - map_.info.origin.position.x) / map_.info.resolution);
+  std::vector<int> v{index_y, index_x};
+  return v;
+}
+
+bool Scene::isOccupied(Ped::Tvector pos) {
+  std::vector<int> index = odomPosToMapIndex(pos);
+  // check if indexes are within range
+  if (
+    0 <= index[0] &&
+    index[0] < (int) map_.info.height &&
+    0 <= index[1] &&
+    index[1] < (int) map_.info.width)
+  {
+    // translate 2d index to 1d index in row-major order
+    return map_.data[index[0] * map_.info.width + index[1]] > 0;
+  }
+
+  return true;
 }

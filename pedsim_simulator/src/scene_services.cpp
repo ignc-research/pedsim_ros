@@ -363,6 +363,8 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     a->stateReceivingServiceBaseTime = ped.receiving_service_base_time;
 
     a->requestingGuideProbability = ped.requesting_guide_probability;
+
+    a->requestingFollowerProbability = ped.requesting_follower_probability;
     
     a->maxTalkingDistance = ped.max_talking_distance;
     if (

@@ -76,6 +76,8 @@ class AgentStateMachine : public QObject {
     StateProvidingService,
     StateRequestingGuide,
     StateFollowingGuide,
+    StateRequestingFollower,
+    StateGuideToGoal,
   } AgentState;
 
   // Constructor and Destructor

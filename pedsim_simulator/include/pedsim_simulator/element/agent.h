@@ -148,6 +148,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool startTalkingAndWalking();
   bool startRequestingService();
   bool startRequestingGuide();
+  bool startRequestingFollower();
   bool switchRunningWalking();
   bool finishedRotation();
   bool serviceRobotIsNear();
@@ -164,6 +165,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void stopMovement();
   void adjustKeepDistanceForceDistance();
   void recordVelocity();
+  void updateSubGoal();
+  void updateArenaGoal();
 
   std::string agentName;
   double initialPosX;
@@ -205,6 +208,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double switchRunningWalkingProbability;
   double requestingServiceProbability;
   double requestingGuideProbability;
+  double requestingFollowerProbability;
   
   ros::Time lastStartTalkingCheck;
   ros::Time lastTellStoryCheck;
@@ -213,6 +217,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   ros::Time lastSwitchRunningWalkingCheck;
   ros::Time lastRequestingServiceCheck;
   ros::Time lastRequestingGuideCheck;
+  ros::Time lastRequestingFollowerCheck;
 
   double stateWorkingBaseTime;  // in seconds
   double stateLiftingForksBaseTime;  // in seconds
@@ -230,7 +235,11 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   ros::Time lastRecordedVelocityTime;
   int recordedVelocitiesIndex;
   int velocitiesRecorded;
-  double recordedVelocities[numRecordedVelocities];  // save velocities squared to save computation
+  double recordedVelocities[numRecordedVelocities];  // save velocities as squared values to save computation
+
+  AreaWaypoint* subGoal;
+  AreaWaypoint* arenaGoal;
+  bool hasRequestedFollower;
 
  protected:
   AgentGroup* group;
