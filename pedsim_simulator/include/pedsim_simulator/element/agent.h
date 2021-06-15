@@ -97,6 +97,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double obstacleForceFunction(double distance);
   Ped::Tvector obstacleForce();
   Ped::Tvector keepDistanceForce();
+  Ped::Tvector robotForce();
   Ped::Tvector myForce(Ped::Tvector desired) const;
   Ped::Twaypoint* getCurrentWaypoint() const;
   Waypoint* getPreviousDestination();
@@ -131,6 +132,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   Ped::Tvector getObstacleForce() const;
   Ped::Tvector getMyForce() const;
   Ped::Tvector getKeepDistanceForce() const;
+  Ped::Tvector getRobotForce() const;
   QList<const Agent*> getNeighbors() const;
   std::vector<Agent*> getAgentsInRange(double distance);
   QList<const Agent*> getPotentialListeners(double distance);

@@ -28,6 +28,7 @@ float64 requesting_service_base_time
 float64 force_factor_desired
 float64 force_factor_obstacle
 float64 force_factor_social
+float64 force_factor_robot
 
 geometry_msgs/Point[] waypoints
 int16 waypoint_mode

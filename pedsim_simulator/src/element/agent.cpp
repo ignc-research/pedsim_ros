@@ -197,6 +197,24 @@ Ped::Tvector Agent::keepDistanceForce() {
   return force;
 }
 
+Ped::Tvector Agent::robotForce() {
+  Ped::Tvector force;
+
+  if (SCENE.robot != nullptr) {
+    auto diff = p - SCENE.robot->getPosition();
+    auto dist = diff.length();
+    if (dist < 4.0) {
+      double amount = 10.0;
+      if (dist > 0.0) {
+        amount = 1.0 / dist;
+      }
+      force = amount * diff.normalized();
+    }
+  }
+
+  return force;
+}
+
 Ped::Tvector Agent::myForce(Ped::Tvector desired) const {
   // run additional forces
   Ped::Tvector forceValue;
@@ -1124,6 +1142,8 @@ Ped::Tvector Agent::getObstacleForce() const { return obstacleforce; }
 Ped::Tvector Agent::getMyForce() const { return myforce; }
 
 Ped::Tvector Agent::getKeepDistanceForce() const { return keepdistanceforce; }
+
+Ped::Tvector Agent::getRobotForce() const { return robotforce; }
 
 QPointF Agent::getVisiblePosition() const { return QPointF(getx(), gety()); }
 

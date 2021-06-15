@@ -13,3 +13,4 @@ geometry_msgs/Vector3 group_repulsion_force
 # Extra stabilization/custom forces.
 geometry_msgs/Vector3 random_force
 geometry_msgs/Vector3 keep_distance_force
+geometry_msgs/Vector3 robot_force

@@ -368,6 +368,7 @@ void Simulator::publishAgents() {
     agent_forces.obstacle_force = VecToMsg(a->getObstacleForce() * a->forceFactorObstacle);
     agent_forces.social_force = VecToMsg(a->getSocialForce() * a->forceFactorSocial);
     agent_forces.keep_distance_force = VecToMsg(a->getKeepDistanceForce());
+    agent_forces.robot_force = VecToMsg(a->getRobotForce() * a->forceFactorRobot);
     // agent_forces.group_coherence_force = a->getSocialForce();
     // agent_forces.group_gaze_force = a->getSocialForce();
     // agent_forces.group_repulsion_force = a->getSocialForce();

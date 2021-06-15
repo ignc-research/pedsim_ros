@@ -393,6 +393,7 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     }
     a->forceFactorObstacle = ped.force_factor_obstacle;
     a->forceFactorSocial = ped.force_factor_social;
+    a->forceFactorRobot = ped.force_factor_robot;
 
     // add waypoints to agentcluster and scene
     for(int i = 0; i < (int) ped.waypoints.size(); i++){
