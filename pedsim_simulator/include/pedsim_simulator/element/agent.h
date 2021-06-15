@@ -167,6 +167,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void recordVelocity();
   void updateSubGoal();
   void updateArenaGoal();
+  void varySpeed();
 
   std::string agentName;
   double initialPosX;
@@ -240,6 +241,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   AreaWaypoint* subGoal;
   AreaWaypoint* arenaGoal;
   bool hasRequestedFollower;
+
+  ros::Time lastVarySpeed;
 
  protected:
   AgentGroup* group;

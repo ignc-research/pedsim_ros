@@ -116,6 +116,8 @@ Agent::Agent() {
   group = nullptr;
   waypointplanner = nullptr;
   disableForce("KeepDistance");
+
+  lastVarySpeed = ros::Time::now();
 }
 
 Agent::Agent(std::string name) : Agent() {
@@ -1133,4 +1135,24 @@ void Agent::setVisiblePosition(const QPointF& positionIn) {
 
 QString Agent::toString() const {
   return tr("Agent %1 (@%2,%3)").arg(getId()).arg(getx()).arg(gety());
+}
+
+void Agent::varySpeed() {
+  ros::Time now = ros::Time::now();
+  if ((now - lastVarySpeed).toSec() > 0.5) {
+    // reset timer and don't vary again for 5 seconds
+    lastVarySpeed = ros::Time::now() + ros::Duration(5.0);
+
+    uniform_real_distribution<double> distribution_activate(0, 1);
+    double roll = distribution_activate(RNG());
+    if (roll < 0.5) {  // 50% chance to change velocity
+      if (vmax < vmaxDefault + 0.01) {
+        // increase speed
+        setVmax(vmaxDefault * 2.0);
+      } else {
+        // reset speed
+        setVmax(vmaxDefault);
+      }
+    }
+  }
 }

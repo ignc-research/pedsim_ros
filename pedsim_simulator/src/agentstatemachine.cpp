@@ -437,6 +437,7 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWalking);
         return;
       }
+      agent->varySpeed();
       agent->followWaypoint->setPosition(SCENE.robot->getPosition());
       agent->keepDistanceTo = SCENE.robot->getPosition();
       return;
