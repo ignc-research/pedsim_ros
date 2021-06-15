@@ -318,7 +318,7 @@ void AgentStateMachine::doStateTransition() {
           return;
         } else {
           // agent has reached arenagoal
-          activateState(StateWalking);
+          activateState(StateRunning);
           return;
         }
       } else {
