@@ -754,6 +754,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->stopMovement();
       break;
     case StateRequestingGuide:
+      SCENE.guideActive = true;
       agent->setWaypointPlanner(nullptr);
       // don't stop moving completely so the pedsimMovement animation can update
       agent->setVmax(agent->vmaxDefault * 0.01);
@@ -789,7 +790,6 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->hasRequestedFollower = true;
       break;
     case StateGuideToGoal:      
-      SCENE.followerActive = true;
       agent->updateArenaGoal();
       agent->updateSubGoal();
       if (individualPlanner == nullptr)
@@ -858,14 +858,12 @@ void AgentStateMachine::deactivateState(AgentState state) {
       SCENE.removeWaypoint(agent->followWaypoint);
       agent->followWaypoint = nullptr;
       agent->updateDestination();
-      SCENE.guideActive = false;
       break;
     case StateBackUp:
         agent->isInteracting = false;
       break;
     case StateRequestingFollower:
       agent->setVmax(agent->vmaxDefault);
-      SCENE.followerActive = false;
       break;
     case StateGuideToGoal:      
       SCENE.removeWaypoint(agent->subGoal);
@@ -873,7 +871,6 @@ void AgentStateMachine::deactivateState(AgentState state) {
       SCENE.removeWaypoint(agent->arenaGoal);
       agent->arenaGoal = nullptr;
       agent->updateDestination();
-      SCENE.followerActive = false;
       break;
     default:
       break;

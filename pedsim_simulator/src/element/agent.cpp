@@ -858,7 +858,6 @@ bool Agent::startRequestingGuide() {
       uniform_real_distribution<double> Distribution(0, 1);
       double roll = Distribution(RNG());
       if (roll < requestingGuideProbability) {
-        SCENE.guideActive = true;
         return true;
       }
     }

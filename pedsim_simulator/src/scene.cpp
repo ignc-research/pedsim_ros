@@ -619,6 +619,7 @@ void Scene::moveAllAgents() {
 // @param int i episode number to determine the next wp
 void Scene::moveClusters(int i) {
   guideActive = false;
+  followerActive = false;
   for(Agent* agent: agents){
     // skip robot
     if (agent->getType() == Ped::Tagent::ROBOT) {
