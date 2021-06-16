@@ -574,6 +574,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateDriving:
       if (individualPlanner == nullptr)
@@ -584,6 +585,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateRunning:
       if (individualPlanner == nullptr)
@@ -594,6 +596,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 2.0);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateQueueing:
       if (queueingPlanner == nullptr)
@@ -653,6 +656,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setVmax(agent->vmaxDefault * 0.3);  // walk slower when talking
       agent->disableForce("Social");
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateListeningAndWalking:
       agent->setWaypointPlanner(nullptr);
@@ -693,6 +697,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       stateMaxDuration = getRandomDuration(agent->stateGroupTalkingBaseTime);
       agent->setWaypointPlanner(nullptr);
       agent->enableForce("KeepDistance");
+      agent->disableForce("Robot");
       agent->setForceFactorSocial(15.0);
       break;
     case StateListening:
@@ -701,6 +706,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
         agent->stopMovement();
       } else {
         agent->enableForce("KeepDistance");
+        agent->disableForce("Robot");
         agent->setForceFactorSocial(15.0);
       }
       break;
@@ -728,6 +734,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 0.2);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateReceivingService:
       startTimestamp = ros::WallTime::now();
@@ -735,6 +742,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       // don't stop moving completely so the pedsimMovement animation can update
       agent->setVmax(agent->vmaxDefault * 0.01);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateDrivingToInteraction:
       if (individualPlanner == nullptr) {
@@ -746,6 +754,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 1.5);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateProvidingService:
       agent->setWaypointPlanner(nullptr);
@@ -761,6 +770,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setVmax(agent->vmaxDefault * 0.01);
       currentEpisode = SCENE.episode;
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateFollowingGuide:
       if (individualPlanner == nullptr) {
@@ -781,6 +791,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->keepDistanceTo = SCENE.robot->getPosition();
       agent->keepDistanceForceDistance = 3.1;
       agent->setVmax(agent->vmaxDefault * 2.0);
+      agent->disableForce("Robot");
       break;
     case StateRequestingFollower:
       SCENE.followerActive = true;
@@ -788,6 +799,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       // don't stop moving completely so the pedsimMovement animation can update
       agent->setVmax(agent->vmaxDefault * 0.01);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       agent->hasRequestedFollower = true;
       break;
     case StateGuideToGoal:      
