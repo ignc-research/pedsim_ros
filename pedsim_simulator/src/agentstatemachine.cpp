@@ -318,7 +318,7 @@ void AgentStateMachine::doStateTransition() {
           return;
         } else {
           // agent has reached arenagoal
-          activateState(StateRunning);
+          activateState(StateClearingGoal);
           return;
         }
       } else {
@@ -535,6 +535,10 @@ void AgentStateMachine::doStateTransition() {
     }
 
     if (state == StateGuideToGoal) {
+      return;
+    }
+
+    if (state == StateClearingGoal) {
       return;
     }
   }
@@ -816,6 +820,17 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setVmax(agent->vmaxDefault * 2.0);
       agent->disableForce("KeepDistance");
       break;
+    case StateClearingGoal:
+      if (individualPlanner == nullptr)
+        individualPlanner = new IndividualWaypointPlanner();
+      individualPlanner->setAgent(agent);
+      individualPlanner->setDestination(destination);
+      agent->setWaypointPlanner(individualPlanner);
+      agent->resumeMovement();
+      agent->setVmax(agent->vmaxDefault * 2.0);
+      agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
+      break;
     default:
       break;
   }
@@ -989,6 +1004,8 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "StateRequestingFollower";
     case StateGuideToGoal:
       return "StateGuideToGoal";
+    case StateClearingGoal:
+      return "StateClearingGoal";
     default:
       return "UnknownState";
   }
