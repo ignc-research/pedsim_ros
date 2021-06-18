@@ -1070,6 +1070,7 @@ void Agent::disableAllForces() {
   disableForce("Desired");
   disableForce("Social");
   disableForce("KeepDistance");
+  disableForce("Robot");
 }
 
 void Agent::resumeMovement() {

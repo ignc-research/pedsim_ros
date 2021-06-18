@@ -819,6 +819,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 2.0);
       agent->disableForce("KeepDistance");
+      agent->disableForce("Robot");
       break;
     case StateClearingGoal:
       if (individualPlanner == nullptr)
@@ -829,7 +830,6 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault * 2.0);
       agent->disableForce("KeepDistance");
-      agent->disableForce("Robot");
       break;
     default:
       break;
