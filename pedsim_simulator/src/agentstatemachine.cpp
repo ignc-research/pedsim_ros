@@ -807,6 +807,11 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->hasRequestedFollower = true;
       break;
     case StateGuideToGoal:      
+      if (SCENE.arenaGoal == nullptr) {
+        ROS_WARN("Can't guide to goal. Scene::arenaGoal is nullptr. Is /goal published?");
+        activateState(StateWalking);
+        return;
+      }
       agent->updateArenaGoal();
       agent->updateSubGoal();
       if (individualPlanner == nullptr)
@@ -893,11 +898,15 @@ void AgentStateMachine::deactivateState(AgentState state) {
     case StateRequestingFollower:
       agent->setVmax(agent->vmaxDefault);
       break;
-    case StateGuideToGoal:      
-      SCENE.removeWaypoint(agent->subGoal);
-      agent->subGoal = nullptr;
-      SCENE.removeWaypoint(agent->arenaGoal);
-      agent->arenaGoal = nullptr;
+    case StateGuideToGoal:
+      if (agent->subGoal != nullptr) {
+        SCENE.removeWaypoint(agent->subGoal);
+        agent->subGoal = nullptr;
+      }
+      if (agent->arenaGoal != nullptr) {
+        SCENE.removeWaypoint(agent->arenaGoal);
+        agent->arenaGoal = nullptr;
+      }
       agent->updateDestination();
       break;
     default:
