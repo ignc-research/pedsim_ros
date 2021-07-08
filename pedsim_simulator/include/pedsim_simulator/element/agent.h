@@ -234,7 +234,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   double stateReceivingServiceBaseTime;  // in seconds
 
   ros::Time lastIsStuckCheck;
-  static const int numRecordedVelocities = 20;
+  static const int numRecordedVelocities = 30;
   ros::Time lastRecordedVelocityTime;
   int recordedVelocitiesIndex;
   int velocitiesRecorded;

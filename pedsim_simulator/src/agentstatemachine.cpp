@@ -88,7 +88,7 @@ void AgentStateMachine::doStateTransition() {
     if (state == StateDriving && agent->isStuck()) {
       agent->updateDestination();
       // don't check again for some time
-      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(5.0);
+      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(10.0);
       activateState(StateDriving);
       return;
     }
@@ -590,6 +590,7 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setVmax(agent->vmaxDefault);
       agent->disableForce("KeepDistance");
       agent->disableForce("Robot");
+      agent->isInteracting = false;
       break;
     case StateRunning:
       if (individualPlanner == nullptr)
