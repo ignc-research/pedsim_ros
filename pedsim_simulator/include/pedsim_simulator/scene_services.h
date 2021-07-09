@@ -111,6 +111,8 @@ class SceneServices {
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
   std::vector<Obstacle*> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
+  int stringToEnumIndex(std::string str, std::vector<std::string> values);
+
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;

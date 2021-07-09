@@ -93,8 +93,24 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
 
+    if (state == StateWaitForTimer) {
+      if (agent->waitTimeExpired()) {
+        activateState(StateDriving);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateWaitForTrigger) {
+      if (agent->robotInTriggerZone()) {
+        activateState(StateDriving);
+        return;
+      }
+      return;
+    }
+
     // → update destination on arrival
-    if (agent->hasCompletedDestination()) {
+    if (state == StateDriving && agent->hasCompletedDestination()) {
       if (agent->getCurrentDestination()->isInteractive())
       {
         agent->updateDestination();
@@ -186,6 +202,22 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWaiting);
       else
         activateState(StateDriving);
+    }
+
+    if (state == StateWaitForTimer) {
+      if (agent->waitTimeExpired()) {
+        activateState(StateDriving);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateWaitForTrigger) {
+      if (agent->robotInTriggerZone()) {
+        activateState(StateDriving);
+        return;
+      }
+      return;
     }
 
     if (state == StateDriving) {
@@ -300,9 +332,24 @@ void AgentStateMachine::doStateTransition() {
         activateState(StateWalking);
     }
 
+    if (state == StateWaitForTimer) {
+      if (agent->waitTimeExpired()) {
+        activateState(StateWalking);
+        return;
+      }
+      return;
+    }
+
+    if (state == StateWaitForTrigger) {
+      if (agent->robotInTriggerZone()) {
+        activateState(StateWalking);
+        return;
+      }
+      return;
+    }
 
     // → update destination on arrival
-    if (agent->hasCompletedDestination()) {
+    if ((state == StateWalking || state == StateRunning) && agent->hasCompletedDestination()) {
       if (state == StateGuideToGoal) {
         AreaWaypoint* wp = dynamic_cast<AreaWaypoint*>(agent->currentDestination);
 
@@ -331,7 +378,7 @@ void AgentStateMachine::doStateTransition() {
     if ((state == StateWalking || state == StateRunning) && agent->isStuck()) {
       agent->updateDestination();
       // don't check again for some time
-      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(5.0);
+      agent->lastIsStuckCheck = agent->lastIsStuckCheck + ros::Duration(10.0);
       activateState(StateWalking);
       return;
     }
@@ -566,6 +613,14 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->disableAllForces();
       break;
     case StateWaiting:
+      agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
+      break;
+    case StateWaitForTrigger:
+      agent->setWaypointPlanner(nullptr);
+      agent->disableAllForces();
+      break;
+    case StateWaitForTimer:
       agent->setWaypointPlanner(nullptr);
       agent->disableAllForces();
       break;
@@ -1016,6 +1071,10 @@ QString AgentStateMachine::stateToName(AgentState stateIn) {
       return "StateGuideToGoal";
     case StateClearingGoal:
       return "StateClearingGoal";
+    case StateWaitForTrigger:
+      return "StateWaitForTrigger";
+    case StateWaitForTimer:
+      return "StateWaitForTimer";
     default:
       return "UnknownState";
   }

@@ -310,6 +310,16 @@ bool SceneServices::resetPeds(std_srvs::Trigger::Request &request, std_srvs::Tri
   return true;
 }
 
+int SceneServices::stringToEnumIndex(std::string str, std::vector<std::string> values) {
+  int index = 0;
+  auto it = find(values.begin(), values.end(), str);
+  // If element was found
+  if (it != values.end()) {
+      index = it - values.begin();
+  }
+  return index;
+}
+
 void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids) {
   uniform_real_distribution<double> distribution_x(ped.pos.x - 1.0, ped.pos.x + 1.0);
   uniform_real_distribution<double> distribution_y(ped.pos.y - 1.0, ped.pos.y + 1.0);
@@ -321,16 +331,7 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     a->setPosition(distribution_x(RNG()), distribution_y(RNG()));
 
     // set type
-    std::string type_string = ped.type;
-    int type = 0;
-    // convert type string to enum value
-    auto types = SCENE.agent_types;
-    auto it = find(types.begin(), types.end(), type_string);
-    // If element was found
-    if (it != types.end()) {
-        type = it - types.begin();
-    }
-    a->setType(static_cast<Ped::Tagent::AgentType>(type));
+    a->setType(static_cast<Ped::Tagent::AgentType>(stringToEnumIndex(ped.type, SCENE.agent_types)));
 
     // set agent radius
     int radius = 1.0;
@@ -345,6 +346,20 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
       a->setVmax(ped.vmax * 0.7);
     }
     a->vmaxDefault = a->getVmax();
+
+    // startup mode
+    a->startUpMode = static_cast<Agent::StartUpMode>(stringToEnumIndex(ped.start_up_mode, SCENE.start_up_modes));
+    if (a->startUpMode == Agent::StartUpMode::WAITTIMER) {
+      a->getStateMachine()->activateState(AgentStateMachine::AgentState::StateWaitForTimer);
+    } else if (a->startUpMode == Agent::StartUpMode::TRIGGERZONE) {
+      a->getStateMachine()->activateState(AgentStateMachine::AgentState::StateWaitForTrigger);
+    } else {
+      a->getStateMachine()->activateState(AgentStateMachine::AgentState::StateNone);
+    }
+    // wait time
+    a->waitTime = ped.wait_time;
+    // trigger zone radius
+    a->triggerZoneRadius = ped.trigger_zone_radius;
 
     a->chattingProbability = ped.chatting_probability;
     a->stateTalkingBaseTime = ped.talking_base_time;

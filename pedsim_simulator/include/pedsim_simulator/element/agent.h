@@ -65,6 +65,12 @@ class Agent : public ScenarioElement, public Ped::Tagent {
     RANDOM = 1
   };
 
+  enum StartUpMode {
+    DEFAULT,
+    WAITTIMER,
+    TRIGGERZONE
+  };
+
   // Signals
  signals:
   void positionChanged(double x, double y) const;
@@ -157,6 +163,8 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool guideRobotIsNear();
   bool someoneIsRequestingService();
   bool isStuck();
+  bool waitTimeExpired();
+  bool robotInTriggerZone();
 
   // misc
   void disableForce(const QString& forceNameIn);
@@ -245,6 +253,11 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   bool hasRequestedFollower;
 
   ros::Time lastVarySpeed;
+
+  StartUpMode startUpMode;
+  float waitTime;  // in seconds
+  ros::Time waitTimer;
+  float triggerZoneRadius;
 
  protected:
   AgentGroup* group;

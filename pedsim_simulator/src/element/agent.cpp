@@ -119,6 +119,11 @@ Agent::Agent() {
   disableForce("Robot");
 
   lastVarySpeed = ros::Time::now();
+
+  startUpMode = StartUpMode::DEFAULT;
+  waitTime = 0;
+  waitTimer = ros::Time::now();
+  triggerZoneRadius = 0;
 }
 
 Agent::Agent(std::string name) : Agent() {
@@ -1179,4 +1184,22 @@ void Agent::varySpeed() {
       }
     }
   }
+}
+
+bool Agent::waitTimeExpired() {
+  ros::Time now = ros::Time::now();
+  if ((now - waitTimer).toSec() > waitTime) {
+    return true;
+  }
+  return false;
+}
+
+bool Agent::robotInTriggerZone() {
+  if (SCENE.robot != nullptr) {
+    auto diff = p - SCENE.robot->getPosition();
+    if (diff.length() < triggerZoneRadius) {
+      return true;
+    }
+  }
+  return false;
 }
