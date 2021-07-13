@@ -2,13 +2,12 @@
 # For spawning agents dynamically in pedsim and forwarding them to flatland
 int16 id
 geometry_msgs/Point pos
-string type
+string type  # "adult", "child", "elder", "vehicle", "servicerobot"
 int16 number_of_peds
 float64 vmax
+
 string start_up_mode  # "default", "wait_timer", "trigger_zone"
-
 float64 wait_time
-
 float64 trigger_zone_radius
 
 float64 chatting_probability
