@@ -110,14 +110,15 @@ void AgentStateMachine::doStateTransition() {
     }
 
     // → update destination on arrival
-    if (state == StateDriving && agent->hasCompletedDestination()) {
-      if (agent->getCurrentDestination()->isInteractive())
-      {
+    if (agent->hasCompletedDestination()) {
+      if (agent->getCurrentDestination()->isInteractive()) {
         agent->updateDestination();
         activateState(StateReachedShelf);
-      }
-      else
-      {
+      } else if (state == StateWaitForTrigger) {
+        // don't do anything
+      } else if (state == StateWaitForTimer) {
+        // don't do anything
+      } else {
         agent->updateDestination();
         activateState(StateDriving);
       }
@@ -349,7 +350,7 @@ void AgentStateMachine::doStateTransition() {
     }
 
     // → update destination on arrival
-    if ((state == StateWalking || state == StateRunning) && agent->hasCompletedDestination()) {
+    if (agent->hasCompletedDestination()) {
       if (state == StateGuideToGoal) {
         AreaWaypoint* wp = dynamic_cast<AreaWaypoint*>(agent->currentDestination);
 
@@ -368,6 +369,10 @@ void AgentStateMachine::doStateTransition() {
           activateState(StateClearingGoal);
           return;
         }
+      } else if (state == StateWaitForTrigger) {
+        // don't do anything
+      } else if (state == StateWaitForTimer) {
+        // don't do anything
       } else {
         agent->updateDestination();
         activateState(StateWalking);
