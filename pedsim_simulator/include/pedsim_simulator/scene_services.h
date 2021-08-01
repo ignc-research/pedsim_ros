@@ -106,7 +106,7 @@ class SceneServices {
   std::vector<int> generateAgentIds(int n);
   bool removeModelsInFlatland(std::vector<std::string> model_names);
   bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);
-  bool respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models);
+  // bool respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models);
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
@@ -117,8 +117,8 @@ class SceneServices {
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
 
-  std::string respawn_models_topic_;
-  ros::ServiceClient respawn_models_client_;
+  // std::string respawn_models_topic_;
+  // ros::ServiceClient respawn_models_client_;
 
   std::string delete_models_topic_;
   ros::ServiceClient delete_models_client_;

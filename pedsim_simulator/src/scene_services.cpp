@@ -17,7 +17,7 @@
 #include <std_srvs/SetBool.h>
 #include <flatland_msgs/SpawnModels.h>
 #include <flatland_msgs/DeleteModels.h>
-#include <flatland_msgs/RespawnModels.h>
+// #include <flatland_msgs/RespawnModels.h>
 #include <iostream>
 #include <pedsim_simulator/rng.h>
 #include <ros/package.h>
@@ -41,8 +41,8 @@ SceneServices::SceneServices(){
   //flatland service clients
   spawn_models_topic_ = ros::this_node::getNamespace() + "/spawn_models";
   spawn_models_client_ = nh_.serviceClient<flatland_msgs::SpawnModels>(spawn_models_topic_, true);
-  respawn_models_topic_ = ros::this_node::getNamespace() + "/respawn_models";
-  respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
+  // respawn_models_topic_ = ros::this_node::getNamespace() + "/respawn_models";
+  // respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
   delete_models_topic_ = ros::this_node::getNamespace() + "/delete_models";
   delete_models_client_ = nh_.serviceClient<flatland_msgs::DeleteModels>(delete_models_topic_, true);
 }
@@ -329,6 +329,8 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     Agent* a = new Agent(name);
 
     a->setPosition(distribution_x(RNG()), distribution_y(RNG()));
+    a->initialPosX = a->getx();
+    a->initialPosY = a->gety();
 
     // set type
     a->setType(static_cast<Ped::Tagent::AgentType>(stringToEnumIndex(ped.type, SCENE.agent_types)));
@@ -519,27 +521,27 @@ bool SceneServices::spawnModelsInFlatland(std::vector<flatland_msgs::Model> mode
   return true; 
 }
 
-bool SceneServices::respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models) {
-  flatland_msgs::RespawnModels msg;
-  msg.request.old_model_names = old_model_names;
-  msg.request.new_models = new_models;
+// bool SceneServices::respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models) {
+//   flatland_msgs::RespawnModels msg;
+//   msg.request.old_model_names = old_model_names;
+//   msg.request.new_models = new_models;
 
-  // check validity of client
-  while (!respawn_models_client_.isValid()) {
-    ROS_WARN("Reconnecting respawn_models_client_-server....");
-    respawn_models_client_.waitForExistence(ros::Duration(5.0));
-    respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
-  }
+//   // check validity of client
+//   while (!respawn_models_client_.isValid()) {
+//     ROS_WARN("Reconnecting respawn_models_client_-server....");
+//     respawn_models_client_.waitForExistence(ros::Duration(5.0));
+//     respawn_models_client_ = nh_.serviceClient<flatland_msgs::RespawnModels>(respawn_models_topic_, true);
+//   }
 
-  respawn_models_client_.call(msg);
+//   respawn_models_client_.call(msg);
 
-  if (!msg.response.success) {
-    ROS_ERROR("Failed to respawn models. Flatland response: %s", msg.response.message.c_str());
-    return false;
-  }
+//   if (!msg.response.success) {
+//     ROS_ERROR("Failed to respawn models. Flatland response: %s", msg.response.message.c_str());
+//     return false;
+//   }
 
-  return true; 
-}
+//   return true; 
+// }
 
 std::vector<Obstacle*> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw) {
   std::vector<Obstacle*> new_walls;
