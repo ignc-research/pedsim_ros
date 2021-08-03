@@ -622,12 +622,10 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->disableAllForces();
       break;
     case StateWaitForTrigger:
-      agent->setWaypointPlanner(nullptr);
-      agent->disableAllForces();
+      agent->setVmax(0.02);
       break;
     case StateWaitForTimer:
-      agent->setWaypointPlanner(nullptr);
-      agent->disableAllForces();
+      agent->setVmax(0.02);
       break;
     case StateWalking:
       if (individualPlanner == nullptr)
@@ -969,6 +967,12 @@ void AgentStateMachine::deactivateState(AgentState state) {
         agent->arenaGoal = nullptr;
       }
       agent->updateDestination();
+      break;
+    case StateWaitForTrigger:
+      agent->setVmax(agent->vmaxDefault);
+      break;
+    case StateWaitForTimer:
+      agent->setVmax(agent->vmaxDefault);
       break;
     default:
       break;

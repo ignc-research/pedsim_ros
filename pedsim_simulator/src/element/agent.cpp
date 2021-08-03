@@ -266,7 +266,14 @@ void Agent::reset() {
   destinationIndex = 0;
 
   // reset state
-  stateMachine->activateState(AgentStateMachine::AgentState::StateNone);
+  if (startUpMode == Agent::StartUpMode::WAITTIMER) {
+    waitTimer = ros::Time::now();
+    stateMachine->activateState(AgentStateMachine::AgentState::StateWaitForTimer);
+  } else if (startUpMode == Agent::StartUpMode::TRIGGERZONE) {
+    stateMachine->activateState(AgentStateMachine::AgentState::StateWaitForTrigger);
+  } else {
+    stateMachine->activateState(AgentStateMachine::AgentState::StateNone);
+  }
 }
 
 Waypoint* Agent::getPreviousDestination() {
