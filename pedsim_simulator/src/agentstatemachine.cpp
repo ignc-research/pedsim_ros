@@ -73,16 +73,20 @@ void AgentStateMachine::loseAttraction() {
 
 void AgentStateMachine::doStateTransition() {
   // determine new state
-  if (agent->getType() == Ped::Tagent::AgentType::VEHICLE) {
+  if (agent->getType() == Ped::Tagent::AgentType::VEHICLE)
+  {
     // ## Forklift behavior ##
 
     // → operate on waypoints/destinations
     if (state == StateNone) {
       Ped::Twaypoint* destination = agent->updateDestination();
-      if (destination == nullptr)
+      if (destination == nullptr) {
         activateState(StateWaiting);
-      else
+        return;
+      } else {
         activateState(StateDriving);
+        return;
+      }
     }
 
     if (state == StateDriving && agent->isStuck()) {
@@ -194,15 +198,20 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
 
-  } else if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT) {
+  }
+  else if (agent->getType() == Ped::Tagent::AgentType::SERVICEROBOT)
+  {
     // ## Service Robot behavior ##
 
     if (state == StateNone) {
       Ped::Twaypoint* destination = agent->updateDestination();
-      if (destination == nullptr)
+      if (destination == nullptr) {
         activateState(StateWaiting);
-      else
+        return;
+      } else {
         activateState(StateDriving);
+        return;
+      }
     }
 
     if (state == StateWaitForTimer) {
@@ -261,7 +270,9 @@ void AgentStateMachine::doStateTransition() {
       return;
     }
 
-  } else {
+  }
+  else
+  {
     // ## normal pedestrian behavior ##
 
     // → randomly get attracted by attractions
@@ -327,10 +338,13 @@ void AgentStateMachine::doStateTransition() {
     // → operate on waypoints/destinations
     if (state == StateNone) {
       Ped::Twaypoint* destination = agent->updateDestination();
-      if (destination == nullptr)
+      if (destination == nullptr) {
         activateState(StateWaiting);
-      else
+        return;
+      } else {
         activateState(StateWalking);
+        return;
+      }
     }
 
     if (state == StateWaitForTimer) {
@@ -598,7 +612,7 @@ void AgentStateMachine::doStateTransition() {
 
 
 void AgentStateMachine::activateState(AgentState stateIn) {
-  // ROS_INFO("Agent %d type %d activating state '%s' (time: %f)", agent->getId(), agent->getType(), stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
+  // if (agent->id == 1) ROS_INFO("Agent %d type %d activating state '%s' (time: %f)", agent->getId(), agent->getType(), stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
 
   // de-activate old state
   deactivateState(state);

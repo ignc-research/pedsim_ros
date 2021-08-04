@@ -263,7 +263,9 @@ void Agent::reset() {
   setPosition(initialPosX, initialPosY);
 
   // reset destination
+  previousDestinationIndex = 0;
   destinationIndex = 0;
+  nextDestinationIndex = 0;
 
   // reset state
   if (startUpMode == Agent::StartUpMode::WAITTIMER) {
@@ -281,6 +283,8 @@ Waypoint* Agent::getPreviousDestination() {
 }
 
 Ped::Twaypoint* Agent::updateDestination() {
+  // if (id == 1) ROS_WARN("updating destination, current index: %d", destinationIndex);
+  
   // assign new destination
   if (!destinations.isEmpty()) {
     previousDestinationIndex = destinationIndex;
