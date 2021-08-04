@@ -117,7 +117,7 @@ bool Simulator::initializeSimulation() {
 
   nh_.param<bool>("enable_groups", CONFIG.groups_enabled, true);
   nh_.param<double>("max_robot_speed", CONFIG.max_robot_speed, 1.5);
-  nh_.param<double>("update_rate", CONFIG.updateRate, 25.0);
+  nh_.param<double>("pedsim_update_rate", CONFIG.updateRate, 25.0);
   nh_.param<double>("simulation_factor", CONFIG.simulationFactor, 1.0);
   nh_.param<bool>("/use_wall_mode", CONFIG.use_wall_mode, true);
 
@@ -141,7 +141,6 @@ bool Simulator::initializeSimulation() {
   robot_ = a;
 
   paused_ = false;
-  last_sim_time = ros::Time::now();
   spawn_timer_ =
       nh_.createTimer(ros::Duration(spawn_period), &Simulator::spawnCallback, this);
 
@@ -149,39 +148,10 @@ bool Simulator::initializeSimulation() {
 }
 
 void Simulator::runSimulation() {
-  ros::WallRate r(100.0);
+  ros::WallRate r(CONFIG.updateRate);
   while (ros::ok()) {
-    // if (SCENE.getTime() < 0.1) {
-    //   // setup the robot
-    //   for (Agent* agent : SCENE.getAgents()) {
-    //     if (agent->getType() == Ped::Tagent::ROBOT) {
-    //       robot_ = agent;
-    //       last_robot_orientation_ =
-    //           poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
-    //     }
-    //   }
-    // }
-
-  //   if (!paused_) {
-  //     updateRobotPositionFromTF();
-  //     SCENE.moveAllAgents();
-
-  //     publishAgents();
-  //     publishGroups();
-  //     publishRobotPosition();
-  //     publishObstacles();
-  //     publishWaypoints();
-  //   }
-  //   ros::spinOnce();
-  //   r.sleep();
-  // }
-
     if (!paused_) {
       // updateRobotPositionFromTF();
-      ros::Time now = ros::Time::now();
-      ros::Duration diff = now - last_sim_time;
-      last_sim_time = now;
-      SCENE.setTimeStepSize(diff.toSec() / 5.0);  // slow down the simulation
       SCENE.moveAllAgents();
 
       for (auto agent : SCENE.getAgents()) {

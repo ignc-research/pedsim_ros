@@ -75,7 +75,6 @@ class Scene : public QObject, protected Ped::Tscene {
 #define SCENE Scene::getInstance()
  protected:
   static Scene* instance;
-  float time_step_size = 0.0;
   ros::NodeHandle nh_;
 
  public:

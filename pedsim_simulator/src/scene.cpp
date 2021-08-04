@@ -553,9 +553,6 @@ std::set<const Ped::Tagent*> Scene::getNeighbors(double x, double y,
 
   return potentialNeighbours;
 }
-void Scene::setTimeStepSize(float t){
-    time_step_size = t;
-}
 
 void Scene::moveAllAgents() {
   // inform users when there is going to be the first update
@@ -572,18 +569,12 @@ void Scene::moveAllAgents() {
   // dissolve agent clusters
   if (!agentClusters.isEmpty()) dissolveClusters();
 
-  // // update scene time
-  // sceneTime += CONFIG.getTimeStepSize();
-  // emit sceneTimeChanged(sceneTime);
-
-  // // move the agents
-  // Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
-    // update scene time
-  sceneTime += time_step_size; //CONFIG.getTimeStepSize();
+  // update scene time
+  sceneTime += CONFIG.getTimeStepSize();
   emit sceneTimeChanged(sceneTime);
 
   // move the agents
-  Ped::Tscene::moveAgents(time_step_size);
+  Ped::Tscene::moveAgents(CONFIG.getTimeStepSize());
 
   auto Dist = [](const double ax, const double ay, const double bx,
                  const double by) -> double {
