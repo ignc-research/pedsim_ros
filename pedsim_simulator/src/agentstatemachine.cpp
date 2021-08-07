@@ -636,10 +636,10 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->disableAllForces();
       break;
     case StateWaitForTrigger:
-      agent->setVmax(0.02);
+      agent->setVmax(0);
       break;
     case StateWaitForTimer:
-      agent->setVmax(0.02);
+      agent->setVmax(0);
       break;
     case StateWalking:
       if (individualPlanner == nullptr)
