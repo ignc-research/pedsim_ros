@@ -328,7 +328,14 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     std::string name = "person_" + std::to_string(ids[i]);
     Agent* a = new Agent(name);
 
-    a->setPosition(distribution_x(RNG()), distribution_y(RNG()));
+    // randomize location if we have more than one agent
+    if (ped.number_of_peds > 1) {
+      a->setPosition(distribution_x(RNG()), distribution_y(RNG()));
+    } else {
+      a->setPosition(ped.pos.x, ped.pos.y);
+    }
+
+    // record initial positions used when agent is reset
     a->initialPosX = a->getx();
     a->initialPosY = a->gety();
 
