@@ -31,6 +31,7 @@
 
 #include <QApplication>
 #include <algorithm>
+#include <ros/package.h>
 
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/scene.h>
@@ -120,13 +121,16 @@ bool Simulator::initializeSimulation()
   ScenarioReader scenario_reader;
   if (scenario_reader.readFromFile(scenefile) == false)
   {
+    ROS_INFO_STREAM(
+        "Could not load the given scene file, trying to load empty scene");
+  }
+  const QString empty_scenefile = QString::fromStdString(ros::package::getPath("task-generator") + "/scenarios/empty.xml");
+  if (scenario_reader.readFromFile(empty_scenefile) == false)
+  {
     ROS_ERROR_STREAM(
-        "Could not load the scene file, please check the paths and param "
-        "names : "
-        << scene_file_param);
+        "Could not load empty scene file, quitting");
     return false;
   }
-
   nh_.param<bool>("enable_groups", CONFIG.groups_enabled, true);
   nh_.param<double>("max_robot_speed", CONFIG.max_robot_speed, 1.5);
   nh_.param<double>("pedsim_update_rate", CONFIG.updateRate, 25.0);
