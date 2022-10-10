@@ -1,33 +1,33 @@
 /**
-* Copyright 2014-2016 Social Robotics Lab, University of Freiburg
-*
-* Redistribution and use in source and binary forms, with or without
-* modification, are permitted provided that the following conditions are met:
-*
-*    # Redistributions of source code must retain the above copyright
-*       notice, this list of conditions and the following disclaimer.
-*    # Redistributions in binary form must reproduce the above copyright
-*       notice, this list of conditions and the following disclaimer in the
-*       documentation and/or other materials provided with the distribution.
-*    # Neither the name of the University of Freiburg nor the names of its
-*       contributors may be used to endorse or promote products derived from
-*       this software without specific prior written permission.
-*
-* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
-* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-* POSSIBILITY OF SUCH DAMAGE.
-*
-* \author Billy Okal <okal@cs.uni-freiburg.de>
-* \author Sven Wehner <mail@svenwehner.de>
-*/
+ * Copyright 2014-2016 Social Robotics Lab, University of Freiburg
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *    # Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *    # Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *    # Neither the name of the University of Freiburg nor the names of its
+ *       contributors may be used to endorse or promote products derived from
+ *       this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ *
+ * \author Billy Okal <okal@cs.uni-freiburg.de>
+ * \author Sven Wehner <mail@svenwehner.de>
+ */
 
 #include <QApplication>
 #include <algorithm>
@@ -40,13 +40,15 @@
 
 using namespace pedsim;
 
-Simulator::Simulator(const ros::NodeHandle& node) : nh_(node) {
+Simulator::Simulator(const ros::NodeHandle &node) : nh_(node)
+{
   dynamic_reconfigure::Server<SimConfig>::CallbackType f;
   f = boost::bind(&Simulator::reconfigureCB, this, _1, _2);
   server_.setCallback(f);
 }
 
-Simulator::~Simulator() {
+Simulator::~Simulator()
+{
   // shutdown service servers and publishers
   pub_obstacles_.shutdown();
   pub_agent_states_.shutdown();
@@ -61,7 +63,8 @@ Simulator::~Simulator() {
   QCoreApplication::exit(0);
 }
 
-bool Simulator::initializeSimulation() {
+bool Simulator::initializeSimulation()
+{
   int queue_size = 0;
   nh_.param<int>("default_queue_size", queue_size, 1);
   ROS_INFO_STREAM("Using default queue size of "
@@ -80,7 +83,7 @@ bool Simulator::initializeSimulation() {
   pub_robot_position_ =
       nh_.advertise<nav_msgs::Odometry>("robot_position", queue_size);
   pub_waypoints_ =
-    nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
+      nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
 
   // services
   srv_pause_simulation_ = nh_.advertiseService(
@@ -90,7 +93,14 @@ bool Simulator::initializeSimulation() {
 
   // setup TF listener and other pointers
   // transform_listener_.reset(new tf::TransformListener());
-  std::string odom_topic = ros::this_node::getNamespace() + "/odometry/ground_truth";
+  std::string ns;
+  std::string ns_prefix;
+  ns = ros::this_node::getNamespace();
+  if (ns == "/")
+    ns_prefix = "";
+  else
+    ns_prefix = "/" + ns + "/";
+  std::string odom_topic = ns_prefix + "odom";
   odom_sub_ = nh_.subscribe(odom_topic, 1, &Simulator::odomCallback, this);
 
   robot_ = nullptr;
@@ -98,7 +108,8 @@ bool Simulator::initializeSimulation() {
   // load additional parameters
   std::string scene_file_param;
   nh_.param<std::string>("scene_file", scene_file_param, "");
-  if (scene_file_param == "") {
+  if (scene_file_param == "")
+  {
     ROS_ERROR_STREAM("Invalid scene file: " << scene_file_param);
     return false;
   }
@@ -107,7 +118,8 @@ bool Simulator::initializeSimulation() {
 
   const QString scenefile = QString::fromStdString(scene_file_param);
   ScenarioReader scenario_reader;
-  if (scenario_reader.readFromFile(scenefile) == false) {
+  if (scenario_reader.readFromFile(scenefile) == false)
+  {
     ROS_ERROR_STREAM(
         "Could not load the scene file, please check the paths and param "
         "names : "
@@ -127,14 +139,14 @@ bool Simulator::initializeSimulation() {
 
   double spawn_period;
   nh_.param<double>("spawn_period", spawn_period, 5.0);
-  nh_.param<std::string>("frame_id", frame_id_, ros::this_node::getNamespace() + "_odom");
+  nh_.param<std::string>("frame_id", frame_id_, ns_prefix + "odom");
   nh_.param<std::string>("robot_base_frame_id", robot_base_frame_id_,
-      ros::this_node::getNamespace() + "_base_footprint");
-  
+                         ns_prefix + "base_footprint");
+
   // spawn robot
-  Agent* a = new Agent("myrobot");
+  Agent *a = new Agent("myrobot");
   a->id = 0;
-  Ped::Tagent::staticid = 1;  // reset id so regular agents start at 1
+  Ped::Tagent::staticid = 1; // reset id so regular agents start at 1
   a->setType(Ped::Tagent::AgentType::ROBOT);
   SCENE.addAgent(a);
   SCENE.robot = a;
@@ -147,14 +159,18 @@ bool Simulator::initializeSimulation() {
   return true;
 }
 
-void Simulator::runSimulation() {
+void Simulator::runSimulation()
+{
   ros::WallRate r(CONFIG.updateRate);
-  while (ros::ok()) {
-    if (!paused_) {
+  while (ros::ok())
+  {
+    if (!paused_)
+    {
       // updateRobotPositionFromTF();
       SCENE.moveAllAgents();
 
-      for (auto agent : SCENE.getAgents()) {
+      for (auto agent : SCENE.getAgents())
+      {
         agent->recordVelocity();
       }
 
@@ -169,8 +185,9 @@ void Simulator::runSimulation() {
   }
 }
 
-void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config,
-                              uint32_t level) {
+void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig &config,
+                              uint32_t level)
+{
   CONFIG.updateRate = config.update_rate;
   CONFIG.simulationFactor = config.simulation_factor;
 
@@ -185,7 +202,8 @@ void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config,
   CONFIG.setAlongWallForce(config.force_wall);
 
   // puase or unpause the simulation
-  if (paused_ != config.paused) {
+  if (paused_ != config.paused)
+  {
     paused_ = config.paused;
   }
 
@@ -194,27 +212,32 @@ void Simulator::reconfigureCB(pedsim_simulator::PedsimSimulatorConfig& config,
                                                         << config.update_rate);
 }
 
-bool Simulator::onPauseSimulation(std_srvs::Empty::Request& request,
-                                  std_srvs::Empty::Response& response) {
+bool Simulator::onPauseSimulation(std_srvs::Empty::Request &request,
+                                  std_srvs::Empty::Response &response)
+{
   paused_ = true;
   return true;
 }
 
-bool Simulator::onUnpauseSimulation(std_srvs::Empty::Request& request,
-                                    std_srvs::Empty::Response& response) {
+bool Simulator::onUnpauseSimulation(std_srvs::Empty::Request &request,
+                                    std_srvs::Empty::Response &response)
+{
   paused_ = false;
   return true;
 }
 
-void Simulator::spawnCallback(const ros::TimerEvent& event) {
+void Simulator::spawnCallback(const ros::TimerEvent &event)
+{
   ROS_DEBUG_STREAM("Spawning new agents.");
 
-  for (const auto& sa : SCENE.getSpawnAreas()) {
-    AgentCluster* agentCluster = new AgentCluster(sa->x, sa->y, sa->n);
+  for (const auto &sa : SCENE.getSpawnAreas())
+  {
+    AgentCluster *agentCluster = new AgentCluster(sa->x, sa->y, sa->n);
     agentCluster->setDistribution(sa->dx, sa->dy);
     agentCluster->setType(static_cast<Ped::Tagent::AgentType>(0));
 
-    for (const auto& wp_name : sa->waypoints) {
+    for (const auto &wp_name : sa->waypoints)
+    {
       agentCluster->addWaypoint(SCENE.getWaypointByName(wp_name));
     }
 
@@ -222,24 +245,30 @@ void Simulator::spawnCallback(const ros::TimerEvent& event) {
   }
 }
 
-void Simulator::updateRobotPositionFromTF() {
-  if (!robot_) return;
+void Simulator::updateRobotPositionFromTF()
+{
+  if (!robot_)
+    return;
 
   if (CONFIG.robot_mode == RobotMode::TELEOPERATION ||
-      CONFIG.robot_mode == RobotMode::CONTROLLED) {
+      CONFIG.robot_mode == RobotMode::CONTROLLED)
+  {
     robot_->setTeleop(true);
     robot_->setVmax(2 * CONFIG.max_robot_speed);
 
     // Get robot position via TF
     tf::StampedTransform tfTransform;
-    try {
+    try
+    {
       transform_listener_->lookupTransform(frame_id_, robot_base_frame_id_,
                                            ros::Time(0), tfTransform);
-    } catch (tf::TransformException& e) {
+    }
+    catch (tf::TransformException &e)
+    {
       ROS_WARN_STREAM_THROTTLE(
           5.0,
           "TF lookup from " << robot_base_frame_id_ << " to " << frame_id_
-          << " failed. Reason: " << e.what());
+                            << " failed. Reason: " << e.what());
       return;
     }
 
@@ -251,8 +280,10 @@ void Simulator::updateRobotPositionFromTF() {
         tfTransform.stamp_.toSec() - last_robot_pose_.stamp_.toSec();
     double vx = dx / dt, vy = dy / dt;
 
-    if (!std::isfinite(vx)) vx = 0;
-    if (!std::isfinite(vy)) vy = 0;
+    if (!std::isfinite(vx))
+      vx = 0;
+    if (!std::isfinite(vy))
+      vy = 0;
 
     ROS_DEBUG_STREAM("rx, ry: " << robot_->getx() << ", " << robot_->gety() << " vs: " << x << ", " << y);
 
@@ -261,15 +292,16 @@ void Simulator::updateRobotPositionFromTF() {
     robot_->setvx(vx);
     robot_->setvy(vy);
 
-
     ROS_DEBUG_STREAM("Robot speed: " << std::hypot(vx, vy) << " dt: " << dt);
 
     last_robot_pose_ = tfTransform;
   }
 }
 
-void Simulator::publishRobotPosition() {
-  if (robot_ == nullptr) return;
+void Simulator::publishRobotPosition()
+{
+  if (robot_ == nullptr)
+    return;
 
   nav_msgs::Odometry robot_location;
   robot_location.header = createMsgHeader();
@@ -277,9 +309,12 @@ void Simulator::publishRobotPosition() {
 
   robot_location.pose.pose.position.x = robot_->getx();
   robot_location.pose.pose.position.y = robot_->gety();
-  if (hypot(robot_->getvx(), robot_->getvy()) < 0.05) {
+  if (hypot(robot_->getvx(), robot_->getvy()) < 0.05)
+  {
     robot_location.pose.pose.orientation = last_robot_orientation_;
-  } else {
+  }
+  else
+  {
     robot_location.pose.pose.orientation =
         poseFrom2DVelocity(robot_->getvx(), robot_->getvy());
     last_robot_orientation_ = robot_location.pose.pose.orientation;
@@ -291,15 +326,18 @@ void Simulator::publishRobotPosition() {
   pub_robot_position_.publish(robot_location);
 }
 
-void Simulator::publishAgents() {
-  if (SCENE.getAgents().size() < 1) {
+void Simulator::publishAgents()
+{
+  if (SCENE.getAgents().size() < 1)
+  {
     return;
   }
 
   pedsim_msgs::AgentStates all_status;
   all_status.header = createMsgHeader();
 
-  auto VecToMsg = [](const Ped::Tvector& v) {
+  auto VecToMsg = [](const Ped::Tvector &v)
+  {
     geometry_msgs::Vector3 gv;
     gv.x = v.x;
     gv.y = v.y;
@@ -307,9 +345,11 @@ void Simulator::publishAgents() {
     return gv;
   };
 
-  for (const Agent* a : SCENE.getAgents()) {
+  for (const Agent *a : SCENE.getAgents())
+  {
     // Skip robot.
-    if (a->getType() == Ped::Tagent::ROBOT) {
+    if (a->getType() == Ped::Tagent::ROBOT)
+    {
       continue;
     }
 
@@ -331,7 +371,6 @@ void Simulator::publishAgents() {
     AgentStateMachine::AgentState sc = a->getStateMachine()->getCurrentState();
     state.social_state = agentStateToActivity(sc);
 
-
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
     agent_forces.desired_force = VecToMsg(a->getDesiredDirection() * a->forceFactorDesired);
@@ -350,9 +389,12 @@ void Simulator::publishAgents() {
     state.listening_to_id = a->listeningToId;
 
     state.acceleration = VecToMsg(a->getAcceleration());
-    if (a->currentDestination == nullptr) {
+    if (a->currentDestination == nullptr)
+    {
       state.destination = VecToMsg(a->getPosition());
-    } else {
+    }
+    else
+    {
       state.destination = VecToMsg(a->getCurrentDestination()->getPosition());
     }
     state.direction = a->facingDirection;
@@ -360,27 +402,31 @@ void Simulator::publishAgents() {
     all_status.agent_states.push_back(state);
     // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }
-  
 
   pub_agent_states_.publish(all_status);
 }
 
-void Simulator::publishGroups() {
-  if (!CONFIG.groups_enabled) {
+void Simulator::publishGroups()
+{
+  if (!CONFIG.groups_enabled)
+  {
     ROS_DEBUG_STREAM("Groups are disabled, no group data published: flag="
                      << CONFIG.groups_enabled);
     return;
   }
 
-  if (SCENE.getGroups().size() < 1) {
+  if (SCENE.getGroups().size() < 1)
+  {
     return;
   }
 
   pedsim_msgs::AgentGroups sim_groups;
   sim_groups.header = createMsgHeader();
 
-  for (const auto& ped_group : SCENE.getGroups()) {
-    if (ped_group->memberCount() <= 1) continue;
+  for (const auto &ped_group : SCENE.getGroups())
+  {
+    if (ped_group->memberCount() <= 1)
+      continue;
 
     pedsim_msgs::AgentGroup group;
     group.group_id = ped_group->getId();
@@ -389,7 +435,8 @@ void Simulator::publishGroups() {
     group.center_of_mass.position.x = com.x;
     group.center_of_mass.position.y = com.y;
 
-    for (const auto& member : ped_group->getMembers()) {
+    for (const auto &member : ped_group->getMembers())
+    {
       group.members.emplace_back(member->getId());
     }
     sim_groups.groups.emplace_back(group);
@@ -397,10 +444,12 @@ void Simulator::publishGroups() {
   pub_agent_groups_.publish(sim_groups);
 }
 
-void Simulator::publishObstacles() {
+void Simulator::publishObstacles()
+{
   pedsim_msgs::LineObstacles sim_obstacles;
   sim_obstacles.header = createMsgHeader();
-  for (const auto& obstacle : SCENE.getObstacles()) {
+  for (const auto &obstacle : SCENE.getObstacles())
+  {
     pedsim_msgs::LineObstacle line_obstacle;
     line_obstacle.start.x = obstacle->getax();
     line_obstacle.start.y = obstacle->getay();
@@ -413,10 +462,12 @@ void Simulator::publishObstacles() {
   pub_obstacles_.publish(sim_obstacles);
 }
 
-void Simulator::publishWaypoints() {
+void Simulator::publishWaypoints()
+{
   pedsim_msgs::Waypoints sim_waypoints;
   sim_waypoints.header = createMsgHeader();
-  for (const auto& waypoint : SCENE.getWaypoints()) {
+  for (const auto &waypoint : SCENE.getWaypoints())
+  {
     pedsim_msgs::Waypoint wp;
     wp.name = waypoint->getName().toStdString();
     wp.type = waypoint->getType();
@@ -431,19 +482,22 @@ void Simulator::publishWaypoints() {
 }
 
 std::string Simulator::agentStateToActivity(
-    const AgentStateMachine::AgentState& state) const {
+    const AgentStateMachine::AgentState &state) const
+{
   std::string activity = AgentStateMachine::stateToName(state).toStdString();
   return activity;
 }
 
-std_msgs::Header Simulator::createMsgHeader() const {
+std_msgs::Header Simulator::createMsgHeader() const
+{
   std_msgs::Header msg_header;
   msg_header.stamp = ros::Time::now();
   msg_header.frame_id = frame_id_;
   return msg_header;
 }
 
-void Simulator::odomCallback(const nav_msgs::OdometryConstPtr &odom) {
+void Simulator::odomCallback(const nav_msgs::OdometryConstPtr &odom)
+{
   robot_->setX(odom->pose.pose.position.x);
   robot_->setY(odom->pose.pose.position.y);
   robot_->setvx(odom->twist.twist.linear.x);
