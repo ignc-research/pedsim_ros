@@ -47,7 +47,7 @@ public:
   ros::ServiceServer spawn_interactive_obstacles_service_;
   ros::ServiceServer remove_all_interactive_obstacles_service_;
 
-  bool env_is_flatland;
+  bool env_is_flatland = true;
   static int agents_index_;
   static int static_obstacles_index_;
   static std::vector<std::string> static_obstacle_names_;

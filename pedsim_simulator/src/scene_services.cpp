@@ -40,7 +40,10 @@ SceneServices::SceneServices()
   remove_all_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_interactive_obstacles", &SceneServices::removeAllInteractiveObstacles, this);
 
   // Check if flatland is the chosen simulation environment
-  nh_.param<bool>("/pedsim_simulator/env_is_flatland", env_is_flatland, true);
+  std::string environment;
+  nh_.param<std::string>("/environment", environment, "flatland");
+  if (environment == "gazebo")
+    env_is_flatland = false;
   if (env_is_flatland)
   {
     // flatland service clients
