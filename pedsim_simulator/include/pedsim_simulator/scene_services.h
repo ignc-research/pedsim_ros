@@ -1,6 +1,6 @@
 /*
  * @name	 	scene_services.cpp
- * @brief	 	Provides services to spawn and remove pedestrians dynamically. 
+ * @brief	 	Provides services to spawn and remove pedestrians dynamically.
  *          The spawned agents are forwarded to flatland
  * @author 	Ronja Gueldenring
  * @date 		2019/04/05
@@ -28,9 +28,10 @@
 /**
  * This class provides services to spawn and remove pedestrians dynamically.
  */
-class SceneServices {
+class SceneServices
+{
   // Constructor and Destructor
- public:
+public:
   SceneServices();
   virtual ~SceneServices() = default;
 
@@ -46,60 +47,61 @@ class SceneServices {
   ros::ServiceServer spawn_interactive_obstacles_service_;
   ros::ServiceServer remove_all_interactive_obstacles_service_;
 
+  bool env_is_flatland = true;
   static int agents_index_;
   static int static_obstacles_index_;
   static std::vector<std::string> static_obstacle_names_;
 
   /**
-  * @brief Spawns pedestrian in pedsim and flatland.
-  */
+   * @brief Spawns pedestrian in pedsim and flatland.
+   */
   bool spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response);
 
   /**
-  * @brief Removes all pedestrians in flatland.
-  */
+   * @brief Removes all pedestrians in flatland.
+   */
   bool removeAllPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
-  * @brief Resets all pedestrians to their initial position and state
-  */
+   * @brief Resets all pedestrians to their initial position and state
+   */
   bool resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
-  * @brief Repawn interactive obstacles
-  */
+   * @brief Repawn interactive obstacles
+   */
   bool respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
 
   /**
-  * @brief Spawn interactive obstacles
-  */
+   * @brief Spawn interactive obstacles
+   */
   bool spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
 
   /**
-  * @brief Remove all interactive obstacles
-  */
+   * @brief Remove all interactive obstacles
+   */
   bool removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
-  * @brief Respawning means reusing objects from previous tasks.
-  * It is a more efficient way to setup a task during learning.
-  */
+   * @brief Respawning means reusing objects from previous tasks.
+   * It is a more efficient way to setup a task during learning.
+   */
   bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
-                                pedsim_srvs::SpawnPeds::Response &response);
+                   pedsim_srvs::SpawnPeds::Response &response);
 
   bool moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
-                                pedsim_srvs::MovePeds::Response &response);
+                                 pedsim_srvs::MovePeds::Response &response);
 
   /**
-  * @brief Adding static obstacles to pedsim.
-  */
+   * @brief Adding static obstacles to pedsim.
+   */
   bool addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
                           pedsim_srvs::SpawnObstacle::Response &response);
 
- protected:
+protected:
   ros::NodeHandle nh_;
 
- private:
+private:
   std::vector<std::string> removePedsInPedsim();
   void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
   std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids);
@@ -110,9 +112,8 @@ class SceneServices {
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
-  std::vector<Obstacle*> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
+  std::vector<Obstacle *> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
   int stringToEnumIndex(std::string str, std::vector<std::string> values);
-
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
@@ -123,7 +124,7 @@ class SceneServices {
   std::string delete_models_topic_;
   ros::ServiceClient delete_models_client_;
 
-  std::vector<Obstacle*> walls;
+  std::vector<Obstacle *> walls;
 };
 
 #endif /* _scene_service_h_ */
