@@ -41,7 +41,7 @@ SceneServices::SceneServices()
 
   // Check if flatland is the chosen simulation environment
   std::string environment;
-  nh_.param<std::string>("/environment", environment, "flatland");
+  nh_.param<std::string>("/simulator", environment, "flatland");
   if (environment == "gazebo")
     env_is_flatland = false;
   if (env_is_flatland)
@@ -493,9 +493,13 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     a->forceFactorSocial = ped.force_factor_social;
     a->forceFactorRobot = ped.force_factor_robot;
 
+    std::cout<<"SIZE " << ped.waypoints.size()<<std::endl;
+
     // add waypoints to agentcluster and scene
     for (int i = 0; i < (int)ped.waypoints.size(); i++)
     {
+        std::cout<<"ADDING WAYPOINT"<<std::endl;
+
       const double x = ped.waypoints[i].x;
       const double y = ped.waypoints[i].y;
       AreaWaypoint *w = new AreaWaypoint(QString(std::to_string(Ped::Twaypoint::staticid).c_str()), x, y, 0.3);

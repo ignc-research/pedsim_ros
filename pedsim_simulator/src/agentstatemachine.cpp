@@ -333,12 +333,15 @@ void AgentStateMachine::doStateTransition() {
     //     return;
     //   }
     // }
+        // std::cout<<"Running2"<<std::endl;
 
 
     // → operate on waypoints/destinations
     if (state == StateNone) {
       Ped::Twaypoint* destination = agent->updateDestination();
       if (destination == nullptr) {
+        // std::cout<<"Running"<<std::endl;
+
         activateState(StateWaiting);
         return;
       } else {
