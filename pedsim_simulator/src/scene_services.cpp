@@ -158,8 +158,8 @@ bool SceneServices::respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObs
   // remove old
   std_srvs::Trigger::Request trigger_request;
   std_srvs::Trigger::Response trigger_response;
-  removeAllInteractiveObstacles(trigger_request, trigger_response);
 
+  removeAllInteractiveObstacles(trigger_request, trigger_response);
   // spawn new
   bool res = spawnInteractiveObstacles(request, response);
 
@@ -250,10 +250,13 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     model.yaml_path = obstacle.yaml_path;
     new_models.push_back(model);
   }
+  if (env_is_flatland)
+  {
+    auto res = spawnModelsInFlatland(new_models);
 
-  auto res = spawnModelsInFlatland(new_models);
-
-  return res;
+    return res;
+  }
+  return true;
 }
 
 void SceneServices::removeAllReferencesToInteractiveObstacles()
@@ -346,7 +349,10 @@ void SceneServices::removeAllInteractiveObstaclesFromFlatland()
 bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
   removeAllInteractiveObstaclesFromPedsim();
-  removeAllInteractiveObstaclesFromFlatland();
+  if (env_is_flatland)
+  {
+    removeAllInteractiveObstaclesFromFlatland();
+  }
   static_obstacles_index_ = 1;
   static_obstacle_names_.clear();
   response.success = true;
@@ -493,12 +499,12 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     a->forceFactorSocial = ped.force_factor_social;
     a->forceFactorRobot = ped.force_factor_robot;
 
-    std::cout<<"SIZE " << ped.waypoints.size()<<std::endl;
+    std::cout << "SIZE " << ped.waypoints.size() << std::endl;
 
     // add waypoints to agentcluster and scene
     for (int i = 0; i < (int)ped.waypoints.size(); i++)
     {
-        std::cout<<"ADDING WAYPOINT"<<std::endl;
+      std::cout << "ADDING WAYPOINT" << std::endl;
 
       const double x = ped.waypoints[i].x;
       const double y = ped.waypoints[i].y;
