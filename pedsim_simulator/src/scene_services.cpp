@@ -176,7 +176,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     // get random angle
     uniform_real_distribution<double> Distribution(0.0, 2 * M_PI);
     double yaw = Distribution(RNG());
-    std::cout << "yaw value: " << yaw << std::endl;
+    // std::cout << "yaw value: " << yaw << std::endl;
 
     // get name
     std::string name = "";
@@ -235,7 +235,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
 
     // ROS_WARN("calling getWallsFromFlatlandModel()");
     // ROS_WARN(yaw);
-    std::cout << "yaw when calling getWallFromFlatlandModel: " << yaw << std::endl;
+    // std::cout << "yaw when calling getWallFromFlatlandModel: " << yaw << std::endl;
     std::vector<Obstacle *> new_walls = getWallsFromFlatlandModel(obstacle, yaw);
     // append to current list of walls
     walls.insert(walls.end(), new_walls.begin(), new_walls.end());
