@@ -182,7 +182,14 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     std::string name = "";
     if (obstacle.name == "")
     {
-      name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")";
+      if (env_is_flatland)
+      {
+        name = "interactive_waypoint_" + std::to_string(static_obstacles_index_);
+      }
+      else
+      {
+        name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")";
+      }
     }
     else
     {
