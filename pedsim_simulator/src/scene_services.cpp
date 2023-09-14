@@ -173,11 +173,16 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
 
   for (auto obstacle : request.obstacles)
   {
+    // get random angle
+    uniform_real_distribution<double> Distribution(0.0, 2 * M_PI);
+    double yaw = Distribution(RNG());
+    std::cout << "yaw value: " << yaw << std::endl;
+
     // get name
     std::string name = "";
     if (obstacle.name == "")
     {
-      name = "interactive_waypoint_" + std::to_string(static_obstacles_index_);
+      name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")";
     }
     else
     {
@@ -185,10 +190,6 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     }
     static_obstacles_index_++;
     static_obstacle_names_.push_back(name);
-
-    // get random angle
-    uniform_real_distribution<double> Distribution(0.0, 2 * M_PI);
-    double yaw = Distribution(RNG());
 
     // add to pedsim
     auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
@@ -231,6 +232,10 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     SCENE.circleObstacles.push_back(circle_obstacle);
 
     // create wall obstacles along model footprint for applying obstacle force to agents
+
+    // ROS_WARN("calling getWallsFromFlatlandModel()");
+    // ROS_WARN(yaw);
+    std::cout << "yaw when calling getWallFromFlatlandModel: " << yaw << std::endl;
     std::vector<Obstacle *> new_walls = getWallsFromFlatlandModel(obstacle, yaw);
     // append to current list of walls
     walls.insert(walls.end(), new_walls.begin(), new_walls.end());
