@@ -116,6 +116,12 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
     response.success = res;
     return res;
   }
+  // if (!request.data)
+  // {
+  //   ROS_INFO("Deleting all interactive obstacles in removeAllPeds");
+  //   removeAllInteractiveObstaclesFromPedsim();
+  // }
+
   return true;
 }
 
@@ -176,19 +182,37 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     // get random angle
     uniform_real_distribution<double> Distribution(0.0, 2 * M_PI);
     double yaw = Distribution(RNG());
+    // double yaw = 0.0;
+
     // std::cout << "yaw value: " << yaw << std::endl;
 
     // get name
+
+    auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
     std::string name = "";
     if (obstacle.name == "")
     {
-      if (env_is_flatland)
+      if (obstacle.interaction_radius == 0)
       {
-        name = "interactive_waypoint_" + std::to_string(static_obstacles_index_);
+        if (env_is_flatland)
+        {
+          name = "static_obstacle_" + std::to_string(static_obstacles_index_);
+        }
+        else
+        {
+          name = "static_obstacle_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]";
+        }
       }
       else
       {
-        name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")";
+        if (env_is_flatland)
+        {
+          name = "interactive_waypoint_" + std::to_string(static_obstacles_index_);
+        }
+        else
+        {
+          name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]";
+        }
       }
     }
     else
@@ -199,7 +223,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     static_obstacle_names_.push_back(name);
 
     // add to pedsim
-    auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
+    // auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
     auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
     auto waypoint = new AreaWaypoint(QString(name.c_str()), waypoint_pos, 0.3);
     waypoint->interactionRadius = obstacle.interaction_radius;
@@ -230,7 +254,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
       radius = SCENE.obstacle_radius[radius_index];
     }
     waypoint->modelRadius = radius;
-
+    // SCENE.removeWaypoint(name);
     SCENE.addWaypoint(waypoint);
 
     // create circular obstacles for applying obstacle force to agents
@@ -360,6 +384,7 @@ void SceneServices::removeAllInteractiveObstaclesFromFlatland()
 
 bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
+  ROS_WARN("Removing all iteractive obstacles");
   removeAllInteractiveObstaclesFromPedsim();
   if (env_is_flatland)
   {
@@ -560,6 +585,7 @@ bool SceneServices::addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &requ
   {
     pedsim_msgs::LineObstacle obstacle = request.staticObstacles.obstacles[i];
     Obstacle *o = new Obstacle(obstacle.start.x, obstacle.start.y, obstacle.end.x, obstacle.end.y);
+    // This is causing random walls getting spawned
     SCENE.addObstacle(o);
   }
 
@@ -705,16 +731,16 @@ std::vector<Obstacle *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::In
     }
 
     // connect last and first point
-    auto first = Ped::Tvector(points[0][0].as<float>(), points[0][1].as<float>());
-    first.rotate(Ped::Tangle::fromRadian(yaw));
-    auto last = Ped::Tvector(points[points.size() - 1][0].as<float>(), points[points.size() - 1][1].as<float>());
-    last.rotate(Ped::Tangle::fromRadian(yaw));
-    Obstacle *closing_wall = new Obstacle(
-        pos.x + first.x,
-        pos.y + first.y,
-        pos.x + last.x,
-        pos.y + last.y);
-    new_walls.push_back(closing_wall);
+    // auto first = Ped::Tvector(points[0][0].as<float>(), points[0][1].as<float>());
+    // first.rotate(Ped::Tangle::fromRadian(yaw));
+    // auto last = Ped::Tvector(points[points.size() - 1][0].as<float>(), points[points.size() - 1][1].as<float>());
+    // last.rotate(Ped::Tangle::fromRadian(yaw));
+    // Obstacle *closing_wall = new Obstacle(
+    //     pos.x + first.x,
+    //     pos.y + first.y,
+    //     pos.x + last.x,
+    //     pos.y + last.y);
+    // new_walls.push_back(closing_wall);
   }
   else if (type.as<std::string>() == "circle")
   {
