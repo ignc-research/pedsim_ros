@@ -200,7 +200,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
         }
         else
         {
-          name = "static_obstacle_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]";
+          name = "static_obstacle_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]" + "&" + obstacle.type + "!";
         }
       }
       else
@@ -211,7 +211,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
         }
         else
         {
-          name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]";
+          name = "interactive_waypoint_" + std::to_string(static_obstacles_index_) + "(" + std::to_string(yaw) + ")" + "{" + std::to_string(direction.x) + "}" + "[" + std::to_string(direction.y) + "]" + "&" + obstacle.type + "!";
         }
       }
     }
@@ -223,8 +223,8 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     static_obstacle_names_.push_back(name);
 
     // add to pedsim
-    // auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
     auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
+    // auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y);
     auto waypoint = new AreaWaypoint(QString(name.c_str()), waypoint_pos, 0.3);
     waypoint->interactionRadius = obstacle.interaction_radius;
     if (obstacle.interaction_radius < 0.1)
@@ -384,7 +384,7 @@ void SceneServices::removeAllInteractiveObstaclesFromFlatland()
 
 bool SceneServices::removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
-  ROS_WARN("Removing all iteractive obstacles");
+  ROS_WARN("Removing all interactive obstacles");
   removeAllInteractiveObstaclesFromPedsim();
   if (env_is_flatland)
   {
@@ -541,7 +541,7 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
     // add waypoints to agentcluster and scene
     for (int i = 0; i < (int)ped.waypoints.size(); i++)
     {
-      std::cout << "ADDING WAYPOINT" << std::endl;
+      // std::cout << "ADDING WAYPOINT" << std::endl;
 
       const double x = ped.waypoints[i].x;
       const double y = ped.waypoints[i].y;
@@ -552,6 +552,7 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
       SCENE.addWaypoint(w);
       a->addWaypoint(w);
     }
+    std::cout << "ADDED WAYPOINTS" << std::endl;
 
     // add agent to scene
     SCENE.addAgent(a);

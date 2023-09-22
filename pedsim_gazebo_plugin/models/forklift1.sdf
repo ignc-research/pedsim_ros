@@ -1,0 +1,226 @@
+<?xml version='1.0'?>
+<sdf version='1.4'>
+  <model name="forklift">
+    <link name="base_link">
+      <pose>-1.0795 -0.5334 0 0 0 0</pose>
+      <visual name="base_link_visual">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/base_link.dae</uri> 
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="base_link_collision">
+        <pose>0 0 1.3716 0 0 0</pose>
+        <geometry>
+          <box>
+            <size>2.159 1.0668 2.7432</size>
+          </box>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass>500</mass>
+        <inertia> 
+          <ixx>206</ixx> 
+          <ixy>0</ixy> 
+          <ixz>-23</ixz>
+          <iyy>389</iyy> 
+          <iyz>0</iyz> 
+          <izz>316</izz>
+        </inertia>
+      </inertial>
+    </link>
+  
+    <link name="fork">
+      <pose>1.0795 -0.368600 1 0 0 0</pose>
+      <visual name="fork_visual">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/fork.dae</uri> 
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="fork_collision">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/fork.dae</uri> 
+          </mesh>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass>100</mass>
+        <inertia> 
+          <ixx>0.2</ixx> 
+          <ixy>0</ixy> 
+          <ixz>0</ixz>
+          <iyy>0.3</iyy> 
+          <iyz>0</iyz> 
+          <izz>0.4</izz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <link name="wheel_back_left">
+      <pose>-0.9897 -0.5334 0 0 0 0</pose>
+      <visual name="wheel_back_left">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="wheel_back_left_collision">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass>5</mass>
+        <inertia> 
+          <ixx>0.001</ixx> 
+          <ixy>0</ixy> 
+          <ixz>0</ixz>
+          <iyy>0.0015</iyy> 
+          <iyz>0</iyz> 
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <link name="wheel_back_right">
+      <pose>-0.9897 0.3302 0 0 0 0</pose>
+      <visual name="wheel_back_right">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="wheel_back_right_collision">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass>5</mass>
+        <inertia> 
+          <ixx>0.001</ixx> 
+          <ixy>0</ixy> 
+          <ixz>0</ixz>
+          <iyy>0.0015</iyy> 
+          <iyz>0</iyz> 
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <link name="wheel_front_left">
+      <pose>0.469 -0.5334 0 0 0 0</pose>
+      <visual name="wheel_front_left">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="wheel_front_left_collision">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <inertial>
+          <mass>5</mass>
+          <inertia> 
+            <ixx>0.001</ixx> 
+            <ixy>0</ixy> 
+            <ixz>0</ixz>
+            <iyy>0.0015</iyy> 
+            <iyz>0</iyz> 
+            <izz>0.001</izz>
+          </inertia>
+        </inertial>
+    </link>
+
+    <link name="wheel_front_right">
+      <pose>0.469 0.3302 0 0 0</pose>
+      <visual name="wheel_front_right">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      <collision name="wheel_front_right_collision">
+        <geometry>
+          <mesh>
+            <uri>model://forklift/meshes/wheel.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass>5</mass>
+        <inertia> 
+          <ixx>0.001</ixx> 
+          <ixy>0</ixy> 
+          <ixz>0</ixz>
+          <iyy>0.0015</iyy> 
+          <iyz>0</iyz> 
+          <izz>0.001</izz>
+        </inertia>
+      </inertial>
+    </link>
+
+    <joint name="base_to_fork" type="prismatic">
+      <parent>base_link</parent>
+      <child>fork</child>
+      <limit> 
+        <lower>0</lower> 
+        <upper>2</upper> 
+        <velocity>0.1</velocity>
+      </limit> 
+      <axis> 
+        <initial_position>0.2</initial_position>
+        <xyz>0 0 1</xyz>
+      </axis>
+    </joint>
+
+
+    <joint name="back_left_wheel_hinge" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_back_left</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="back_right_wheel_hinge" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_back_right</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="left_wheel_hinge" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_front_left</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+
+    <joint name="right_wheel_hinge" type="revolute">
+      <parent>base_link</parent>
+      <child>wheel_front_right</child>
+      <axis>
+        <xyz>0 1 0</xyz>
+      </axis>
+    </joint>
+  </model>
+</sdf>
