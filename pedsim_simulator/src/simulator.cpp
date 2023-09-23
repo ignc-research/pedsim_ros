@@ -150,7 +150,22 @@ bool Simulator::initializeSimulation()
   // spawn robot
   Agent *a = new Agent("myrobot");
   a->id = 0;
-  Ped::Tagent::staticid = 1; // reset id so regular agents start at 1
+
+  bool env_is_flatland = true;
+  std::string environment;
+  nh_.param<std::string>("/simulator", environment, "flatland");
+  if (environment == "gazebo")
+    env_is_flatland = false;
+  if (env_is_flatland)
+  {
+    Ped::Tagent::staticid = 1; // reset id so regular agents start at 1
+  }
+  else
+  {
+    Ped::Tagent::staticid = 20; // reset id so regular agents start at 20
+  }
+  // ROS_INFO("staticid in simulator.cpp: %d", Ped::Tagent::staticid);
+
   a->setType(Ped::Tagent::AgentType::ROBOT);
   SCENE.addAgent(a);
   SCENE.robot = a;

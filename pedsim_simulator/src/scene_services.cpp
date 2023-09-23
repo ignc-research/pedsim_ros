@@ -22,7 +22,7 @@
 #include <pedsim_simulator/rng.h>
 #include <ros/package.h>
 
-int SceneServices::agents_index_ = 1;
+int SceneServices::agents_index_ = 20;
 int SceneServices::static_obstacles_index_ = 1;
 std::vector<std::string> SceneServices::static_obstacle_names_;
 
@@ -153,7 +153,15 @@ std::vector<std::string> SceneServices::removePedsInPedsim()
   }
 
   // reset agent counters
-  Ped::Tagent::staticid = 1;
+  if (env_is_flatland)
+  {
+    Ped::Tagent::staticid = 1;
+  }
+  else
+  {
+    Ped::Tagent::staticid = 20;
+  }
+  // ROS_INFO("staticid in scene_services.cpp: %d", Ped::Tagent::staticid);
   agents_index_ = 1;
 
   return names;
@@ -290,7 +298,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
   {
     auto res = spawnModelsInFlatland(new_models);
 
-    return res;
+    return true;
   }
   return true;
 }
@@ -607,6 +615,7 @@ bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &re
 
 std::vector<int> SceneServices::generateAgentIds(int n)
 {
+
   std::vector<int> ids;
   for (int i = 0; i < n; i++)
   {
