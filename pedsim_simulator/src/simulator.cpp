@@ -123,13 +123,13 @@ bool Simulator::initializeSimulation()
   {
     ROS_INFO_STREAM(
         "Could not load the given scene file, trying to load empty scene");
-  }
-  const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena-simulation-setup") + "/pedsim/empty.xml");
-  if (scenario_reader.readFromFile(empty_scenefile) == false)
-  {
-    ROS_ERROR_STREAM(
-        "Could not load empty scene file, quitting");
-    return false;
+    const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena-simulation-setup") + "/pedsim/empty.xml");
+    if (scenario_reader.readFromFile(empty_scenefile) == false)
+    {
+      ROS_ERROR_STREAM(
+          "Could not load empty scene file, quitting");
+      return false;
+    }
   }
   nh_.param<bool>("enable_groups", CONFIG.groups_enabled, true);
   nh_.param<double>("max_robot_speed", CONFIG.max_robot_speed, 1.5);
