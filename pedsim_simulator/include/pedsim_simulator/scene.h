@@ -52,6 +52,7 @@ class AttractionArea;
 class AgentCluster;
 class AgentGroup;
 class WaitingQueue;
+class Robot;
 
 struct SpawnArea {
   double x, y;
@@ -115,6 +116,7 @@ class Scene : public QObject, protected Ped::Tscene {
   QRectF itemsBoundingRect() const;
 
   // → elements
+  const QList<Robot*>& getRobots() const;
   const QList<Agent*>& getAgents() const;
   Agent* getAgent(int id) const;
   Agent* getAgentById(int idIn) const;
@@ -147,6 +149,7 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual void addAgentCluster(AgentCluster* clusterIn);
   virtual void addWaitingQueue(WaitingQueue* queueIn);
   virtual void addAttraction(AttractionArea* attractionIn);
+  virtual void addRobot(Robot* agent);
   virtual bool removeAgent(Agent* agent);
   virtual bool removeObstacle(Obstacle* obstacle);
   bool removeWaypoint(QString name);
@@ -189,6 +192,7 @@ class Scene : public QObject, protected Ped::Tscene {
   // Attributes
  protected:
   QList<Agent*> agents;
+  QList<Robot*> robots;
   QList<Obstacle*> obstacles;
   QMap<QString, Waypoint*> waypoints;
   QMap<QString, AttractionArea*> attractions;

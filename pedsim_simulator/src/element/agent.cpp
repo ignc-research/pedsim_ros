@@ -32,6 +32,7 @@
 #include <pedsim_simulator/agentstatemachine.h>
 #include <pedsim_simulator/config.h>
 #include <pedsim_simulator/element/agent.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/waypoint.h>
 #include <pedsim_simulator/force/force.h>
 #include <pedsim_simulator/scene.h>
@@ -207,15 +208,17 @@ Ped::Tvector Agent::robotForce() {
   Ped::Tvector force;
 
   if (!disabledForces.contains("Robot")) {
-    if (SCENE.robot != nullptr) {
-      auto diff = p - SCENE.robot->getPosition();
+
+    for (auto robot : SCENE.getRobots()) {
+      auto robotState = robot->getState();
+      auto diff = p - Ped::Tvector(robotState.pose.position.x, robotState.pose.position.y, robotState.pose.position.z);
       auto dist = diff.length();
       if (dist < 4.0) {
         double amount = 10.0;
         if (dist > 0.0) {
           amount = 1.0 / dist;
         }
-        force = amount * diff.normalized();
+        force += amount * diff.normalized();
       }
     }
   }

@@ -68,6 +68,7 @@ set(SOURCES
 	src/element/waypoint.cpp
 	src/element/obstacle.cpp
 	src/element/scenarioelement.cpp
+	src/element/robot.cpp
 
 	# forces
 	src/force/alongwallforce.cpp
@@ -93,6 +94,7 @@ set(MOC_FILES
 	include/pedsim_simulator/agent_pose_stamped.h
 
 	include/pedsim_simulator/element/scenarioelement.h
+	include/pedsim_simulator/element/robot.h
 	include/pedsim_simulator/element/agent.h
 	include/pedsim_simulator/element/agentcluster.h
 	include/pedsim_simulator/element/agentgroup.h

@@ -8,6 +8,7 @@
  * @date 24.3.2021
  **/
 
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/element/areawaypoint.h>
@@ -38,6 +39,8 @@ SceneServices::SceneServices()
   respawn_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/respawn_interactive_obstacles", &SceneServices::respawnInteractiveObstacles, this);
   spawn_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/spawn_interactive_obstacles", &SceneServices::spawnInteractiveObstacles, this);
   remove_all_interactive_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_interactive_obstacles", &SceneServices::removeAllInteractiveObstacles, this);
+  register_robot_service_ = nh_.advertiseService("pedsim_simulator/register_robot", &SceneServices::registerRobot, this);
+  
 
   // Check if flatland is the chosen simulation environment
   std::string environment;
@@ -757,4 +760,18 @@ std::vector<Obstacle *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::In
     // TODO handle circles
   }
   return new_walls;
+}
+
+bool SceneServices::registerRobot(pedsim_srvs::RegisterRobot::Request &request, pedsim_srvs::RegisterRobot::Response &response){
+  
+  Robot* robot = new Robot(
+    request.name,
+    request.odom_topic,
+    this->nh_
+  );
+
+  SCENE.addRobot(robot);
+
+  response.finished = true;
+  return true;
 }

@@ -33,6 +33,7 @@
 #include <pedsim_simulator/scene.h>
 
 #include <pedsim/ped_tree.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/element/areawaypoint.h>
@@ -693,4 +694,12 @@ bool Scene::isOccupied(Ped::Tvector pos) {
   }
 
   return true;
+}
+
+
+
+const QList<Robot*>& Scene::getRobots() const { return robots; }
+void Scene::addRobot(Robot* robot) {
+  // keep track of the agent
+  robots.append(robot);
 }

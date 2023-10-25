@@ -16,6 +16,7 @@
 #include <pedsim_srvs/SpawnObstacle.h>
 #include <pedsim_srvs/SpawnInteractiveObstacles.h>
 #include <pedsim_srvs/MovePeds.h>
+#include <pedsim_srvs/RegisterRobot.h>
 #include <flatland_msgs/Model.h>
 #include <pedsim_msgs/Ped.h>
 #include <pedsim_msgs/LineObstacle.h>
@@ -24,6 +25,7 @@
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <yaml-cpp/yaml.h>
+
 
 /**
  * This class provides services to spawn and remove pedestrians dynamically.
@@ -46,6 +48,7 @@ public:
   ros::ServiceServer respawn_interactive_obstacles_service_;
   ros::ServiceServer spawn_interactive_obstacles_service_;
   ros::ServiceServer remove_all_interactive_obstacles_service_;
+  ros::ServiceServer register_robot_service_;
 
   bool env_is_flatland = true;
   static int agents_index_;
@@ -97,6 +100,9 @@ public:
    */
   bool addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
                           pedsim_srvs::SpawnObstacle::Response &response);
+
+  bool registerRobot(pedsim_srvs::RegisterRobot::Request &request,
+                          pedsim_srvs::RegisterRobot::Response &response);
 
 protected:
   ros::NodeHandle nh_;

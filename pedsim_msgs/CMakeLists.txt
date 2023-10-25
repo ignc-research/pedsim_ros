@@ -35,6 +35,8 @@ add_message_files( DIRECTORY msg
   Waypoints.msg
   Ped.msg
   InteractiveObstacle.msg
+  RobotState.msg
+  WaypointPluginDataframe.msg
 )
 
 # generate the messages

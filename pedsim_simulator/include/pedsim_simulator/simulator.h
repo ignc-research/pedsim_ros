@@ -47,6 +47,7 @@
 #include <pedsim_msgs/LineObstacles.h>
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
+#include <pedsim_msgs/WaypointPluginDataframe.h>
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -58,6 +59,7 @@
 
 #include <pedsim_simulator/agentstatemachine.h>
 #include <pedsim_simulator/config.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentgroup.h>
 #include <pedsim_simulator/element/attractionarea.h>
@@ -97,11 +99,25 @@ class Simulator {
   
  private:
   void updateRobotPositionFromTF();
-  void publishAgents();
+
+  pedsim_msgs::AgentStates getAgentStates();
+  void publishAgents(pedsim_msgs::AgentStates agents);
+  
   void publishGroups();
-  void publishObstacles();
+
+  pedsim_msgs::LineObstacles getObstacles();
+  void publishObstacles(pedsim_msgs::LineObstacles obstacles);
   void publishRobotPosition();
-  void publishWaypoints();
+  
+  pedsim_msgs::Waypoints getWaypoints();
+  void publishWaypoints(pedsim_msgs::Waypoints waypoints);
+
+  void publishWaypointPlugin(
+  pedsim_msgs::AgentStates agents,
+  pedsim_msgs::AgentGroups groups,
+  pedsim_msgs::Waypoints waypoints,
+  pedsim_msgs::LineObstacles obstacles
+);
 
  private:
   ros::NodeHandle nh_;
@@ -114,6 +130,7 @@ class Simulator {
   ros::Publisher pub_agent_groups_;
   ros::Publisher pub_robot_position_;
   ros::Publisher pub_waypoints_;
+  ros::Publisher pub_waypoint_plugin_;
 
   // provided services
   ros::ServiceServer srv_pause_simulation_;
