@@ -652,8 +652,9 @@ void AgentStateMachine::activateState(AgentState stateIn) {
       agent->setWaypointPlanner(individualPlanner);
       agent->resumeMovement();
       agent->setVmax(agent->vmaxDefault);
-      agent->disableForce("KeepDistance");
-      agent->disableForce("Robot");
+      // agent->disableForce("KeepDistance");
+      // agent->disableForce("Robot");
+      // TODO parametrize this
       break;
     case StateDriving:
       if (individualPlanner == nullptr)
