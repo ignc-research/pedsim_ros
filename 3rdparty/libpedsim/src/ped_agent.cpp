@@ -366,12 +366,18 @@ void Ped::Tagent::move(double stepSizeIn)
   still_time += stepSizeIn;
 
   // sum of all forces --> acceleration
-  a = forceFactorDesired * desiredforce +
-      forceFactorSocial * socialforce +
-      forceFactorObstacle * obstacleforce +
-      myforce +
-      keepdistanceforce +
-      forceFactorRobot * robotforce;
+  if(isForceOverridden){
+    a = forceOverride;
+  }
+  else{
+    a = forceFactorDesired * desiredforce +
+        forceFactorSocial * socialforce +
+        forceFactorObstacle * obstacleforce +
+        myforce +
+        keepdistanceforce +
+        forceFactorRobot * robotforce;
+  }
+
   // if (id == 1) {
   //   ROS_INFO("desiredforce: %lf, %lf, %lf", desiredforce.x, desiredforce.y, desiredforce.z);
   //   ROS_INFO("socialforce: %lf, %lf, %lf", socialforce.x, socialforce.y, socialforce.z);
@@ -404,4 +410,13 @@ void Ped::Tagent::move(double stepSizeIn)
 
   // notice scene of movement
   scene->moveAgent(this);
+}
+
+void Ped::Tagent::overrideForce(){
+  isForceOverridden = false;
+}
+
+void Ped::Tagent::overrideForce(Ped::Tvector force){
+  forceOverride = force;
+  isForceOverridden = true;
 }

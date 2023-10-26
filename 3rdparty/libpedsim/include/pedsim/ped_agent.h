@@ -130,6 +130,9 @@ class LIBEXPORT Tagent {
   double forceFactorObstacle;
   double forceFactorRobot;
 
+  void overrideForce();
+  void overrideForce(Ped::Tvector pose);
+
  protected:
   Tvector p;  ///< current position of the agent
   Tvector v;  ///< current velocity of the agent
@@ -157,6 +160,9 @@ class LIBEXPORT Tagent {
   Ped::Tvector robotforce;
   Ped::Tvector myforce;
   Ped::Tvector keepdistanceforce;
+
+  Ped::Tvector forceOverride;
+  bool isForceOverridden = false;
 };
 }
 #endif

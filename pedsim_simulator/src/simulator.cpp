@@ -57,6 +57,7 @@ Simulator::~Simulator()
   pub_robot_position_.shutdown();
   pub_waypoints_.shutdown();
   pub_waypoint_plugin_.shutdown();
+  sub_waypoint_plugin_.shutdown();
 
   srv_pause_simulation_.shutdown();
   srv_unpause_simulation_.shutdown();
@@ -86,8 +87,12 @@ bool Simulator::initializeSimulation()
       nh_.advertise<nav_msgs::Odometry>("robot_position", queue_size);
   pub_waypoints_ =
       nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
+  
   pub_waypoint_plugin_ = 
       nh_.advertise<pedsim_msgs::WaypointPluginDataframe>("waypoint_plugin_data", queue_size);
+  sub_waypoint_plugin_ =
+      nh_.subscribe("waypoint_plugin_feedback", 1, &Simulator::onWaypointPlugin, this);
+
 
   // services
   srv_pause_simulation_ = nh_.advertiseService(
@@ -567,4 +572,24 @@ void Simulator::publishWaypointPlugin(
   dataframe.line_obstacles = obstacles.obstacles;
 
   pub_waypoint_plugin_.publish(dataframe);
+}
+
+void Simulator::onWaypointPlugin(pedsim_msgs::AgentFeedbacks agents){
+  for(auto agent : agents.agents){
+    Agent* sceneAgent = SCENE.getAgent(agent.id);
+    if(!sceneAgent) continue;
+
+    if(agent.unforce){
+      sceneAgent->overrideForce();
+    }
+    else{
+      sceneAgent->overrideForce(
+        Ped::Tvector(
+          agent.force.x,
+          agent.force.y,
+          agent.force.z
+        )
+      );
+    }
+  }
 }

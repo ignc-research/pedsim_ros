@@ -37,6 +37,8 @@ add_message_files( DIRECTORY msg
   InteractiveObstacle.msg
   RobotState.msg
   WaypointPluginDataframe.msg
+  AgentFeedback.msg
+  AgentFeedbacks.msg
 )
 
 # generate the messages

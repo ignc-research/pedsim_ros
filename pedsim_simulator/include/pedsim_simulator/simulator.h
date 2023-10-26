@@ -48,6 +48,8 @@
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
 #include <pedsim_msgs/WaypointPluginDataframe.h>
+#include <pedsim_msgs/AgentFeedback.h>
+#include <pedsim_msgs/AgentFeedbacks.h>
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -130,7 +132,11 @@ class Simulator {
   ros::Publisher pub_agent_groups_;
   ros::Publisher pub_robot_position_;
   ros::Publisher pub_waypoints_;
+  
+  // pedsim_waypoint_plugin
   ros::Publisher pub_waypoint_plugin_;
+  ros::Subscriber sub_waypoint_plugin_;
+  void onWaypointPlugin(pedsim_msgs::AgentFeedbacks agents);
 
   // provided services
   ros::ServiceServer srv_pause_simulation_;
