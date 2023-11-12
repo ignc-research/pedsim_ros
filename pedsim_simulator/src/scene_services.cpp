@@ -45,7 +45,7 @@ SceneServices::SceneServices()
   // Check if flatland is the chosen simulation environment
   std::string environment;
   nh_.param<std::string>("/simulator", environment, "flatland");
-  if (environment == "gazebo")
+  if (environment != "flatland")
     env_is_flatland = false;
   if (env_is_flatland)
   {
