@@ -2,7 +2,7 @@
 #
 
 # Unique id of the detection, monotonically increasing over time
-uint64          detection_id
+string          detection_id
 
 # (Pseudo-)probabilistic value between 0.0 and 1.0 describing the detector's confidence in the detection
 float64         confidence

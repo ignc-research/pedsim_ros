@@ -31,7 +31,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(spencer_tracking_rviz_plugin)
 
-find_package(catkin REQUIRED COMPONENTS rviz spencer_tracking_msgs spencer_human_attribute_msgs spencer_social_relation_msgs)
+find_package(catkin REQUIRED COMPONENTS rviz spencer_tracking_msgs spencer_human_attribute_msgs spencer_social_relation_msgs pedsim)
 catkin_package()
 include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})

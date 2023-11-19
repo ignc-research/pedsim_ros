@@ -1,6 +1,6 @@
 #include <pedsim_simulator/element/robot.h>
 
-Robot::Robot(std::string name, std::string topicOdom, ros::NodeHandle nh)
+Robot::Robot(pedsim::id name, std::string topicOdom, ros::NodeHandle nh)
 : ScenarioElement(){
     this->state.name = name;
     this->subscriber_odom_ = nh.subscribe(

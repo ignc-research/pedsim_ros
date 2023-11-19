@@ -157,7 +157,6 @@ bool Simulator::initializeSimulation()
 
   // spawn robot
   Agent *a = new Agent("myrobot");
-  a->id = 0;
 
   bool env_is_flatland = true;
   std::string environment;

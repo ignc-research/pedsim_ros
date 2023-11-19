@@ -53,7 +53,7 @@ public:
   bool env_is_flatland = true;
   static int agents_index_;
   static int static_obstacles_index_;
-  static std::vector<std::string> static_obstacle_names_;
+  static std::vector<pedsim::id> static_obstacle_names_;
 
   /**
    * @brief Spawns pedestrian in pedsim and flatland.
@@ -108,26 +108,26 @@ protected:
   ros::NodeHandle nh_;
 
 private:
-  std::vector<std::string> removePedsInPedsim();
-  void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
-  std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids);
-  std::vector<int> generateAgentIds(int n);
-  bool removeModelsInFlatland(std::vector<std::string> model_names);
+  std::vector<pedsim::id> removePedsInPedsim();
+  void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
+  std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
+  std::vector<pedsim::id> generateAgentIds(pedsim::id base, int n);
+  bool removeModelsInFlatland(std::vector<pedsim::id> model_names);
   bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);
-  // bool respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models);
+  // bool respawnModelsInFlatland(std::vector<pedsim::id> old_model_names, std::vector<flatland_msgs::Model> new_models);
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
   std::vector<Obstacle *> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
-  int stringToEnumIndex(std::string str, std::vector<std::string> values);
+  int stringToEnumIndex(pedsim::id str, std::vector<pedsim::id> values);
 
-  std::string spawn_models_topic_;
+  pedsim::id spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
 
-  // std::string respawn_models_topic_;
+  // pedsim::id respawn_models_topic_;
   // ros::ServiceClient respawn_models_client_;
 
-  std::string delete_models_topic_;
+  pedsim::id delete_models_topic_;
   ros::ServiceClient delete_models_client_;
 
   std::vector<Obstacle *> walls;

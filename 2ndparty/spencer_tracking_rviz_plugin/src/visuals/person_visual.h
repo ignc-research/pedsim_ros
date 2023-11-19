@@ -31,6 +31,8 @@
 #ifndef PERSON_VISUAL_H
 #define PERSON_VISUAL_H
 
+#include <pedsim/types.h>
+
 #include <rviz/ogre_helpers/shape.h>
 #include <rviz/ogre_helpers/billboard_line.h>
 

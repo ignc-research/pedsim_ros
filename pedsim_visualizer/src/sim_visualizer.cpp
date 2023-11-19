@@ -119,7 +119,7 @@ void SimVisualizer::publishAgentVisuals() {
 
     // if (agent_state.type == 2) continue;
 
-    force_marker.ns = "agent_state_" + std::to_string(agent_state.id);
+    force_marker.ns = "agent_state_" + agent_state.id;
     force_marker.points.clear();
     force_marker.color.r = 0.0;
     force_marker.color.g = 0.0;

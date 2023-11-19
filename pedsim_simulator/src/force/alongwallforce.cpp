@@ -92,7 +92,7 @@ Ped::Tvector AlongWallForce::getForce(Ped::Tvector walkingDirection) {
   Ped::Tangle angle = walkingDirection.angleTo(minDiff);
   if (angle > angleThreshold) return Ped::Tvector();
 
-  ROS_DEBUG("Found Agent %d to be stuck!", agent->getId());
+  ROS_DEBUG("Found Agent %s to be stuck!", agent->getId().c_str());
 
   // set force
   // → project to find walking direction

@@ -54,8 +54,8 @@ Ped::Tagent::Tagent()
 
   obstacleforce = Ped::Tvector(0.0, 0.0);
 
-  ROS_INFO("created agent with id: %d", id);
-  // ROS_INFO("created agent with id: %d", 100);
+  ROS_INFO("created agent with id: %s", id.c_str());
+  // ROS_INFO("created agent with id: %s", "100");
 }
 
 /// Destructor

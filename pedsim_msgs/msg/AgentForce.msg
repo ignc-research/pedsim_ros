@@ -1,5 +1,8 @@
 # Forces acting on an agent.
 
+# Max Speed
+float64 vmax
+
 # Force Factors
 float64 desired_ffactor
 float64 obstacle_ffactor

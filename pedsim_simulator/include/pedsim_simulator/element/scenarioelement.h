@@ -32,6 +32,7 @@
 #ifndef _scenarioelement_h_
 #define _scenarioelement_h_
 
+#include <pedsim/types.h>
 #include <QObject>
 
 class ScenarioElement : public QObject {

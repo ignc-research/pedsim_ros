@@ -161,7 +161,7 @@ Waypoint* ShoppingPlanner::getNextWaypoint() {
 
 QString ShoppingPlanner::createWaypointName() const {
   return QString("AttractionHelper_A%1_Q%2")
-      .arg(agent->getId())
+      .arg(agent->getId().c_str())
       .arg(attraction->getName());
 }
 

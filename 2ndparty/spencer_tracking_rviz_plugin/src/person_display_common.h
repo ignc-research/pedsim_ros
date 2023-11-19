@@ -34,6 +34,7 @@
 #ifndef Q_MOC_RUN
 #include <map>
 #include <set>
+#include <functional>
 #include <boost/circular_buffer.hpp>
 #include <spencer_tracking_msgs/TrackedPersons.h>
 #include <geometry_msgs/Twist.h>
@@ -54,7 +55,7 @@
 #include <rviz/ogre_helpers/arrow.h>
 #include <rviz/ogre_helpers/movable_text.h>
 #endif
-
+#include <pedsim/types.h>
 
 
 
@@ -66,7 +67,7 @@ using namespace boost;
 
 namespace spencer_tracking_rviz_plugin
 {
-    typedef unsigned int person_id;
+    typedef pedsim::id person_id;
 
     /// Visualization style for a person
     enum Styles {
@@ -159,6 +160,9 @@ namespace spencer_tracking_rviz_plugin
         }
 
     protected:
+
+        std::hash<std::string> hasher;
+
         /// Common message processing. This method needs to be called by derived classes
         bool preprocessMessage(const typename MessageType::ConstPtr& msg)
         {
@@ -280,7 +284,7 @@ namespace spencer_tracking_rviz_plugin
         }
 
         /// Get a color based upon track / detection ID.
-        Ogre::ColourValue getColorFromId(unsigned int object_id)
+        Ogre::ColourValue getColorFromId(pedsim::id object_id)
         {
             Ogre::ColourValue color;
             const int colorScheme = m_commonProperties->color_transform->getOptionInt();
@@ -300,7 +304,7 @@ namespace spencer_tracking_rviz_plugin
                 };
 
                 unsigned int rgb = 0;
-                const unsigned int tableId = object_id % NUM_SRL_TOTAL_COLORS;
+                const unsigned int tableId = hasher(object_id) % NUM_SRL_TOTAL_COLORS;
                 if(m_commonProperties->color_transform->getOptionInt() == COLORS_SRL) {
                     // Colors in original order (first vary shade, then vary color)
                     rgb = spencer_colors[tableId];
@@ -326,7 +330,7 @@ namespace spencer_tracking_rviz_plugin
                     0xffffff, 0xb8b8b8, 0x555555, 0x000000
                 };
 
-                color.setAsARGB(rainbow_colors[object_id % (colorScheme == COLORS_RAINBOW ? NUM_COLOR : (NUM_COLOR+NUM_BW))]);
+                color.setAsARGB(rainbow_colors[hasher(object_id) % (colorScheme == COLORS_RAINBOW ? NUM_COLOR : (NUM_COLOR+NUM_BW))]);
             }
             else if(colorScheme == COLORS_FLAT)
             {
@@ -335,7 +339,7 @@ namespace spencer_tracking_rviz_plugin
                     0x990033, 0xa477c4, 0x3498db, 0x1abc9c, 0x55e08f, 0xfff054, 0xef5523, 0xfe374a, 0xbaa891, 0xad5f43
                 };
 
-                color.setAsARGB(flat_colors[object_id % NUM_COLOR]);
+                color.setAsARGB(flat_colors[hasher(object_id) % NUM_COLOR]);
             }
             else if(colorScheme == COLORS_VINTAGE)
             {
@@ -344,7 +348,7 @@ namespace spencer_tracking_rviz_plugin
                     0xd05e56, 0x797d88, 0x448d7a, 0xa5d1cd, 0x88a764, 0xebe18c, 0xd8a027, 0xffcc66, 0xdc3f1c, 0xff9966
                 };
 
-                color.setAsARGB(vintage_colors[object_id % NUM_COLOR]);
+                color.setAsARGB(vintage_colors[hasher(object_id) % NUM_COLOR]);
             }
             else
             {

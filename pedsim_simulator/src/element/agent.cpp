@@ -127,8 +127,8 @@ Agent::Agent() {
   triggerZoneRadius = 0;
 }
 
-Agent::Agent(std::string name) : Agent() {
-  agentName = name;
+Agent::Agent(pedsim::id id) : Agent() {
+  this->id = id;
 }
 
 Agent::Agent(const Agent&) : ScenarioElement() {}
@@ -1111,7 +1111,7 @@ void Agent::adjustKeepDistanceForceDistance() {
   // get number of agents that are listening to the same id as I do
   auto agents = SCENE.getAgents();
   int count = 0;
-  int check_for_id = -1;
+  pedsim::id check_for_id = pedsim::id_null;
 
   if (stateMachine->getCurrentState() == AgentStateMachine::AgentState::StateGroupTalking) {
     check_for_id = id;
@@ -1177,7 +1177,7 @@ void Agent::setVisiblePosition(const QPointF& positionIn) {
 }
 
 QString Agent::toString() const {
-  return tr("Agent %1 (@%2,%3)").arg(getId()).arg(getx()).arg(gety());
+  return tr("Agent %1 (@%2,%3)").arg(getId().c_str()).arg(getx()).arg(gety());
 }
 
 void Agent::varySpeed() {

@@ -52,7 +52,7 @@ class QueueingWaypointPlanner : public WaypointPlanner {
   // Slots
  protected slots:
   void onFollowedAgentPositionChanged(double xIn, double yIn);
-  void onAgentMayPassQueue(int id);
+  void onAgentMayPassQueue(pedsim::id id);
   void onFollowedAgentLeftQueue();
   void onQueueEndPositionChanged(double xIn, double yIn);
 

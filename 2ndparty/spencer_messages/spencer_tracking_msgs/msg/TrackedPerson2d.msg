@@ -1,7 +1,7 @@
 # Message defining a 2d image bbox of a tracked person
 #
 
-uint64      track_id        # unique identifier of the target, consistent over time
+string      track_id        # unique identifier of the target, consistent over time
 float32     person_height   # 3d height of person in m
 int32       x               # top left corner x of 2d image bbox
 int32       y               # top left corner y of 2d image bbox

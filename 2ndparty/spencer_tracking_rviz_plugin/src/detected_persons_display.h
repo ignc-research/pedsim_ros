@@ -52,7 +52,7 @@ namespace spencer_tracking_rviz_plugin
 
         float confidence;
         bool hasValidOrientation;
-        unsigned int detectionId;
+        pedsim::id detectionId;
     };
 
     // The DetectedPersonsDisplay class itself just implements a circular buffer,

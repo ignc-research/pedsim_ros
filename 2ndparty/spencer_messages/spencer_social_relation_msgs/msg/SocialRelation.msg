@@ -1,8 +1,8 @@
 string      type        # e.g. mother-son relationship, romantic relationship, etc.
 float32     strength    # relationship strength between 0.0 and 1.0
 
-uint32      track1_id
-uint32      track2_id
+string      track1_id
+string      track2_id
 
 
 # Constants for type (just examples at the moment)

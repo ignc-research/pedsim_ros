@@ -38,6 +38,7 @@
 #endif
 #include "person_display_common.h"
 #include "tracked_persons_cache.h"
+#include <pedsim/types.h>
 
 namespace spencer_tracking_rviz_plugin
 {

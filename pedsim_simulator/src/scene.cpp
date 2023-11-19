@@ -184,7 +184,7 @@ QRectF Scene::itemsBoundingRect() const {
 
 const QList<Agent*>& Scene::getAgents() const { return agents; }
 
-Agent* Scene::getAgent(int id) const {
+Agent* Scene::getAgent(pedsim::id id) const {
   for (Agent* agent : agents) {
     if (agent->getId() == id) {
       return agent;
@@ -197,7 +197,7 @@ QList<AgentGroup*> Scene::getGroups() { return agentGroups; }
 
 QMap<QString, AttractionArea*> Scene::getAttractions() { return attractions; }
 
-Agent* Scene::getAgentById(int idIn) const {
+Agent* Scene::getAgentById(pedsim::id idIn) const {
   foreach (Agent* currentAgent, agents) {
     if (idIn == currentAgent->getId()) return currentAgent;
   }
@@ -215,7 +215,7 @@ const QMap<QString, AttractionArea*>& Scene::getAttractions() const {
   return attractions;
 }
 
-Waypoint* Scene::getWaypointById(int idIn) const {
+Waypoint* Scene::getWaypointById(pedsim::id idIn) const {
   foreach (Waypoint* currentWaypoint, waypoints) {
     if (idIn == currentWaypoint->getId()) return currentWaypoint;
   }

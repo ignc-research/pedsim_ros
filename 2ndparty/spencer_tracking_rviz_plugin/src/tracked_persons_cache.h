@@ -38,10 +38,11 @@
 #include <spencer_tracking_msgs/TrackedPersons.h>
 #endif
 #include "additional_topic_subscriber.h"
+#include <pedsim/types.h>
 
 namespace spencer_tracking_rviz_plugin
 {    
-    typedef unsigned int track_id;
+    typedef pedsim::id track_id;
 
     /// Data structure for storing information about individual person tracks
     struct CachedTrackedPerson

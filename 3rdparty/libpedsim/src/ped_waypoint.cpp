@@ -13,12 +13,12 @@ int Ped::Twaypoint::staticid = 0;
 /// \param   xIn The x coordinate of the waypoint
 /// \param   yIn The y coordinate of the waypoint
 Ped::Twaypoint::Twaypoint(double xIn, double yIn)
-    : id(staticid++), position(xIn, yIn), type(Ped::Twaypoint::AreaWaypoint) {}
+    : id(std::to_string(staticid++)), position(xIn, yIn), type(Ped::Twaypoint::AreaWaypoint) {}
 
 /// Constructor: Sets some intial values.
 /// \param   posIn The position of the waypoint
 Ped::Twaypoint::Twaypoint(const Ped::Tvector& posIn)
-    : id(staticid++), position(posIn), type(Ped::Twaypoint::AreaWaypoint) {}
+    : id(std::to_string(staticid++)), position(posIn), type(Ped::Twaypoint::AreaWaypoint) {}
 
 /// Destructor
 /// \author  chgloor

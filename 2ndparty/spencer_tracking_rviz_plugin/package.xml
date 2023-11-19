@@ -13,6 +13,7 @@
   
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>pedsim</build_depend>
   <build_depend>rviz</build_depend>
   <build_depend>spencer_tracking_msgs</build_depend>
   <build_depend>spencer_social_relation_msgs</build_depend>

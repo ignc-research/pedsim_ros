@@ -267,7 +267,7 @@ void TrackedPersonsDisplay::processMessage(const spencer_tracking_msgs::TrackedP
     //
     // Iterate over all tracks in this message, see if we have a cached visual (then update it) or create a new one.
     //
-    set<unsigned int> encounteredTrackIds;
+    set<track_id> encounteredTrackIds;
     for (vector<spencer_tracking_msgs::TrackedPerson>::const_iterator trackedPersonIt = msg->tracks.begin(); trackedPersonIt != msg->tracks.end(); ++trackedPersonIt)
     {
         boost::shared_ptr<TrackedPersonVisual> trackedPersonVisual;
@@ -465,8 +465,8 @@ void TrackedPersonsDisplay::processMessage(const spencer_tracking_msgs::TrackedP
     //
     // First hide, then delete old cached tracks which have not been seen for a while
     //
-    set<unsigned int> trackIdsToDelete;
-    for (map<unsigned int, boost::shared_ptr<TrackedPersonVisual> >::const_iterator cachedTrackIt = m_cachedTracks.begin(); cachedTrackIt != m_cachedTracks.end(); ++cachedTrackIt) {
+    set<track_id> trackIdsToDelete;
+    for (map<track_id, boost::shared_ptr<TrackedPersonVisual> >::const_iterator cachedTrackIt = m_cachedTracks.begin(); cachedTrackIt != m_cachedTracks.end(); ++cachedTrackIt) {
         if (encounteredTrackIds.end() == encounteredTrackIds.find(cachedTrackIt->first)) {
             const boost::shared_ptr<TrackedPersonVisual>& trackedPersonVisual = cachedTrackIt->second;
 
@@ -488,7 +488,7 @@ void TrackedPersonsDisplay::processMessage(const spencer_tracking_msgs::TrackedP
         }
     }
 
-    for (set<unsigned int>::const_iterator setIt = trackIdsToDelete.begin(); setIt != trackIdsToDelete.end(); ++setIt) {
+    for (set<track_id>::const_iterator setIt = trackIdsToDelete.begin(); setIt != trackIdsToDelete.end(); ++setIt) {
         m_cachedTracks.erase(*setIt);
     }
 

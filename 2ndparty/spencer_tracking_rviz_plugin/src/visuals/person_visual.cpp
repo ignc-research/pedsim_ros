@@ -116,7 +116,7 @@ MeshPersonVisual::MeshPersonVisual(const PersonVisualDefaultArgs& args) : Person
     static size_t count = 0;
     std::stringstream ss;
     ss << "mesh_person_visual" << count++;
-    std::string id = ss.str();
+    pedsim::id id = ss.str();
 
     entity_ = m_sceneManager->createEntity(id, meshResource);
     m_childSceneNode->attachObject(entity_);

@@ -66,7 +66,7 @@ void QueueingWaypointPlanner::onFollowedAgentPositionChanged(double xIn,
   currentWaypoint->setPosition(followedPosition);
 }
 
-void QueueingWaypointPlanner::onAgentMayPassQueue(int id) {
+void QueueingWaypointPlanner::onAgentMayPassQueue(pedsim::id id) {
   // check who will leave queue
   if ((agent != nullptr) && (id == agent->getId())) {
     // the agent may pass
@@ -151,7 +151,7 @@ void QueueingWaypointPlanner::setDestination(Waypoint* waypointIn) {
     ROS_ERROR(
         "Waypoint provided to QueueingWaypointPlanner isn't a waiting queue! "
         "(%s)",
-        (waypointIn == nullptr) ? "null"
+        (waypointIn == nullptr) ? pedsim::id_null
                                 : waypointIn->toString().toStdString().c_str());
     return;
   }
@@ -262,7 +262,7 @@ void QueueingWaypointPlanner::addPrivateSpace(Ped::Tvector& queueEndIn) const {
 
 QString QueueingWaypointPlanner::createWaypointName() const {
   return QString("QueueHelper_A%1_Q%2")
-      .arg(agent->getId())
+      .arg(agent->getId().c_str())
       .arg(waitingQueue->getName());
 }
 

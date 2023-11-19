@@ -51,7 +51,7 @@ class Robot : public ScenarioElement
 
     // Constructor and Destructor
 public:
-    Robot(std::string name, std::string topicOdom, ros::NodeHandle nh);
+    Robot(pedsim::id name, std::string topicOdom, ros::NodeHandle nh);
     virtual ~Robot();
 
     // methods

@@ -64,7 +64,7 @@ namespace spencer_tracking_rviz_plugin {
             std::stringstream ss;
             static int counter = 0;
             ss << "gender_symbol_" << counter++;
-            std::string id = ss.str();
+            pedsim::id id = ss.str();
 
             m_entity = m_sceneManager->createEntity(id, meshResource);
             m_sceneNode->attachObject(m_entity);

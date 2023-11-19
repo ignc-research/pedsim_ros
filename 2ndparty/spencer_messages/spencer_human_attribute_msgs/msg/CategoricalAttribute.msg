@@ -1,4 +1,4 @@
-uint64                  subject_id              # either an observation ID or a track ID (if information has been integrated over time); should be encoded in topic name
+string                  subject_id              # either an observation ID or a track ID (if information has been integrated over time); should be encoded in topic name
 string                  type                    # type of the attribute, see constants below
 
 string[]                values                  # values, each value also should have a confidence, highest-confidence attribute should come first

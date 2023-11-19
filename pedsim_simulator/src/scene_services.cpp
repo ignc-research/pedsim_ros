@@ -25,7 +25,7 @@
 
 int SceneServices::agents_index_ = 20;
 int SceneServices::static_obstacles_index_ = 1;
-std::vector<std::string> SceneServices::static_obstacle_names_;
+std::vector<pedsim::id> SceneServices::static_obstacle_names_;
 
 SceneServices::SceneServices()
 {
@@ -43,8 +43,8 @@ SceneServices::SceneServices()
   
 
   // Check if flatland is the chosen simulation environment
-  std::string environment;
-  nh_.param<std::string>("/simulator", environment, "flatland");
+  pedsim::id environment;
+  nh_.param<pedsim::id>("/simulator", environment, "flatland");
   if (environment != "flatland")
     env_is_flatland = false;
   if (env_is_flatland)
@@ -63,10 +63,8 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
 {
   std::vector<flatland_msgs::Model> flatland_models;
 
-  for (int ped_i = 0; ped_i < (int)request.peds.size(); ped_i++)
-  {
-    pedsim_msgs::Ped ped = request.peds[ped_i];
-    std::vector<int> new_agent_ids = generateAgentIds(ped.number_of_peds);
+  for (auto &ped : request.peds){
+    std::vector<pedsim::id> new_agent_ids = generateAgentIds(ped.id, ped.number_of_peds);
 
     // add ped to pedsim
     addAgentClusterToPedsim(ped, new_agent_ids);
@@ -112,7 +110,7 @@ bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
 bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
                                   std_srvs::SetBool::Response &response)
 {
-  std::vector<std::string> model_names = removePedsInPedsim();
+  std::vector<pedsim::id> model_names = removePedsInPedsim();
   if (env_is_flatland)
   {
     bool res = removeModelsInFlatland(model_names);
@@ -129,7 +127,7 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
 }
 
 // remove all agents and return a list of their names
-std::vector<std::string> SceneServices::removePedsInPedsim()
+std::vector<pedsim::id> SceneServices::removePedsInPedsim()
 {
   // Remove all waypoints
   auto waypoints = SCENE.getWaypoints();
@@ -142,7 +140,7 @@ std::vector<std::string> SceneServices::removePedsInPedsim()
   }
 
   // Remove all agents
-  std::vector<std::string> names;
+  std::vector<pedsim::id> names;
   QList<Agent *> agents = SCENE.getAgents();
   for (Agent *a : agents)
   {
@@ -151,7 +149,7 @@ std::vector<std::string> SceneServices::removePedsInPedsim()
     {
       continue;
     }
-    names.push_back(a->agentName);
+    names.push_back(a->id);
     SCENE.removeAgent(a);
   }
 
@@ -200,7 +198,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     // get name
 
     auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
-    std::string name = "";
+    pedsim::id name = "";
     if (obstacle.name == "")
     {
       if (obstacle.interaction_radius == 0)
@@ -323,10 +321,10 @@ void SceneServices::removeAllReferencesToInteractiveObstacles()
     }
 
     // check lastInteractedWithWaypointId
-    if (agent->lastInteractedWithWaypointId != -1)
+    if (agent->lastInteractedWithWaypointId != pedsim::id_null)
     {
       agent->lastInteractedWithWaypoint = nullptr;
-      agent->lastInteractedWithWaypointId = -1;
+      agent->lastInteractedWithWaypointId = pedsim::id_null;
     }
 
     // check currentDestination
@@ -432,15 +430,14 @@ int SceneServices::stringToEnumIndex(std::string str, std::vector<std::string> v
   return index;
 }
 
-void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids)
+void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids)
 {
   uniform_real_distribution<double> distribution_x(ped.pos.x - 1.0, ped.pos.x + 1.0);
   uniform_real_distribution<double> distribution_y(ped.pos.y - 1.0, ped.pos.y + 1.0);
 
-  for (int i = 0; i < ped.number_of_peds; i++)
+  for (auto& id : ids)
   {
-    std::string name = "person_" + std::to_string(ids[i]);
-    Agent *a = new Agent(name);
+    Agent *a = new Agent(id);
 
     // randomize location if we have more than one agent
     if (ped.number_of_peds > 1)
@@ -570,16 +567,16 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<in
   }
 }
 
-std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids)
+std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids)
 {
   std::vector<flatland_msgs::Model> flatland_msg;
 
-  for (int i = 0; i < ped.number_of_peds; i++)
+  for (auto& id : ids)
   {
     flatland_msgs::Model model;
     model.yaml_path = ped.yaml_file;
-    model.name = "person_" + std::to_string(ids[i]);
-    model.ns = "pedsim_agent_" + std::to_string(ids[i]);
+    model.name = id;
+    model.ns = id;
     model.pose.x = ped.pos.x;
     model.pose.y = ped.pos.y;
     model.pose.theta = 0.0;
@@ -616,19 +613,22 @@ bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &re
   return true;
 }
 
-std::vector<int> SceneServices::generateAgentIds(int n)
+std::vector<pedsim::id> SceneServices::generateAgentIds(pedsim::id base, int n = 1)
 {
 
-  std::vector<int> ids;
+  if(n == 1)
+    return std::vector<pedsim::id>({base});
+
+  std::vector<pedsim::id> ids;
   for (int i = 0; i < n; i++)
   {
-    ids.push_back(agents_index_);
+    ids.push_back(base + "_" + std::to_string(i));
     agents_index_++;
   }
   return ids;
 }
 
-bool SceneServices::removeModelsInFlatland(std::vector<std::string> model_names)
+bool SceneServices::removeModelsInFlatland(std::vector<pedsim::id> model_names)
 {
   ROS_INFO("deleting %ld models", model_names.size());
   flatland_msgs::DeleteModels msg;
@@ -677,7 +677,7 @@ bool SceneServices::spawnModelsInFlatland(std::vector<flatland_msgs::Model> mode
   return true;
 }
 
-// bool SceneServices::respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models) {
+// bool SceneServices::respawnModelsInFlatland(std::vector<pedsim::id> old_model_names, std::vector<flatland_msgs::Model> new_models) {
 //   flatland_msgs::RespawnModels msg;
 //   msg.request.old_model_names = old_model_names;
 //   msg.request.new_models = new_models;

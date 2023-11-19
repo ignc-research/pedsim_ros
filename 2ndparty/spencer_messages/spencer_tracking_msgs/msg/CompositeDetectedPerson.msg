@@ -4,7 +4,7 @@
 # Having a separate timestamp per person could be useful if the timestamps of the merged DetectedPersons messages vary a lot,
 # and some persons are only seen by a single sensor (so averaging over all input timestamps would have a detrimental effect). 
 
-uint64      composite_detection_id          # ID of the fused detection
+string      composite_detection_id          # ID of the fused detection
 
 float64     mean_confidence                 # mean of the confidences of the original detections
 float64     max_confidence                  # maximum confidence of original detections

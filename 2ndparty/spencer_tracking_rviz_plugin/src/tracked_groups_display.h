@@ -39,10 +39,11 @@
 
 #include "person_display_common.h"
 #include "tracked_persons_cache.h"
+#include <pedsim/types.h>
 
 namespace spencer_tracking_rviz_plugin
 {
-    typedef unsigned int group_id;
+    typedef pedsim::id group_id;
 
     /// A single entry in the history of a tracked person, to show group affiliation.
     struct GroupAffiliationHistoryEntry

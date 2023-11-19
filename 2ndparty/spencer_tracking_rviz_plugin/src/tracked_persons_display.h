@@ -37,10 +37,11 @@
 #include <spencer_tracking_msgs/TrackedPersons.h>
 #include "person_display_common.h"
 #endif
+#include <pedsim/types.h>
 
 namespace spencer_tracking_rviz_plugin
 {
-    typedef unsigned int track_id;
+    typedef pedsim::id track_id;
 
     /// A single entry in the history of a tracked person.
     struct TrackedPersonHistoryEntry

@@ -90,14 +90,14 @@ class Scene : public QObject, protected Ped::Tscene {
   void sceneTimeChanged(double time);
 
   // → added/removed elements
-  void agentAdded(int id);
-  void agentRemoved(int id);
-  void obstacleAdded(int id);
-  void obstacleRemoved(int id);
-  void waypointAdded(int id);
-  void waypointRemoved(int id);
-  void agentClusterAdded(int id);
-  void agentClusterRemoved(int id);
+  void agentAdded(pedsim::id id);
+  void agentRemoved(pedsim::id id);
+  void obstacleAdded(pedsim::id id);
+  void obstacleRemoved(pedsim::id id);
+  void waypointAdded(pedsim::id id);
+  void waypointRemoved(pedsim::id id);
+  void agentClusterAdded(pedsim::id id);
+  void agentClusterRemoved(pedsim::id id);
   void waitingQueueAdded(QString name);
   void waitingQueueRemoved(QString name);
   void attractionAdded(QString name);
@@ -118,14 +118,14 @@ class Scene : public QObject, protected Ped::Tscene {
   // → elements
   const QList<Robot*>& getRobots() const;
   const QList<Agent*>& getAgents() const;
-  Agent* getAgent(int id) const;
-  Agent* getAgentById(int idIn) const;
+  Agent* getAgent(pedsim::id id) const;
+  Agent* getAgentById(pedsim::id idIn) const;
   QList<AgentGroup*> getGroups();
   QMap<QString, AttractionArea*> getAttractions();
   const QList<Obstacle*>& getObstacles() const;
   const QMap<QString, Waypoint*>& getWaypoints() const;
   const QMap<QString, AttractionArea*>& getAttractions() const;
-  Waypoint* getWaypointById(int idIn) const;
+  Waypoint* getWaypointById(pedsim::id idIn) const;
   Waypoint* getWaypointByName(const QString& nameIn) const;
   WaitingQueue* getWaitingQueueByName(const QString& nameIn) const;
   const QList<AgentCluster*>& getAgentClusters() const;

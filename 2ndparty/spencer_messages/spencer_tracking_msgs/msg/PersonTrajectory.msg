@@ -6,5 +6,5 @@
 # better.
 #
 
-uint64                   track_id   # Unique identifier of the tracked person.
+string                   track_id   # Unique identifier of the tracked person.
 PersonTrajectoryEntry[]  trajectory # All states of the last T frames of the most likely trajectory of that tracked person.

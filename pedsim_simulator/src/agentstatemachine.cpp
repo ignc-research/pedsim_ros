@@ -615,7 +615,7 @@ void AgentStateMachine::doStateTransition() {
 
 
 void AgentStateMachine::activateState(AgentState stateIn) {
-  // if (agent->id == 1) ROS_INFO("Agent %d type %d activating state '%s' (time: %f)", agent->getId(), agent->getType(), stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
+  // if (agent->id == 1) ROS_INFO("Agent %s type %d activating state '%s' (time: %f)", agent->getId().c_str(), agent->getType(), stateToName(stateIn).toStdString().c_str(), SCENE.getTime());
 
   // de-activate old state
   deactivateState(state);

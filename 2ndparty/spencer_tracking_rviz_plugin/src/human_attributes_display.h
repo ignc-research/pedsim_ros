@@ -78,7 +78,7 @@ namespace spencer_tracking_rviz_plugin
         struct HumanAttributeVisual {
             boost::shared_ptr<Ogre::SceneNode> sceneNode;
             boost::shared_ptr<MeshNode> genderMesh;
-            unsigned int trackId;
+            track_id trackId;
             boost::shared_ptr<TextNode> ageGroupText;
             boost::shared_ptr<TextNode> personHeightText;
         };

@@ -38,7 +38,7 @@ class LIBEXPORT Twaypoint {
   Twaypoint(const Tvector& posIn);
   virtual ~Twaypoint();
 
-  int getId() const { return id; };
+  pedsim::id getId() const { return id; };
   int getType() const { return type; };
   int getBehavior() const { return behavior; };
   Ped::Tvector getPosition() const { return position; };
@@ -71,7 +71,7 @@ class LIBEXPORT Twaypoint {
   static int staticid;                   ///< last waypoint number
   
  protected:
-  int id;                                ///< waypoint number
+  pedsim::id id;                                ///< waypoint number
   Tvector position;                      ///< position of the waypoint
   WaypointType type;                     ///< type of the waypoint
   Behavior behavior = Behavior::SIMPLE;  ///< behavior of the waypoint

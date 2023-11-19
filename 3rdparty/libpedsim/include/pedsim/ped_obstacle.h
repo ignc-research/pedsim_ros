@@ -27,7 +27,7 @@ class LIBEXPORT Tobstacle {
   Tobstacle(const Tvector& startIn, const Tvector& endIn);
   virtual ~Tobstacle();
 
-  int getid() const { return id; };
+  pedsim::id getid() const { return id; };
   int gettype() const { return type; };
   double getax() const { return ax; };
   double getay() const { return ay; };
@@ -49,7 +49,7 @@ class LIBEXPORT Tobstacle {
 
  protected:
   static int staticid;
-  int id;     ///< Obstacle number
+  pedsim::id id;     ///< Obstacle number
   double ax;  ///< Position of the obstacle
   double ay;  ///< Position of the obstacle
   double bx;  ///< Position of the obstacle
