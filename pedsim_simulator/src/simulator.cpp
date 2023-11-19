@@ -402,6 +402,8 @@ pedsim_msgs::AgentStates Simulator::getAgentStates()
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
 
+    agent_forces.vmax = a->getVmax();
+
     agent_forces.desired_ffactor = a->forceFactorDesired;
     agent_forces.obstacle_ffactor = a->forceFactorObstacle;
     agent_forces.social_ffactor = a->forceFactorSocial;
