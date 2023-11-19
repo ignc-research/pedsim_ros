@@ -85,7 +85,7 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
 bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                                 pedsim_srvs::SpawnPeds::Response &response)
 {
-  ROS_INFO("called respawnPeds() with %ld peds", request.peds.size());
+  ROS_DEBUG("called respawnPeds() with %ld peds", request.peds.size());
 
   std_srvs::SetBool::Request request_;
   std_srvs::SetBool::Response response_;
@@ -238,7 +238,7 @@ bool SceneServices::spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObsta
     waypoint->interactionRadius = obstacle.interaction_radius;
     if (obstacle.interaction_radius < 0.1)
     {
-      ROS_WARN("interaction_radius is smaller than 0.1. agents will not interact with this obstacle");
+      // ROS_WARN("interaction_radius is smaller than 0.1. agents will not interact with this obstacle");
     }
     waypoint->staticObstacleAngle = fmod(yaw + M_PI, 2 * M_PI);
 
@@ -538,18 +538,17 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pe
     a->forceFactorDesired = ped.force_factor_desired;
     if (a->forceFactorDesired < 0.1)
     {
-      ROS_ERROR("forceFactorDesired is very small. ped will probably not move");
+      ROS_WARN("forceFactorDesired is very small. ped will probably not move");
     }
     a->forceFactorObstacle = ped.force_factor_obstacle;
     a->forceFactorSocial = ped.force_factor_social;
     a->forceFactorRobot = ped.force_factor_robot;
 
-    std::cout << "SIZE " << ped.waypoints.size() << std::endl;
+    // std::cout << "SIZE " << ped.waypoints.size() << std::endl;
 
     // add waypoints to agentcluster and scene
     for (int i = 0; i < (int)ped.waypoints.size(); i++)
     {
-      // std::cout << "ADDING WAYPOINT" << std::endl;
 
       const double x = ped.waypoints[i].x;
       const double y = ped.waypoints[i].y;
@@ -560,7 +559,6 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pe
       SCENE.addWaypoint(w);
       a->addWaypoint(w);
     }
-    std::cout << "ADDED WAYPOINTS" << std::endl;
 
     // add agent to scene
     SCENE.addAgent(a);

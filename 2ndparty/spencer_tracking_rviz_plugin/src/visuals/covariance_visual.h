@@ -125,7 +125,7 @@ namespace spencer_tracking_rviz_plugin {
                 }
             }
             else {
-                ROS_WARN_STREAM_THROTTLE(5.0, "Covariance matrix is not positive (semi-)definite in ProbabilityEllipseCovarianceVisual::setMeanCovariance(): " << cov);
+                // ROS_WARN_STREAM_THROTTLE(5.0, "Covariance matrix is not positive (semi-)definite in ProbabilityEllipseCovarianceVisual::setMeanCovariance(): " << cov);
             }
             
         }
