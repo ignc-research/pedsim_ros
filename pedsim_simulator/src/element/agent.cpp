@@ -180,7 +180,7 @@ Ped::Tvector Agent::obstacleForce() {
       force = Ped::Tagent::obstacleForce();
     } else {
       Ped::Twaypoint closest_obstacle;
-      if (!SCENE.getClosestObstacle(p, &closest_obstacle)) {
+      if (!SCENE.getClosestWall(p, &closest_obstacle)) {
         return Ped::Tvector(0.0, 0.0);
       }
 

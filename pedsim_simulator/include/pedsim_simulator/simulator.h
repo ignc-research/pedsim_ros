@@ -43,10 +43,12 @@
 #include <pedsim_msgs/AgentGroups.h>
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
+#include <pedsim_msgs/Obstacle.h>
+#include <pedsim_msgs/Obstacles.h>
 #include <pedsim_msgs/WaypointPluginDataframe.h>
 #include <pedsim_msgs/AgentFeedback.h>
 #include <pedsim_msgs/AgentFeedbacks.h>
@@ -103,23 +105,23 @@ class Simulator {
   void updateRobotPositionFromTF();
 
   pedsim_msgs::AgentStates getAgentStates();
-  void publishAgents(pedsim_msgs::AgentStates agents);
-  
-  void publishGroups();
-
-  pedsim_msgs::LineObstacles getObstacles();
-  void publishObstacles(pedsim_msgs::LineObstacles obstacles);
-  void publishRobotPosition();
-  
   pedsim_msgs::Waypoints getWaypoints();
-  void publishWaypoints(pedsim_msgs::Waypoints waypoints);
+  pedsim_msgs::Walls getWalls();
+  pedsim_msgs::Obstacles getObstacles();
 
+  void publishAgents(pedsim_msgs::AgentStates agents);
+  void publishGroups();
+  void publishWalls(pedsim_msgs::Walls walls);
+  void publishObstacles(pedsim_msgs::Obstacles obstacles);
+  void publishRobotPosition();
+  void publishWaypoints(pedsim_msgs::Waypoints waypoints);
   void publishWaypointPlugin(
-  pedsim_msgs::AgentStates agents,
-  pedsim_msgs::AgentGroups groups,
-  pedsim_msgs::Waypoints waypoints,
-  pedsim_msgs::LineObstacles obstacles
-);
+    pedsim_msgs::AgentStates agents,
+    pedsim_msgs::AgentGroups groups,
+    pedsim_msgs::Waypoints waypoints,
+    pedsim_msgs::Walls walls,
+    pedsim_msgs::Obstacles obstacles
+  );
 
  private:
   ros::NodeHandle nh_;
@@ -127,11 +129,12 @@ class Simulator {
   ros::Timer spawn_timer_;
 
   // publishers
-  ros::Publisher pub_obstacles_;
+  ros::Publisher pub_walls_;
   ros::Publisher pub_agent_states_;
   ros::Publisher pub_agent_groups_;
   ros::Publisher pub_robot_position_;
   ros::Publisher pub_waypoints_;
+  ros::Publisher pub_obstacles_;
   
   // pedsim_waypoint_plugin
   ros::Publisher pub_waypoint_plugin_;

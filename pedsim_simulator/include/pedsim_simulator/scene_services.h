@@ -13,15 +13,15 @@
 #include <pedsim_simulator/scene.h>
 #include <pedsim_simulator/waypointplanner/waypointplanner.h>
 #include <pedsim_srvs/SpawnPeds.h>
-#include <pedsim_srvs/SpawnObstacle.h>
-#include <pedsim_srvs/SpawnInteractiveObstacles.h>
+#include <pedsim_srvs/SpawnWalls.h>
+#include <pedsim_srvs/SpawnObstacles.h>
 #include <pedsim_srvs/MovePeds.h>
 #include <pedsim_srvs/RegisterRobot.h>
 #include <flatland_msgs/Model.h>
 #include <pedsim_msgs/Ped.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
-#include <pedsim_msgs/InteractiveObstacle.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
+#include <pedsim_msgs/Waypoint.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <yaml-cpp/yaml.h>
@@ -37,17 +37,22 @@ public:
   SceneServices();
   virtual ~SceneServices() = default;
 
-  ros::ServiceServer respawn_peds_service_;
-  ros::ServiceServer remove_all_peds_service_;
-  ros::ServiceServer remove_all_peds_behavior_modelling_service_;
-  ros::ServiceServer spawn_ped_service_;
-  ros::ServiceServer add_obstacle_service_;
-  ros::ServiceServer move_peds_service_;
+  ros::ServiceServer reset_service_;
+
   ros::ServiceServer spawn_peds_service_;
-  ros::ServiceServer reset_peds_service_;
-  ros::ServiceServer respawn_interactive_obstacles_service_;
-  ros::ServiceServer spawn_interactive_obstacles_service_;
-  ros::ServiceServer remove_all_interactive_obstacles_service_;
+  ros::ServiceServer respawn_peds_service_;
+  ros::ServiceServer move_peds_service_;
+  ros::ServiceServer remove_all_peds_service_;
+  ros::ServiceServer reset_all_peds_service_;
+  // ros::ServiceServer remove_all_peds_behavior_modelling_service_;
+  
+  ros::ServiceServer add_walls_service_;
+  ros::ServiceServer clear_walls_service_;
+  
+  ros::ServiceServer spawn_obstacles_service_;
+  ros::ServiceServer respawn_obstacles_service_;
+  ros::ServiceServer remove_all_obstacles_service_;
+  
   ros::ServiceServer register_robot_service_;
 
   bool env_is_flatland = true;
@@ -73,17 +78,17 @@ public:
   /**
    * @brief Repawn interactive obstacles
    */
-  bool respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+  bool respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Spawn interactive obstacles
    */
-  bool spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+  bool spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Remove all interactive obstacles
    */
-  bool removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
+  bool removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
    * @brief Respawning means reusing objects from previous tasks.
@@ -98,8 +103,14 @@ public:
   /**
    * @brief Adding static obstacles to pedsim.
    */
-  bool addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
-                          pedsim_srvs::SpawnObstacle::Response &response);
+  bool addWalls(pedsim_srvs::SpawnWalls::Request &request,
+                          pedsim_srvs::SpawnWalls::Response &response);
+
+  bool clearWalls(std_srvs::Trigger::Request &request,
+                          std_srvs::Trigger::Response &response);
+
+  bool reset(std_srvs::Trigger::Request &request,
+                          std_srvs::Trigger::Response &response);
 
   bool registerRobot(pedsim_srvs::RegisterRobot::Request &request,
                           pedsim_srvs::RegisterRobot::Response &response);
@@ -118,19 +129,19 @@ private:
   void removeAllReferencesToInteractiveObstacles();
   void removeAllInteractiveObstaclesFromPedsim();
   void removeAllInteractiveObstaclesFromFlatland();
-  std::vector<Obstacle *> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
+  std::vector<Wall *> getWallsFromFlatlandModel(pedsim_msgs::Obstacle obstacle, double yaw);
   int stringToEnumIndex(pedsim::id str, std::vector<pedsim::id> values);
 
-  pedsim::id spawn_models_topic_;
+  std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
 
   // pedsim::id respawn_models_topic_;
   // ros::ServiceClient respawn_models_client_;
 
-  pedsim::id delete_models_topic_;
+  std::string delete_models_topic_;
   ros::ServiceClient delete_models_client_;
 
-  std::vector<Obstacle *> walls;
+  std::vector<Wall *> walls;
 };
 
 #endif /* _scene_service_h_ */

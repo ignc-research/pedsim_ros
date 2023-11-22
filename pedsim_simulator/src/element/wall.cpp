@@ -29,50 +29,50 @@
 * \author Sven Wehner <mail@svenwehner.de>
 */
 
-#include <pedsim_simulator/element/obstacle.h>
+#include <pedsim_simulator/element/wall.h>
 
-Obstacle::Obstacle(double pax, double pay, double pbx, double pby)
+Wall::Wall(double pax, double pay, double pbx, double pby)
     : Tobstacle(pax, pay, pbx, pby){};
 
-Obstacle::~Obstacle() {}
+Wall::~Wall() {}
 
 /// moves the obstacle to a new position
-void Obstacle::setPosition(double pax, double pay, double pbx, double pby) {
+void Wall::setPosition(double pax, double pay, double pbx, double pby) {
   Tobstacle::setPosition(pax, pay, pbx, pby);
 
   // inform users
   emit positionChanged();
 }
 
-void Obstacle::setPosition(const QPointF& startIn, const QPointF& endIn) {
+void Wall::setPosition(const QPointF& startIn, const QPointF& endIn) {
   setPosition(startIn.x(), startIn.y(), endIn.x(), endIn.y());
 }
 
-void Obstacle::setX1(double xIn) {
+void Wall::setX1(double xIn) {
   // update x1, keep the other values
   setPosition(xIn, getay(), getbx(), getby());
 }
 
-void Obstacle::setY1(double yIn) {
+void Wall::setY1(double yIn) {
   // update y1, keep the other values
   setPosition(getax(), yIn, getbx(), getby());
 }
 
-void Obstacle::setX2(double xIn) {
+void Wall::setX2(double xIn) {
   // update y2, keep the other values
   setPosition(getax(), getay(), xIn, getby());
 }
 
-void Obstacle::setY2(double yIn) {
+void Wall::setY2(double yIn) {
   // update x2, keep the other values
   setPosition(getax(), getay(), getbx(), yIn);
 }
 
-QPointF Obstacle::getVisiblePosition() const {
+QPointF Wall::getVisiblePosition() const {
   return QPointF(getax(), getay());
 }
 
-void Obstacle::setVisiblePosition(const QPointF& positionIn) {
+void Wall::setVisiblePosition(const QPointF& positionIn) {
   // compute new end position
   QPointF deltaPos(positionIn.x() - getax(), positionIn.y() - getay());
   QPointF endPos = QPointF(getbx(), getby()) + deltaPos;
@@ -84,8 +84,8 @@ void Obstacle::setVisiblePosition(const QPointF& positionIn) {
   emit positionChanged();
 }
 
-QString Obstacle::toString() const {
-  return tr("Obstacle (%1,%2 - %3,%4)")
+QString Wall::toString() const {
+  return tr("Wall (%1,%2 - %3,%4)")
       .arg(getax())
       .arg(getay())
       .arg(getbx())

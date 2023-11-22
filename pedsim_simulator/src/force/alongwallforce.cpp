@@ -31,7 +31,7 @@
 
 #include <pedsim_simulator/config.h>
 #include <pedsim_simulator/element/agent.h>
-#include <pedsim_simulator/element/obstacle.h>
+#include <pedsim_simulator/element/wall.h>
 #include <pedsim_simulator/force/alongwallforce.h>
 #include <pedsim_simulator/scene.h>
 
@@ -67,17 +67,17 @@ Ped::Tvector AlongWallForce::getForce(Ped::Tvector walkingDirection) {
   // → walks against an obstacle
   Ped::Tvector force;
   Ped::Tvector agentPosition = agent->getPosition();
-  const QList<Obstacle*>& obstacles = SCENE.getObstacles();
+  const QList<Wall*>& walls = SCENE.getWalls();
   // → find closest obstacle
   double minDistance = INFINITY;
   Ped::Tvector minDiff;
-  Obstacle* minObstacle = nullptr;
-  foreach (Obstacle* currentObstacle, obstacles) {
-    Ped::Tvector closestPoint = currentObstacle->closestPoint(agentPosition);
+  Wall* minObstacle = nullptr;
+  foreach (Wall* currentWall, walls) {
+    Ped::Tvector closestPoint = currentWall->closestPoint(agentPosition);
     Ped::Tvector diff = closestPoint - agentPosition;
     double distance = diff.length();
     if (distance < minDistance) {
-      minObstacle = currentObstacle;
+      minObstacle = currentWall;
       minDiff = diff;
       minDistance = distance;
     }

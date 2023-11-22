@@ -44,8 +44,8 @@
 #include <pedsim_msgs/AgentGroups.h>
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
 
@@ -88,7 +88,7 @@ class SimVisualizer {
   // callbacks.
   void agentStatesCallBack(const pedsim_msgs::AgentStatesConstPtr& agents);
   void agentGroupsCallBack(const pedsim_msgs::AgentGroupsConstPtr& groups);
-  void obstaclesCallBack(const pedsim_msgs::LineObstaclesConstPtr& obstacles);
+  void obstaclesCallBack(const pedsim_msgs::WallsConstPtr& obstacles);
   void waypointsCallBack(const pedsim_msgs::WaypointsConstPtr& waypoints);
 
  protected:
@@ -97,7 +97,7 @@ class SimVisualizer {
   void publishRelationVisuals();
   void publishActivityVisuals();
   void publishGroupVisuals();
-  void publishObstacleVisuals();
+  void publishWallVisuals();
   void publishWaypointVisuals();
 
  private:
@@ -107,7 +107,7 @@ class SimVisualizer {
   double hz_;
 
   /// publishers
-  ros::Publisher pub_obstacles_visuals_;
+  ros::Publisher pub_walls_visuals_;
   ros::Publisher pub_person_visuals_;
   ros::Publisher pub_group_visuals_;
   ros::Publisher pub_forces_;
@@ -122,7 +122,7 @@ class SimVisualizer {
   /// Local data queues.
   std::queue<pedsim_msgs::AgentStatesConstPtr> q_people_;
   std::queue<pedsim_msgs::AgentGroupsConstPtr> q_groups_;
-  std::queue<pedsim_msgs::LineObstaclesConstPtr> q_obstacles_;
+  std::queue<pedsim_msgs::WallsConstPtr> q_walls_;
   std::queue<pedsim_msgs::WaypointsConstPtr> q_waypoints_;
 };
 }  // namespace pedsim

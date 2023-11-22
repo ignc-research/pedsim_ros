@@ -21,8 +21,8 @@ add_message_files( DIRECTORY msg
   AgentGroup.msg
   AgentGroups.msg
   AgentForce.msg
-  LineObstacle.msg
-  LineObstacles.msg
+  Wall.msg
+  Walls.msg
   TrackedPerson.msg
   TrackedPersons.msg
   TrackedGroup.msg
@@ -34,7 +34,8 @@ add_message_files( DIRECTORY msg
   Waypoint.msg
   Waypoints.msg
   Ped.msg
-  InteractiveObstacle.msg
+  Obstacle.msg
+  Obstacles.msg
   RobotState.msg
   WaypointPluginDataframe.msg
   AgentFeedback.msg

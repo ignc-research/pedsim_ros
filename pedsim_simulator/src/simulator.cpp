@@ -77,8 +77,8 @@ bool Simulator::initializeSimulation()
                           : ""));
 
   // setup ros publishers
-  pub_obstacles_ =
-      nh_.advertise<pedsim_msgs::LineObstacles>("simulated_walls", queue_size);
+  pub_walls_ =
+      nh_.advertise<pedsim_msgs::Walls>("simulated_walls", queue_size);
   pub_agent_states_ =
       nh_.advertise<pedsim_msgs::AgentStates>("simulated_agents", queue_size);
   pub_agent_groups_ =
@@ -87,6 +87,8 @@ bool Simulator::initializeSimulation()
       nh_.advertise<nav_msgs::Odometry>("robot_position", queue_size);
   pub_waypoints_ =
       nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
+  pub_obstacles_ =
+      nh_.advertise<pedsim_msgs::Obstacles>("simulated_obstacles", queue_size);
   
   pub_waypoint_plugin_ = 
       nh_.advertise<pedsim_msgs::WaypointPluginDataframe>("waypoint_plugin_data", queue_size);
@@ -203,14 +205,16 @@ void Simulator::runSimulation()
       auto agents = getAgentStates();
       auto groups = pedsim_msgs::AgentGroups();
       auto waypoints = getWaypoints();
+      auto walls = getWalls();
       auto obstacles = getObstacles();
 
       publishAgents(agents);
       // publishGroups(groups);
       // publishRobotPosition();
+      publishWalls(walls);
       publishObstacles(obstacles);
       publishWaypoints(waypoints);
-      publishWaypointPlugin(agents, groups, waypoints, obstacles);
+      publishWaypointPlugin(agents, groups, waypoints, walls, obstacles);
     }
     ros::spinOnce();
     r.sleep();
@@ -484,25 +488,42 @@ void Simulator::publishGroups()
   pub_agent_groups_.publish(sim_groups);
 }
 
-pedsim_msgs::LineObstacles Simulator::getObstacles()
+pedsim_msgs::Walls Simulator::getWalls()
 { 
-  pedsim_msgs::LineObstacles sim_obstacles;
-  sim_obstacles.header = createMsgHeader();
-  for (const auto &obstacle : SCENE.getObstacles())
+  pedsim_msgs::Walls sim_walls;
+  sim_walls.header = createMsgHeader();
+  for (const auto &obstacle : SCENE.getWalls())
   {
-    pedsim_msgs::LineObstacle line_obstacle;
+    pedsim_msgs::Wall line_obstacle;
     line_obstacle.start.x = obstacle->getax();
     line_obstacle.start.y = obstacle->getay();
     line_obstacle.start.z = 0.0;
     line_obstacle.end.x = obstacle->getbx();
     line_obstacle.end.y = obstacle->getby();
     line_obstacle.end.z = 0.0;
-    sim_obstacles.obstacles.push_back(line_obstacle);
+    sim_walls.walls.push_back(line_obstacle);
+  }
+  return sim_walls;
+}
+
+pedsim_msgs::Obstacles Simulator::getObstacles(){
+  pedsim_msgs::Obstacles sim_obstacles;
+  sim_obstacles.header = createMsgHeader();
+  for (const auto &sceneObstacle : SCENE.getObstacles())
+  {
+    pedsim_msgs::Obstacle obstacle;
+    obstacle = sceneObstacle->obstacle;
+    sim_obstacles.obstacles.push_back(obstacle);
   }
   return sim_obstacles;
 }
 
-void Simulator::publishObstacles(pedsim_msgs::LineObstacles obstacles)
+void Simulator::publishWalls(pedsim_msgs::Walls walls)
+{
+  pub_walls_.publish(walls);
+}
+
+void Simulator::publishObstacles(pedsim_msgs::Obstacles obstacles)
 {
   pub_obstacles_.publish(obstacles);
 }
@@ -557,7 +578,8 @@ void Simulator::publishWaypointPlugin(
   pedsim_msgs::AgentStates agents,
   pedsim_msgs::AgentGroups groups,
   pedsim_msgs::Waypoints waypoints,
-  pedsim_msgs::LineObstacles obstacles
+  pedsim_msgs::Walls walls,
+  pedsim_msgs::Obstacles obstacles
 ){
   pedsim_msgs::WaypointPluginDataframe dataframe;
 
@@ -570,7 +592,8 @@ void Simulator::publishWaypointPlugin(
 
   dataframe.simulated_groups = groups.groups;
   dataframe.simulated_waypoints = waypoints.waypoints;
-  dataframe.line_obstacles = obstacles.obstacles;
+  dataframe.walls = walls.walls;
+  dataframe.obstacles = obstacles.obstacles;
 
   pub_waypoint_plugin_.publish(dataframe);
 }

@@ -66,7 +66,7 @@ set(SOURCES
 	src/element/queueingwaypoint.cpp
 	src/element/waitingqueue.cpp
 	src/element/waypoint.cpp
-	src/element/obstacle.cpp
+	src/element/wall.cpp
 	src/element/scenarioelement.cpp
 	src/element/robot.cpp
 
@@ -100,6 +100,7 @@ set(MOC_FILES
 	include/pedsim_simulator/element/agentgroup.h
 	include/pedsim_simulator/element/attractionarea.h
 	include/pedsim_simulator/element/obstacle.h
+	include/pedsim_simulator/element/wall.h
 	include/pedsim_simulator/element/waypoint.h
 	include/pedsim_simulator/element/areawaypoint.h
 	include/pedsim_simulator/element/waitingqueue.h
