@@ -37,16 +37,15 @@ SceneServices::SceneServices()
   move_peds_service_ = nh_.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
   reset_all_peds_service_ = nh_.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::resetPeds, this);
   remove_all_peds_service_ = nh_.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
-  
+
   add_walls_service_ = nh_.advertiseService("pedsim_simulator/add_walls", &SceneServices::addWalls, this);
   clear_walls_service_ = nh_.advertiseService("pedsim_simulator/clear_walls", &SceneServices::clearWalls, this);
-  
+
   spawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/spawn_obstacles", &SceneServices::spawnObstacles, this);
   respawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/respawn_obstacles", &SceneServices::respawnObstacles, this);
   remove_all_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_obstacles", &SceneServices::removeAllObstacles, this);
 
   register_robot_service_ = nh_.advertiseService("pedsim_simulator/register_robot", &SceneServices::registerRobot, this);
-  
 
   // Check if flatland is the chosen simulation environment
   pedsim::id environment;
@@ -69,7 +68,8 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
 {
   std::vector<flatland_msgs::Model> flatland_models;
 
-  for (auto &ped : request.peds){
+  for (auto &ped : request.peds)
+  {
     std::vector<pedsim::id> new_agent_ids = generateAgentIds(ped.id, ped.number_of_peds);
 
     // add ped to pedsim
@@ -197,7 +197,7 @@ bool SceneServices::spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request
 
     auto q = obstacle.pose.orientation;
     // https://stackoverflow.com/a/37560411
-    double yaw = atan2(2.0 * (q.z * q.w + q.x * q.y) , - 1.0 + 2.0 * (q.w * q.w + q.x * q.x));
+    double yaw = atan2(2.0 * (q.z * q.w + q.x * q.y), -1.0 + 2.0 * (q.w * q.w + q.x * q.x));
 
     // double yaw = 0.0;
 
@@ -264,7 +264,7 @@ bool SceneServices::spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request
       SCENE.addWall(wall);
     }
 
-    Obstacle* sceneObstacle = new Obstacle();
+    Obstacle *sceneObstacle = new Obstacle();
     sceneObstacle->obstacle = obstacle;
     sceneObstacle->walls = new_walls;
 
@@ -413,7 +413,7 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pe
   uniform_real_distribution<double> distribution_x(ped.pos.x - 1.0, ped.pos.x + 1.0);
   uniform_real_distribution<double> distribution_y(ped.pos.y - 1.0, ped.pos.y + 1.0);
 
-  for (auto& id : ids)
+  for (auto &id : ids)
   {
     Agent *a = new Agent(id);
 
@@ -547,7 +547,7 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
 {
   std::vector<flatland_msgs::Model> flatland_msg;
 
-  for (auto& id : ids)
+  for (auto &id : ids)
   {
     flatland_msgs::Model model;
     model.yaml_path = ped.yaml_file;
@@ -563,9 +563,9 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
 }
 
 bool SceneServices::addWalls(pedsim_srvs::SpawnWalls::Request &request,
-                                       pedsim_srvs::SpawnWalls::Response &response)
+                             pedsim_srvs::SpawnWalls::Response &response)
 {
-  for (auto& wall: request.walls)
+  for (auto &wall : request.walls)
   {
     Wall *o = new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y);
     // This is causing random walls getting spawned
@@ -593,9 +593,7 @@ bool SceneServices::reset(std_srvs::Trigger::Request &request, std_srvs::Trigger
   std_srvs::SetBool::Request req;
   std_srvs::SetBool::Response res;
 
-  return removeAllPeds(req, res)
-    & removeAllObstacles(request, response) 
-    & clearWalls(request, response);
+  return removeAllPeds(req, res) & removeAllObstacles(request, response) & clearWalls(request, response);
 }
 
 bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
@@ -612,7 +610,7 @@ bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &re
 std::vector<pedsim::id> SceneServices::generateAgentIds(pedsim::id base, int n = 1)
 {
 
-  if(n == 1)
+  if (n == 1)
     return std::vector<pedsim::id>({base});
 
   std::vector<pedsim::id> ids;
@@ -725,12 +723,11 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
   if (type.as<std::string>() == "polygon")
   {
     auto points = footprint["points"];
-    for (int i = 0; i < (int)points.size() - 1; i++)
+    auto nPoints = points.size();
+    for (size_t i = 0; i < nPoints; i++)
     {
-      auto start = Ped::Tvector(points[i][0].as<float>(), points[i][1].as<float>());
-      start.rotate(Ped::Tangle::fromRadian(yaw));
-      auto end = Ped::Tvector(points[i + 1][0].as<float>(), points[i + 1][1].as<float>());
-      end.rotate(Ped::Tangle::fromRadian(yaw));
+      auto start = Ped::Tvector(points[i][0].as<float>(), points[i][1].as<float>()).rotated(yaw);
+      auto end = Ped::Tvector(points[(i + 1) % nPoints][0].as<float>(), points[(i + 1) % nPoints][1].as<float>()).rotated(yaw);
       Wall *wall = new Wall(
           pos.x + start.x,
           pos.y + start.y,
@@ -738,18 +735,6 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
           pos.y + end.y);
       new_walls.push_back(wall);
     }
-
-    // connect last and first point
-    auto first = Ped::Tvector(points[0][0].as<float>(), points[0][1].as<float>());
-    first.rotate(Ped::Tangle::fromRadian(yaw));
-    auto last = Ped::Tvector(points[points.size() - 1][0].as<float>(), points[points.size() - 1][1].as<float>());
-    last.rotate(Ped::Tangle::fromRadian(yaw));
-    Wall *closing_wall = new Wall(
-        pos.x + first.x,
-        pos.y + first.y,
-        pos.x + last.x,
-        pos.y + last.y);
-    new_walls.push_back(closing_wall);
   }
   else if (type.as<std::string>() == "circle")
   {
@@ -760,37 +745,34 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
     auto r = footprint["radius"].as<float>();
 
     std::vector<Ped::Tvector> corners = {
-      Ped::Tvector(pos.x+cx + r, pos.y+cy + r),
-      Ped::Tvector(pos.x+cx + r, pos.y+cy - r),
-      Ped::Tvector(pos.x+cx - r, pos.y+cy - r),
-      Ped::Tvector(pos.x+cx - r, pos.y+cy + r)
-    };
+        Ped::Tvector(pos.x + cx + r, pos.y + cy + r).rotated(yaw),
+        Ped::Tvector(pos.x + cx + r, pos.y + cy - r).rotated(yaw),
+        Ped::Tvector(pos.x + cx - r, pos.y + cy - r).rotated(yaw),
+        Ped::Tvector(pos.x + cx - r, pos.y + cy + r).rotated(yaw)};
 
     auto nCorners = corners.size();
-    for(std::size_t i=0; i<nCorners; i++){
+    for (std::size_t i = 0; i < nCorners; i++)
+    {
       auto from = corners.at(i);
-      auto to = corners.at((i+1)%nCorners);
+      auto to = corners.at((i + 1) % nCorners);
       new_walls.push_back(
-        new Wall(
-          from.x,
-          from.y,
-          to.x,
-          to.y
-        )
-      );
+          new Wall(
+              from.x,
+              from.y,
+              to.x,
+              to.y));
     }
-    
   }
   return new_walls;
 }
 
-bool SceneServices::registerRobot(pedsim_srvs::RegisterRobot::Request &request, pedsim_srvs::RegisterRobot::Response &response){
-  
-  Robot* robot = new Robot(
-    request.name,
-    request.odom_topic,
-    this->nh_
-  );
+bool SceneServices::registerRobot(pedsim_srvs::RegisterRobot::Request &request, pedsim_srvs::RegisterRobot::Response &response)
+{
+
+  Robot *robot = new Robot(
+      request.name,
+      request.odom_topic,
+      this->nh_);
 
   SCENE.addRobot(robot);
 
