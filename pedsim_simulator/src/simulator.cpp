@@ -501,7 +501,14 @@ pedsim_msgs::Walls Simulator::getWalls()
     line_obstacle.end.x = obstacle->getbx();
     line_obstacle.end.y = obstacle->getby();
     line_obstacle.end.z = 0.0;
-    sim_walls.walls.push_back(line_obstacle);
+
+    if(// happens sometimes, don't care why
+      std::isnormal((float)line_obstacle.start.x) &&
+      std::isnormal((float)line_obstacle.start.y) &&
+      std::isnormal((float)line_obstacle.end.x) &&
+      std::isnormal((float)line_obstacle.end.y)
+    ) 
+      sim_walls.walls.push_back(line_obstacle);
   }
   return sim_walls;
 }

@@ -86,10 +86,10 @@ class SimVisualizer {
   void run();
 
   // callbacks.
-  void agentStatesCallBack(const pedsim_msgs::AgentStatesConstPtr& agents);
-  void agentGroupsCallBack(const pedsim_msgs::AgentGroupsConstPtr& groups);
-  void obstaclesCallBack(const pedsim_msgs::WallsConstPtr& obstacles);
-  void waypointsCallBack(const pedsim_msgs::WaypointsConstPtr& waypoints);
+  void agentStatesCallBack(const pedsim_msgs::AgentStatesPtr& agents);
+  void agentGroupsCallBack(const pedsim_msgs::AgentGroupsPtr& groups);
+  void obstaclesCallBack(const pedsim_msgs::WallsPtr& obstacles);
+  void waypointsCallBack(const pedsim_msgs::WaypointsPtr& waypoints);
 
  protected:
   /// publishers
@@ -120,10 +120,10 @@ class SimVisualizer {
   ros::Subscriber sub_waypoints_;
 
   /// Local data queues.
-  std::queue<pedsim_msgs::AgentStatesConstPtr> q_people_;
-  std::queue<pedsim_msgs::AgentGroupsConstPtr> q_groups_;
-  std::queue<pedsim_msgs::WallsConstPtr> q_walls_;
-  std::queue<pedsim_msgs::WaypointsConstPtr> q_waypoints_;
+  pedsim_msgs::AgentStatesPtr q_people_;
+  pedsim_msgs::AgentGroupsPtr q_groups_;
+  pedsim_msgs::WallsPtr q_walls_;
+  pedsim_msgs::WaypointsPtr q_waypoints_;
 };
 }  // namespace pedsim
 

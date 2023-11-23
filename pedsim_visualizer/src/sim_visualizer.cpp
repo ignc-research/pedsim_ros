@@ -77,37 +77,37 @@ namespace pedsim
 
   // callbacks.
   void SimVisualizer::agentStatesCallBack(
-      const pedsim_msgs::AgentStatesConstPtr &agents)
+      const pedsim_msgs::AgentStatesPtr &agents)
   {
-    q_people_.emplace(agents);
+    q_people_ = agents;
   }
   void SimVisualizer::agentGroupsCallBack(
-      const pedsim_msgs::AgentGroupsConstPtr &groups)
+      const pedsim_msgs::AgentGroupsPtr &groups)
   {
-    q_groups_.emplace(groups);
+    q_groups_ = groups;
   }
 
   void SimVisualizer::obstaclesCallBack(
-      const pedsim_msgs::WallsConstPtr &obstacles)
+      const pedsim_msgs::WallsPtr &walls)
   {
-    q_walls_.emplace(obstacles);
+    q_walls_ = walls;
   }
 
   void SimVisualizer::waypointsCallBack(
-      const pedsim_msgs::WaypointsConstPtr &waypoints)
+      const pedsim_msgs::WaypointsPtr &waypoints)
   {
-    q_waypoints_.emplace(waypoints);
+    q_waypoints_ = waypoints;
   }
 
   /// publishers
   void SimVisualizer::publishAgentVisuals()
   {
-    if (q_people_.size() < 1)
+    if (!q_people_)
     {
       return;
     }
 
-    const auto current_states = q_people_.front();
+    const auto current_states = q_people_;
 
     visualization_msgs::MarkerArray forces_markers;
     visualization_msgs::Marker force_marker;
@@ -194,18 +194,18 @@ namespace pedsim
 
     pub_person_visuals_.publish(tracked_people);
     pub_forces_.publish(forces_markers);
-    q_people_.pop();
+    q_people_.reset();
   }
 
   void SimVisualizer::publishGroupVisuals()
   {
-    if (q_groups_.empty())
+    if (!q_groups_)
     {
       ROS_DEBUG_STREAM("Skipping publishing groups");
       return;
     }
 
-    const auto sim_groups = q_groups_.front();
+    const auto sim_groups = q_groups_;
 
     pedsim_msgs::TrackedGroups tracked_groups;
     tracked_groups.header = sim_groups->header;
@@ -224,57 +224,55 @@ namespace pedsim
     }
 
     pub_group_visuals_.publish(tracked_groups);
-    q_groups_.pop();
+    q_groups_.reset();
   }
 
   void SimVisualizer::publishWallVisuals()
   {
-    if (q_walls_.size() < 1)
+    if (!q_walls_)
     {
       return;
     }
 
-    const auto current_walls = q_walls_.front();
+    const auto current_walls = q_walls_;
+
+    visualization_msgs::Marker reset;
+    reset.ns = "walls";
+    reset.action = visualization_msgs::Marker::DELETEALL;
+    pub_walls_visuals_.publish(reset);
 
     visualization_msgs::Marker walls_marker;
     walls_marker.header = current_walls->header;
-    walls_marker.id = 10000;
+    walls_marker.ns = "walls";
+    walls_marker.id = 0;
     walls_marker.color.a = 1.0;
     walls_marker.color.r = 0.647059;
     walls_marker.color.g = 0.164706;
     walls_marker.color.b = 0.164706;
-    walls_marker.scale.x = 1.0;
-    walls_marker.scale.y = 1.0;
-    walls_marker.scale.z = 2.0;
-    walls_marker.pose.position.z = walls_marker.scale.z / 2.0;
+    walls_marker.scale.x = 0.1;
     walls_marker.pose.orientation.w = 1.0;
-    walls_marker.type = visualization_msgs::Marker::CUBE_LIST;
+    walls_marker.type = visualization_msgs::Marker::LINE_LIST;
 
-    for (const auto &line : current_walls->walls)
+    for (const auto &wall : current_walls->walls)
     {
-      for (const auto &cell : LineObstacleToCells(line.start.x, line.start.y,
-                                                  line.end.x, line.end.y))
-      {
-        geometry_msgs::Point p;
-        p.x = cell.first;
-        p.y = cell.second;
-        p.z = 0.0;
-        walls_marker.points.push_back(p);
+      if(wall.start.x != wall.end.x || wall.start.y != wall.end.y){
+        walls_marker.points.push_back(wall.start);
+        walls_marker.points.push_back(wall.end);
       }
     }
 
     pub_walls_visuals_.publish(walls_marker);
-    q_walls_.pop();
+    q_walls_.reset();
   }
 
   void SimVisualizer::publishWaypointVisuals()
   {
-    if (q_waypoints_.size() < 1)
+    if (!q_waypoints_)
     {
       return;
     }
 
-    const auto current_waypoints = q_waypoints_.front();
+    const auto current_waypoints = q_waypoints_;
     visualization_msgs::Marker wp_marker;
     wp_marker.header = current_waypoints->header;
     wp_marker.action = visualization_msgs::Marker::ADD;
@@ -345,7 +343,7 @@ namespace pedsim
     }
     pub_waypoints_.publish(waypoint_markers);
 
-    q_waypoints_.pop();
+    q_waypoints_.reset();
   }
 
   void SimVisualizer::setupPublishersAndSubscribers()
