@@ -30,22 +30,22 @@ std::vector<pedsim::id> SceneServices::static_obstacle_names_;
 SceneServices::SceneServices()
 {
   // pedsim services
-  reset_service_ = nh_.advertiseService("pedsim_simulator/reset", &SceneServices::reset, this);
+  reset_service_ = nh_.advertiseService("pedsim_simulator/reset", &SceneServices::cb_reset, this);
 
-  spawn_peds_service_ = nh_.advertiseService("pedsim_simulator/spawn_peds", &SceneServices::spawnPeds, this);
-  respawn_peds_service_ = nh_.advertiseService("pedsim_simulator/respawn_peds", &SceneServices::respawnPeds, this);
-  move_peds_service_ = nh_.advertiseService("pedsim_simulator/move_peds", &SceneServices::moveAgentClustersInPedsim, this);
-  reset_all_peds_service_ = nh_.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::resetPeds, this);
-  remove_all_peds_service_ = nh_.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::removeAllPeds, this);
+  spawn_peds_service_ = nh_.advertiseService("pedsim_simulator/spawn_peds", &SceneServices::cb_spawnPeds, this);
+  respawn_peds_service_ = nh_.advertiseService("pedsim_simulator/respawn_peds", &SceneServices::cb_respawnPeds, this);
+  move_peds_service_ = nh_.advertiseService("pedsim_simulator/move_peds", &SceneServices::cb_moveAgentClustersInPedsim, this);
+  reset_all_peds_service_ = nh_.advertiseService("pedsim_simulator/reset_all_peds", &SceneServices::cb_resetPeds, this);
+  remove_all_peds_service_ = nh_.advertiseService("pedsim_simulator/remove_all_peds", &SceneServices::cb_removeAllPeds, this);
 
-  add_walls_service_ = nh_.advertiseService("pedsim_simulator/add_walls", &SceneServices::addWalls, this);
-  clear_walls_service_ = nh_.advertiseService("pedsim_simulator/clear_walls", &SceneServices::clearWalls, this);
+  add_walls_service_ = nh_.advertiseService("pedsim_simulator/add_walls", &SceneServices::cb_addWalls, this);
+  clear_walls_service_ = nh_.advertiseService("pedsim_simulator/clear_walls", &SceneServices::cb_clearWalls, this);
 
-  spawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/spawn_obstacles", &SceneServices::spawnObstacles, this);
-  respawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/respawn_obstacles", &SceneServices::respawnObstacles, this);
-  remove_all_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_obstacles", &SceneServices::removeAllObstacles, this);
+  spawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/spawn_obstacles", &SceneServices::cb_spawnObstacles, this);
+  respawn_obstacles_service_ = nh_.advertiseService("pedsim_simulator/respawn_obstacles", &SceneServices::cb_respawnObstacles, this);
+  remove_all_obstacles_service_ = nh_.advertiseService("pedsim_simulator/remove_all_obstacles", &SceneServices::cb_removeAllObstacles, this);
 
-  register_robot_service_ = nh_.advertiseService("pedsim_simulator/register_robot", &SceneServices::registerRobot, this);
+  register_robot_service_ = nh_.advertiseService("pedsim_simulator/register_robot", &SceneServices::cb_registerRobot, this);
 
   // Check if flatland is the chosen simulation environment
   pedsim::id environment;
@@ -64,7 +64,7 @@ SceneServices::SceneServices()
   }
 }
 
-bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response)
+bool SceneServices::cb_spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response)
 {
   std::vector<flatland_msgs::Model> flatland_models;
 
@@ -88,21 +88,21 @@ bool SceneServices::spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_s
   return true;
 }
 
-bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
+bool SceneServices::cb_respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                                 pedsim_srvs::SpawnPeds::Response &response)
 {
   ROS_DEBUG("called respawnPeds() with %ld peds", request.peds.size());
 
   std_srvs::SetBool::Request request_;
   std_srvs::SetBool::Response response_;
-  bool res = removeAllPeds(request_, response_);
+  bool res = cb_removeAllPeds(request_, response_);
   if (!res)
   {
     response.success = false;
     return false;
   }
 
-  res = spawnPeds(request, response);
+  res = cb_spawnPeds(request, response);
   if (!res)
   {
     response.success = false;
@@ -113,7 +113,7 @@ bool SceneServices::respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
   return true;
 }
 
-bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
+bool SceneServices::cb_removeAllPeds(std_srvs::SetBool::Request &request,
                                   std_srvs::SetBool::Response &response)
 {
   std::vector<pedsim::id> model_names = removePedsInPedsim();
@@ -132,63 +132,25 @@ bool SceneServices::removeAllPeds(std_srvs::SetBool::Request &request,
   return true;
 }
 
-// remove all agents and return a list of their names
-std::vector<pedsim::id> SceneServices::removePedsInPedsim()
-{
-  // Remove all waypoints
-  auto waypoints = SCENE.getWaypoints();
-  for (auto waypoint : waypoints.values())
-  {
-    if (!waypoint->isInteractive())
-    {
-      SCENE.removeWaypoint(waypoint);
-    }
-  }
 
-  // Remove all agents
-  std::vector<pedsim::id> names;
-  QList<Agent *> agents = SCENE.getAgents();
-  for (Agent *a : agents)
-  {
-    // don't remove robot
-    if (a->getType() == Ped::Tagent::ROBOT)
-    {
-      continue;
-    }
-    names.push_back(a->id);
-    SCENE.removeAgent(a);
-  }
-
-  // reset agent counters
-  if (env_is_flatland)
-  {
-    Ped::Tagent::staticid = 1;
-  }
-  else
-  {
-    Ped::Tagent::staticid = 20;
-  }
-  // ROS_INFO("staticid in scene_services.cpp: %d", Ped::Tagent::staticid);
-  agents_index_ = 1;
-
-  return names;
-}
-
-bool SceneServices::respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response)
+bool SceneServices::cb_respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response)
 {
   // remove old
   std_srvs::Trigger::Request trigger_request;
   std_srvs::Trigger::Response trigger_response;
 
-  removeAllObstacles(trigger_request, trigger_response);
+  if(!cb_removeAllObstacles(trigger_request, trigger_response)){
+    response.success = false;
+    return false;
+  }
   // spawn new
-  bool res = spawnObstacles(request, response);
+  bool res = cb_spawnObstacles(request, response);
 
   response.success = res;
   return res;
 }
 
-bool SceneServices::spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response)
+bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response)
 {
   std::vector<flatland_msgs::Model> new_models;
 
@@ -282,14 +244,15 @@ bool SceneServices::spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request
   }
   if (env_is_flatland)
   {
-    auto res = spawnModelsInFlatland(new_models);
-
-    return true;
+    bool res = spawnModelsInFlatland(new_models);
+    response.success = res;
+    return res;
   }
+  response.success = true;
   return true;
 }
 
-void SceneServices::removeAllReferencesToInteractiveObstacles()
+bool SceneServices::removeAllReferencesToInteractiveObstacles()
 {
   // check agents that are referencing interactive waypoints
   auto agents = SCENE.getAgents();
@@ -338,9 +301,11 @@ void SceneServices::removeAllReferencesToInteractiveObstacles()
       }
     }
   }
+
+  return true;
 }
 
-void SceneServices::removeAllInteractiveObstaclesFromPedsim()
+bool SceneServices::removeAllInteractiveObstaclesFromPedsim()
 {
   removeAllReferencesToInteractiveObstacles();
 
@@ -362,20 +327,25 @@ void SceneServices::removeAllInteractiveObstaclesFromPedsim()
 
   // remove obstacles
   SCENE.removeAllObstacles();
+
+  return true;
 }
 
-void SceneServices::removeAllInteractiveObstaclesFromFlatland()
+bool SceneServices::removeAllInteractiveObstaclesFromFlatland()
 {
-  removeModelsInFlatland(static_obstacle_names_);
+  return removeModelsInFlatland(static_obstacle_names_);
 }
 
-bool SceneServices::removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+bool SceneServices::cb_removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
   ROS_DEBUG("Removing all interactive obstacles");
   removeAllInteractiveObstaclesFromPedsim();
   if (env_is_flatland)
   {
-    removeAllInteractiveObstaclesFromFlatland();
+    if(!removeAllInteractiveObstaclesFromFlatland()){
+      response.success = false;
+      return false;
+    }
   }
   static_obstacles_index_ = 1;
   static_obstacle_names_.clear();
@@ -384,7 +354,7 @@ bool SceneServices::removeAllObstacles(std_srvs::Trigger::Request &request, std_
   return true;
 }
 
-bool SceneServices::resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+bool SceneServices::cb_resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
   QList<Agent *> agents = SCENE.getAgents();
   for (Agent *a : agents)
@@ -408,7 +378,7 @@ int SceneServices::stringToEnumIndex(std::string str, std::vector<std::string> v
   return index;
 }
 
-void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids)
+bool SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids)
 {
   uniform_real_distribution<double> distribution_x(ped.pos.x - 1.0, ped.pos.x + 1.0);
   uniform_real_distribution<double> distribution_y(ped.pos.y - 1.0, ped.pos.y + 1.0);
@@ -541,6 +511,8 @@ void SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pe
     // add agent to scene
     SCENE.addAgent(a);
   }
+
+  return true;
 }
 
 std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids)
@@ -562,7 +534,7 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
   return flatland_msg;
 }
 
-bool SceneServices::addWalls(pedsim_srvs::SpawnWalls::Request &request,
+bool SceneServices::cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
                              pedsim_srvs::SpawnWalls::Response &response)
 {
   for (auto &wall : request.walls)
@@ -576,7 +548,7 @@ bool SceneServices::addWalls(pedsim_srvs::SpawnWalls::Request &request,
   return true;
 }
 
-bool SceneServices::clearWalls(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+bool SceneServices::cb_clearWalls(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
   ROS_DEBUG("Clearing walls.");
   bool success = true;
@@ -588,21 +560,35 @@ bool SceneServices::clearWalls(std_srvs::Trigger::Request &request, std_srvs::Tr
   return true;
 }
 
-bool SceneServices::reset(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
+bool SceneServices::cb_reset(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
 {
   std_srvs::SetBool::Request req;
   std_srvs::SetBool::Response res;
 
-  return removeAllPeds(req, res) & removeAllObstacles(request, response) & clearWalls(request, response);
+  return cb_removeAllPeds(req, res) & cb_removeAllObstacles(request, response) & cb_clearWalls(request, response);
 }
 
-bool SceneServices::moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
+bool SceneServices::cb_moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
                                               pedsim_srvs::MovePeds::Response &response)
 {
   SCENE.episode = request.episode;
   SCENE.moveClusters(request.episode);
   // static obstacle infos are updated every episode too
   // SCENE.removeAllWalls();
+  response.finished = true;
+  return true;
+}
+
+bool SceneServices::cb_registerRobot(pedsim_srvs::RegisterRobot::Request &request, pedsim_srvs::RegisterRobot::Response &response)
+{
+
+  Robot *robot = new Robot(
+      request.name,
+      request.odom_topic,
+      this->nh_);
+
+  SCENE.addRobot(robot);
+
   response.finished = true;
   return true;
 }
@@ -766,16 +752,38 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
   return new_walls;
 }
 
-bool SceneServices::registerRobot(pedsim_srvs::RegisterRobot::Request &request, pedsim_srvs::RegisterRobot::Response &response)
+
+
+
+// remove all agents and return a list of their names
+std::vector<pedsim::id> SceneServices::removePedsInPedsim()
 {
+  // Remove all waypoints
+  auto waypoints = SCENE.getWaypoints();
+  for (auto waypoint : waypoints.values())
+  {
+    if (!waypoint->isInteractive())
+    {
+      SCENE.removeWaypoint(waypoint);
+    }
+  }
 
-  Robot *robot = new Robot(
-      request.name,
-      request.odom_topic,
-      this->nh_);
+  // Remove all agents
+  std::vector<pedsim::id> names;
+  QList<Agent *> agents = SCENE.getAgents();
+  for (Agent *a : agents)
+  {
+    // don't remove robot
+    if (a->getType() == Ped::Tagent::ROBOT)
+    {
+      continue;
+    }
+    names.push_back(a->id);
+    SCENE.removeAgent(a);
+  }
 
-  SCENE.addRobot(robot);
+  // ROS_INFO("staticid in scene_services.cpp: %d", Ped::Tagent::staticid);
+  agents_index_ = 1;
 
-  response.finished = true;
-  return true;
+  return names;
 }

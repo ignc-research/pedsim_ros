@@ -33,7 +33,7 @@
 
 AttractionArea::AttractionArea(const QString& nameIn) : name(nameIn) {
   static int staticid = 1000;
-  id_ = staticid++;
+  id_ = std::to_string(staticid++);
   // initialize values
   size.setWidth(0);
   size.setHeight(0);

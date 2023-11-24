@@ -250,6 +250,7 @@ namespace pedsim
     walls_marker.color.g = 0.164706;
     walls_marker.color.b = 0.164706;
     walls_marker.scale.x = 0.1;
+    walls_marker.pose.position.z = -0.01; //laserscan always on top
     walls_marker.pose.orientation.w = 1.0;
     walls_marker.type = visualization_msgs::Marker::LINE_LIST;
 

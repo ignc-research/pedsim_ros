@@ -22,7 +22,7 @@ default_random_engine generator;
 /// Default Constructor
 Ped::Tagent::Tagent()
 {
-  id = staticid++;
+  id = std::to_string(staticid++);
   p.x = 0;
   p.y = 0;
   p.z = 0;

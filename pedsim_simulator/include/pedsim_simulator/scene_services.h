@@ -63,56 +63,56 @@ public:
   /**
    * @brief Spawns pedestrian in pedsim and flatland.
    */
-  bool spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response);
+  bool cb_spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response);
 
   /**
    * @brief Removes all pedestrians in flatland.
    */
-  bool removeAllPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
+  bool cb_removeAllPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
    * @brief Resets all pedestrians to their initial position and state
    */
-  bool resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
+  bool cb_resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
    * @brief Repawn interactive obstacles
    */
-  bool respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
+  bool cb_respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Spawn interactive obstacles
    */
-  bool spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
+  bool cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Remove all interactive obstacles
    */
-  bool removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
+  bool cb_removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
    * @brief Respawning means reusing objects from previous tasks.
    * It is a more efficient way to setup a task during learning.
    */
-  bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
+  bool cb_respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                    pedsim_srvs::SpawnPeds::Response &response);
 
-  bool moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
+  bool cb_moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
                                  pedsim_srvs::MovePeds::Response &response);
 
   /**
    * @brief Adding static obstacles to pedsim.
    */
-  bool addWalls(pedsim_srvs::SpawnWalls::Request &request,
+  bool cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
                           pedsim_srvs::SpawnWalls::Response &response);
 
-  bool clearWalls(std_srvs::Trigger::Request &request,
+  bool cb_clearWalls(std_srvs::Trigger::Request &request,
                           std_srvs::Trigger::Response &response);
 
-  bool reset(std_srvs::Trigger::Request &request,
+  bool cb_reset(std_srvs::Trigger::Request &request,
                           std_srvs::Trigger::Response &response);
 
-  bool registerRobot(pedsim_srvs::RegisterRobot::Request &request,
+  bool cb_registerRobot(pedsim_srvs::RegisterRobot::Request &request,
                           pedsim_srvs::RegisterRobot::Response &response);
 
 protected:
@@ -120,15 +120,15 @@ protected:
 
 private:
   std::vector<pedsim::id> removePedsInPedsim();
-  void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
+  bool addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
   std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
   std::vector<pedsim::id> generateAgentIds(pedsim::id base, int n);
   bool removeModelsInFlatland(std::vector<pedsim::id> model_names);
   bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);
   // bool respawnModelsInFlatland(std::vector<pedsim::id> old_model_names, std::vector<flatland_msgs::Model> new_models);
-  void removeAllReferencesToInteractiveObstacles();
-  void removeAllInteractiveObstaclesFromPedsim();
-  void removeAllInteractiveObstaclesFromFlatland();
+  bool removeAllReferencesToInteractiveObstacles();
+  bool removeAllInteractiveObstaclesFromPedsim();
+  bool removeAllInteractiveObstaclesFromFlatland();
   std::vector<Wall *> getWallsFromFlatlandModel(pedsim_msgs::Obstacle obstacle, double yaw);
   int stringToEnumIndex(pedsim::id str, std::vector<pedsim::id> values);
 

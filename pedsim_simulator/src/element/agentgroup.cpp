@@ -36,7 +36,7 @@
 
 AgentGroup::AgentGroup() {
   static int staticid = 2000;
-  id_ = staticid++;
+  id_ = std::to_string(staticid++);
 
   // initialize values
   dirty = true;
@@ -53,7 +53,7 @@ AgentGroup::AgentGroup() {
 
 AgentGroup::AgentGroup(const QList<Agent*>& agentsIn) {
   static int staticid = 0;
-  id_ = staticid++;
+  id_ = std::to_string(staticid++);
 
   // initialize values
   dirty = true;
@@ -75,7 +75,7 @@ AgentGroup::AgentGroup(const QList<Agent*>& agentsIn) {
 
 AgentGroup::AgentGroup(std::initializer_list<Agent*>& agentsIn) {
   static int staticid = 0;
-  id_ = staticid++;
+  id_ = std::to_string(staticid++);
 
   // initialize values
   dirty = true;
