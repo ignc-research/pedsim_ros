@@ -603,7 +603,7 @@ std::vector<pedsim::id> SceneServices::generateAgentIds(pedsim::id base, int n =
 
 bool SceneServices::removeModelsInFlatland(std::vector<pedsim::id> model_names)
 {
-  ROS_INFO("deleting %ld models", model_names.size());
+  ROS_DEBUG("deleting %ld models", model_names.size());
   flatland_msgs::DeleteModels msg;
   msg.request.name = model_names;
 
