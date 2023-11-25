@@ -68,12 +68,16 @@ void Ped::Tscene::clear() {
 /// \warning addAgent() does call Tagent::assignScene() to assign itself to the
 /// agent.
 /// \param   *a A pointer to the Tagent to add.
-void Ped::Tscene::addAgent(Ped::Tagent* a) {
+bool Ped::Tscene::addAgent(Ped::Tagent* a) {
   // add agent to scene
   // (take responsibility for object deletion)
   agents.push_back(a);
   a->assignScene(this);
-  if (tree != NULL) tree->addAgent(a);
+  if (tree != NULL){
+    tree->addAgent(a);
+    return true;
+  }
+  return false;
 }
 
 /// Used to add a Tobstacle to the Tscene.
@@ -81,16 +85,18 @@ void Ped::Tscene::addAgent(Ped::Tagent* a) {
 /// \note    Obstacles added to the Scene are not deleted if the Scene is
 /// destroyed. The reason for this is because they could be member of another
 /// Scene theoretically.
-void Ped::Tscene::addObstacle(Ped::Tobstacle* o) {
+bool Ped::Tscene::addObstacle(Ped::Tobstacle* o) {
   // add obstacle to scene
   // (take responsibility for object deletion)
   obstacles.push_back(o);
+  return true;
 }
 
-void Ped::Tscene::addWaypoint(Ped::Twaypoint* w) {
+bool Ped::Tscene::addWaypoint(Ped::Twaypoint* w) {
   // add waypoint to scene
   // (take responsibility for object deletion)
   waypoints.push_back(w);
+  return true;
 }
 
 bool Ped::Tscene::removeAgent(Ped::Tagent* a) {
@@ -145,7 +151,7 @@ bool Ped::Tscene::removeWaypoint(Ped::Twaypoint* w) {
 /// agents in the Tscene.
 /// \param   h This tells the simulation how far the agents should proceed.
 /// \see     Ped::Tagent::move(double h)
-void Ped::Tscene::moveAgents(double h) {
+bool Ped::Tscene::moveAgents(double h) {
   // first update states
   for (Tagent* agent : agents) agent->updateState();
 
@@ -154,6 +160,8 @@ void Ped::Tscene::moveAgents(double h) {
 
   // finally move agents according to their forces
   for (Tagent* agent : agents) agent->move(h);
+
+  return true;
 }
 
 /// Internally used to update the quadtree.
@@ -176,8 +184,9 @@ void Ped::Tscene::moveAgent(const Ped::Tagent* agentIn) {
 /// save memory. Ideally cleanup() is called every second, or about every 20
 /// timestep.
 /// \date    2012-01-28
-void Ped::Tscene::cleanup() {
+bool Ped::Tscene::cleanup() {
   if (tree != NULL) tree->cut();
+  return true;
 }
 
 /// Returns the list of neighbors within dist of the point x/y. This
@@ -221,10 +230,11 @@ void Ped::Tscene::getNeighbors(vector<const Ped::Tagent*>& neighborList,
   }
 }
 
-void Ped::Tscene::removeAllObstacles() {
+bool Ped::Tscene::removeAllObstacles() {
   // remove all obstacles
   for (Ped::Tobstacle* currentObstacle : obstacles) delete currentObstacle;
   obstacles.clear();
+  return true;
 }
 
 void Ped::Tscene::getMap()

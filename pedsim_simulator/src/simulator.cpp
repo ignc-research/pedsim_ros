@@ -480,27 +480,43 @@ void Simulator::publishGroups()
   pub_agent_groups_.publish(sim_groups);
 }
 
+bool is_normal(float value)
+{
+  return !std::isinf(value) && !std::isnan(value);
+}
+
+//needed because some values very close to zero get represented as inf down the line
+double normalize(double value){
+  if(!is_normal(value) || fabs(value) < std::numeric_limits<float>::min())
+    return 0.0;
+  return (double)value;
+}
+
 pedsim_msgs::Walls Simulator::getWalls()
 { 
   pedsim_msgs::Walls sim_walls;
   sim_walls.header = createMsgHeader();
-  for (const auto &obstacle : SCENE.getWalls())
+  for (const auto &sceneWall : SCENE.getWalls())
   {
-    pedsim_msgs::Wall line_obstacle;
-    line_obstacle.start.x = obstacle->getax();
-    line_obstacle.start.y = obstacle->getay();
-    line_obstacle.start.z = 0.0;
-    line_obstacle.end.x = obstacle->getbx();
-    line_obstacle.end.y = obstacle->getby();
-    line_obstacle.end.z = 0.0;
+    pedsim_msgs::Wall wall;
+    wall.start.x = normalize(sceneWall->getax());
+    wall.start.y = normalize(sceneWall->getay());
+    wall.start.z = 0.0;
+    wall.end.x = normalize(sceneWall->getbx());
+    wall.end.y = normalize(sceneWall->getby());
+    wall.end.z = 0.0;
 
     if(// happens sometimes, don't care why
-      std::isnormal((float)line_obstacle.start.x) &&
-      std::isnormal((float)line_obstacle.start.y) &&
-      std::isnormal((float)line_obstacle.end.x) &&
-      std::isnormal((float)line_obstacle.end.y)
-    ) 
-      sim_walls.walls.push_back(line_obstacle);
+      is_normal(wall.start.x) &&
+      is_normal(wall.start.y) &&
+      is_normal(wall.end.x) &&
+      is_normal(wall.end.y)
+    ){
+      sim_walls.walls.push_back(wall);
+      // ROS_WARN("\nidiot wall from (%lf, %lf) to (%lf, %lf)", sceneWall->getax(), sceneWall->getay(), sceneWall->getbx(), sceneWall->getby());
+    }
+    else{
+      }
   }
   return sim_walls;
 }

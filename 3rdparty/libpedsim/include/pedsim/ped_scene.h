@@ -69,17 +69,15 @@ class LIBEXPORT Tscene {
 
   virtual void clear();
 
-  virtual void addAgent(Tagent* a);
-  virtual void addObstacle(Tobstacle* o);
-  virtual void addWaypoint(Twaypoint* w);
+  virtual bool addAgent(Tagent* a);
+  virtual bool addObstacle(Tobstacle* o);
+  virtual bool addWaypoint(Twaypoint* w);
   virtual bool removeAgent(Tagent* a);
   virtual bool removeObstacle(Tobstacle* o);
   virtual bool removeWaypoint(Twaypoint* w);
-
-  virtual void removeAllObstacles();
-
-  virtual void cleanup();
-  virtual void moveAgents(double h);
+  virtual bool removeAllObstacles();
+  virtual bool cleanup();
+  virtual bool moveAgents(double h);
 
   set<const Ped::Tagent*> getNeighbors(double x, double y, double dist) const;
   const vector<Tagent*>& getAllAgents() const { return agents; };

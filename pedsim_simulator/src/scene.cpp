@@ -315,12 +315,13 @@ void Scene::dissolveClusters() {
   agentClusters.clear();
 }
 
-void Scene::addAgent(Agent* agent) {
+bool Scene::addAgent(Agent* agent) {
   // keep track of the agent
   agents.append(agent);
 
   // add the agent to the PedSim scene
-  Ped::Tscene::addAgent(agent);
+  if(!Ped::Tscene::addAgent(agent))
+    return false;
 
   // add additional forces
   // → Random Force
@@ -336,66 +337,82 @@ void Scene::addAgent(Agent* agent) {
 
   // inform users
   emit agentAdded(agent->getId());
+  return true;
 }
 
-void Scene::addWall(Wall* wall) {
+bool Scene::addWall(Wall* wall) {
   ROS_DEBUG("added wall from (%f, %f) to (%f, %f)", wall->getax(), wall->getay(), wall->getbx(), wall->getby());
   // keep track of the obstacle
   walls.append(wall);
 
   // add the obstacle to the PedSim scene
-  Ped::Tscene::addObstacle(wall);
+  if(!Ped::Tscene::addObstacle(wall))
+    return false;
 
   // inform users
   emit wallAdded(wall->getid());
+  return true;
 }
 
 const QList<Obstacle*>& Scene::getObstacles() const { return obstacles; }
 
-void Scene::addObstacle(Obstacle* obstacle) {
+bool Scene::addObstacle(Obstacle* obstacle) {
   ROS_DEBUG("added obstacle %s", obstacle->obstacle.name.c_str());
   // keep track of the obstacle
   obstacles.append(obstacle);
+
+  bool success = true;
+  for(auto& wall : obstacle->walls){
+    success &= Ped::Tscene::addObstacle(wall);
+  }
+
+  return success;
 }
 
-void Scene::addWaypoint(Waypoint* waypoint) {
+bool Scene::addWaypoint(Waypoint* waypoint) {
   // keep track of the waypoints
   waypoints.insert(waypoint->getName(), waypoint);
 
   // add the waypoint to the PedSim scene
-  Ped::Tscene::addWaypoint(waypoint);
+  if(!Ped::Tscene::addWaypoint(waypoint))
+    return false;
 
   // inform users
   emit waypointAdded(waypoint->getId());
+  return true;
 }
 
-void Scene::addAgentCluster(AgentCluster* clusterIn) {
+bool Scene::addAgentCluster(AgentCluster* clusterIn) {
   // keep track of agent clusters
   agentClusters.append(clusterIn);
 
   // inform users
   emit agentClusterAdded(clusterIn->getId());
+  
+  return true;
 }
 
-void Scene::addWaitingQueue(WaitingQueue* queueIn) {
+bool Scene::addWaitingQueue(WaitingQueue* queueIn) {
   // sanity checks
   if (queueIn == nullptr) {
     ROS_DEBUG("Cannot add null to the list of waiting queues!");
-    return;
+    return false;
   }
 
   // add waiting queue as waypoint to the scene
-  addWaypoint(dynamic_cast<Waypoint*>(queueIn));
+  if(!addWaypoint(dynamic_cast<Waypoint*>(queueIn)))
+    return false;
 
   // inform users
   emit waitingQueueAdded(queueIn->getName());
+  return true;
 }
 
-void Scene::addAttraction(AttractionArea* attractionIn) {
+bool Scene::addAttraction(AttractionArea* attractionIn) {
   // sanity checks
   if (attractionIn == nullptr) {
     ROS_DEBUG("Cannot add null to the list of attractions!");
-    return;
+    return false;
   }
 
   // add attraction to the scene
@@ -403,6 +420,8 @@ void Scene::addAttraction(AttractionArea* attractionIn) {
 
   // inform users
   emit attractionAdded(attractionIn->getName());
+
+  return true;
 }
 
 bool Scene::removeAgent(Agent* agent) {
@@ -455,12 +474,11 @@ bool Scene::removeWall(Wall* wall) {
 bool Scene::removeObstacle(Obstacle* obstacle) {
   // don't keep track of obstacle anymore
   obstacles.removeAll(obstacle);
-  
-
-  //TODO
+  bool success = true;
   for(auto& wall : obstacle->walls){
-    return Ped::Tscene::removeObstacle(wall);
+    success &= Ped::Tscene::removeObstacle(wall);
   }
+  return success;
 }
 
 bool Scene::removeWaypoint(QString name) {
@@ -628,7 +646,7 @@ void Scene::moveAllAgents() {
 
 // move the agent cluster to another position directly
 // @param int i episode number to determine the next wp
-void Scene::moveClusters(int i) {
+bool Scene::moveClusters(int i) {
   guideActive = false;
   followerActive = false;
   for(Agent* agent: agents){
@@ -657,11 +675,16 @@ void Scene::moveClusters(int i) {
 
     agent->hasRequestedFollower = false;
   }
+
+  return true;
 }
 
-void Scene::removeAllObstacles(){
+bool Scene::removeAllObstacles(){
   // remove all elements from the scene
-  Ped::Tscene::removeAllObstacles();
+  auto to_delete = obstacles;
+  for(auto& obstacle : to_delete){
+    removeObstacle(obstacle);
+  }
   obstacles.clear();
 }
 
@@ -719,8 +742,9 @@ bool Scene::isOccupied(Ped::Tvector pos) {
 
 
 const QList<Robot*>& Scene::getRobots() const { return robots; }
-void Scene::addRobot(Robot* robot) {
+bool Scene::addRobot(Robot* robot) {
   // keep track of the agent
   robots.append(robot);
+  return true;
 }
 

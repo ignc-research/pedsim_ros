@@ -6,4 +6,4 @@ int16 type
 int16 number_of_peds
 geometry_msgs/Point[] waypoints
 ---
-bool finished
+bool success

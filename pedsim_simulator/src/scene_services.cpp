@@ -537,15 +537,14 @@ std::vector<flatland_msgs::Model> SceneServices::getFlatlandModels(pedsim_msgs::
 bool SceneServices::cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
                              pedsim_srvs::SpawnWalls::Response &response)
 {
+  bool success = true;
   for (auto &wall : request.walls)
   {
-    Wall *o = new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y);
-    // This is causing random walls getting spawned
-    SCENE.addWall(o);
+    success &= SCENE.addWall(new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y));
   }
 
-  response.finished = true;
-  return true;
+  response.success = success;
+  return success;
 }
 
 bool SceneServices::cb_clearWalls(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)
@@ -575,7 +574,7 @@ bool SceneServices::cb_moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request 
   SCENE.moveClusters(request.episode);
   // static obstacle infos are updated every episode too
   // SCENE.removeAllWalls();
-  response.finished = true;
+  response.success = true;
   return true;
 }
 
@@ -589,7 +588,7 @@ bool SceneServices::cb_registerRobot(pedsim_srvs::RegisterRobot::Request &reques
 
   SCENE.addRobot(robot);
 
-  response.finished = true;
+  response.success = true;
   return true;
 }
 

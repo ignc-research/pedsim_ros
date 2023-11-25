@@ -13,6 +13,7 @@
 #endif
 
 #include "ped_vector.h"
+#include <iostream>
 
 namespace Ped {
 
@@ -29,7 +30,7 @@ class LIBEXPORT Tobstacle {
 
   pedsim::id getid() const { return id; };
   int gettype() const { return type; };
-  double getax() const { return ax; };
+  double getax() const { return ax;  };
   double getay() const { return ay; };
   double getbx() const { return bx; };
   double getby() const { return by; };

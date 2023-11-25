@@ -146,14 +146,14 @@ class Scene : public QObject, protected Ped::Tscene {
   void dissolveClusters();
 
  public:
-  virtual void addAgent(Agent* agent);
-  virtual void addWall(Wall* wall);
-  virtual void addObstacle(Obstacle* obstacle);
-  virtual void addWaypoint(Waypoint* waypoint);
-  virtual void addAgentCluster(AgentCluster* clusterIn);
-  virtual void addWaitingQueue(WaitingQueue* queueIn);
-  virtual void addAttraction(AttractionArea* attractionIn);
-  virtual void addRobot(Robot* agent);
+  virtual bool addAgent(Agent* agent);
+  virtual bool addWall(Wall* wall);
+  virtual bool addObstacle(Obstacle* obstacle);
+  virtual bool addWaypoint(Waypoint* waypoint);
+  virtual bool addAgentCluster(AgentCluster* clusterIn);
+  virtual bool addWaitingQueue(WaitingQueue* queueIn);
+  virtual bool addAttraction(AttractionArea* attractionIn);
+  virtual bool addRobot(Robot* agent);
   virtual bool removeAgent(Agent* agent);
   virtual bool removeWall(Wall* wall);
   virtual bool removeObstacle(Obstacle* obstacle);
@@ -162,10 +162,8 @@ class Scene : public QObject, protected Ped::Tscene {
   virtual bool removeAgentCluster(AgentCluster* clusterIn);
   virtual bool removeWaitingQueue(WaitingQueue* queueIn);
   virtual bool removeAttraction(AttractionArea* attractionInIn);
-
-  //->move agent cluster directly to another place
-  virtual void moveClusters(int i);
-  virtual void removeAllObstacles();
+  virtual bool moveClusters(int i);
+  virtual bool removeAllObstacles();
 
   virtual std::set<const Ped::Tagent*> getNeighbors(double x, double y,
                                                     double maxDist);

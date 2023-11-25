@@ -8,6 +8,8 @@
 #include <cmath>
 #include <vector>
 
+#include <iostream>
+
 using namespace std;
 
 int Ped::Tobstacle::staticid = 0;

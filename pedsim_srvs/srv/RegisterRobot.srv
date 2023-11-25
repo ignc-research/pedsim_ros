@@ -2,4 +2,4 @@ string name
 string odom_topic
 string yaml_path
 ---
-bool finished
+bool success
