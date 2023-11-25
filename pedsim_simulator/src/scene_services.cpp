@@ -534,7 +534,7 @@ bool SceneServices::cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
   bool success = true;
   for (auto &wall : request.walls)
   {
-    success &= SCENE.addWall(new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y));
+    success &= SCENE.addWall(new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y, WallLayer::WORLD));
   }
 
   response.success = success;
@@ -708,10 +708,12 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
       auto start = Ped::Tvector(points[i][0].as<float>(), points[i][1].as<float>()).rotated(yaw);
       auto end = Ped::Tvector(points[(i + 1) % nPoints][0].as<float>(), points[(i + 1) % nPoints][1].as<float>()).rotated(yaw);
       Wall *wall = new Wall(
-          pos.x + start.x,
-          pos.y + start.y,
-          pos.x + end.x,
-          pos.y + end.y);
+        pos.x + start.x,
+        pos.y + start.y,
+        pos.x + end.x,
+        pos.y + end.y,
+        WallLayer::OBSTACLE
+      );
       new_walls.push_back(wall);
     }
   }

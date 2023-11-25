@@ -236,33 +236,42 @@ namespace pedsim
 
     const auto current_walls = q_walls_;
 
-    visualization_msgs::Marker reset;
-    reset.ns = "walls";
-    reset.action = visualization_msgs::Marker::DELETEALL;
-    pub_walls_visuals_.publish(reset);
-
-    visualization_msgs::Marker walls_marker;
-    walls_marker.header = current_walls->header;
-    walls_marker.ns = "walls";
-    walls_marker.id = 0;
-    walls_marker.color.a = 1.0;
-    walls_marker.color.r = 0.647059;
-    walls_marker.color.g = 0.164706;
-    walls_marker.color.b = 0.164706;
-    walls_marker.scale.x = 0.1;
-    walls_marker.pose.position.z = -0.01; //laserscan always on top
-    walls_marker.pose.orientation.w = 1.0;
-    walls_marker.type = visualization_msgs::Marker::LINE_LIST;
+    std::vector<visualization_msgs::Marker> layers;
 
     for (const auto &wall : current_walls->walls)
     {
+      if(layers.size() <= wall.layer){
+        layers.resize(wall.layer+1);
+      }
+
       if(wall.start.x != wall.end.x || wall.start.y != wall.end.y){
-        walls_marker.points.push_back(wall.start);
-        walls_marker.points.push_back(wall.end);
+        layers.at(wall.layer).points.push_back(wall.start);
+        layers.at(wall.layer).points.push_back(wall.end);
       }
     }
 
-    pub_walls_visuals_.publish(walls_marker);
+    for(size_t layer = 0; layer < layers.size(); layer++){
+
+      auto walls_marker = layers.at(layer);
+
+      if(walls_marker.points.size()){
+        walls_marker.header = current_walls->header;
+        walls_marker.ns = std::to_string(layer);
+        walls_marker.id = 0;
+        walls_marker.color.a = 1.0;
+        walls_marker.color.r = 0.647059;
+        walls_marker.color.g = 0.164706;
+        walls_marker.color.b = 0.164706;
+        walls_marker.scale.x = 0.1;
+        walls_marker.pose.position.z = -0.01; //laserscan always on top
+        walls_marker.pose.orientation.w = 1.0;
+        walls_marker.type = visualization_msgs::Marker::LINE_LIST;
+
+        pub_walls_visuals_.publish(walls_marker);
+      }
+      
+    }
+    
     q_walls_.reset();
   }
 

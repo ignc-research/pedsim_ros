@@ -31,8 +31,10 @@
 
 #include <pedsim_simulator/element/wall.h>
 
-Wall::Wall(double pax, double pay, double pbx, double pby)
-    : Tobstacle(pax, pay, pbx, pby){};
+Wall::Wall(double pax, double pay, double pbx, double pby, WallLayer layer)
+    : Tobstacle(pax, pay, pbx, pby){
+      this->layer = layer;
+    };
 
 Wall::~Wall() {}
 

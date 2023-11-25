@@ -499,6 +499,8 @@ pedsim_msgs::Walls Simulator::getWalls()
     wall.end.y = sceneWall->getby();
     wall.end.z = 0.0;
 
+    wall.layer = (uint8_t) sceneWall->getLayer();
+
     if( //happens sometimes, don't know or care why
       is_normal(wall.start.x) &&
       is_normal(wall.start.y) &&

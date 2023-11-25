@@ -36,12 +36,18 @@
 #include <pedsim_simulator/element/scenarioelement.h>
 #include <QGraphicsLineItem>
 
+enum class WallLayer{
+    UNSET = 0,
+    WORLD,
+    OBSTACLE
+  };
+
 class Wall : public ScenarioElement, public Ped::Tobstacle {
   Q_OBJECT
 
   // Constructor and Destructor
  public:
-  Wall(double ax = 0, double ay = 0, double bx = 1, double by = 1);
+  Wall(double ax = 0, double ay = 0, double bx = 1, double by = 1, WallLayer layer = WallLayer::UNSET);
   virtual ~Wall();
 
   // Signals
@@ -56,6 +62,11 @@ class Wall : public ScenarioElement, public Ped::Tobstacle {
   void setY1(double yIn);
   void setX2(double xIn);
   void setY2(double yIn);
+  
+  WallLayer getLayer(){ return layer; };
+
+ private:
+  WallLayer layer;
 
   // → ScenarioElement Overrides/Overloads
  public:
