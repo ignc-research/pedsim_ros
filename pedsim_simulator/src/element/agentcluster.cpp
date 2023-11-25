@@ -40,7 +40,7 @@ AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<std:
   if (countIn != (int) agent_ids.size()) {
     agentIds.clear();
     for (auto& id : agent_ids) {
-      agentIds.push_back(std::to_string(Ped::Tagent::staticid) + "_" + id);
+      agentIds.push_back(std::to_string(Ped::Tagent::staticid++) + "_" + id);
     }
   } else {
     agentIds = agent_ids;

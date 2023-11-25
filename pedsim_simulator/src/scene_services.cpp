@@ -168,12 +168,11 @@ bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &requ
     // get name
 
     auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
-    pedsim::id name = "";
-    name = obstacle.name;
+    pedsim::id name = obstacle.name;
     static_obstacle_names_.push_back(name);
 
     // add to pedsim
-    auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y) + direction;
+    auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y);
     // auto waypoint_pos = Ped::Tvector(obstacle.pose.position.x, obstacle.pose.position.y);
     auto waypoint = new AreaWaypoint(QString(name.c_str()), waypoint_pos, 0.3);
     waypoint->interactionRadius = obstacle.interaction_radius;
@@ -220,11 +219,6 @@ bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &requ
     std::vector<Wall *> new_walls = getWallsFromFlatlandModel(obstacle, yaw);
     // append to current list of walls
     walls.insert(walls.end(), new_walls.begin(), new_walls.end());
-    // spawn walls in pedsim
-    for (auto wall : new_walls)
-    {
-      SCENE.addWall(wall);
-    }
 
     Obstacle *sceneObstacle = new Obstacle();
     sceneObstacle->obstacle = obstacle;
@@ -500,7 +494,7 @@ bool SceneServices::addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pe
 
       const double x = ped.waypoints[i].x;
       const double y = ped.waypoints[i].y;
-      AreaWaypoint *w = new AreaWaypoint(QString(std::to_string(Ped::Twaypoint::staticid).c_str()), x, y, 0.3);
+      AreaWaypoint *w = new AreaWaypoint(QString(std::to_string(Ped::Twaypoint::staticid++).c_str()), x, y, 0.3);
       uniform_real_distribution<double> Distribution(0.0, 2 * M_PI);
       w->staticObstacleAngle = Distribution(RNG());
       w->setBehavior(static_cast<Ped::Twaypoint::Behavior>(0));

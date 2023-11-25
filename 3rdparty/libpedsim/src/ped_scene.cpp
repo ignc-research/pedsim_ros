@@ -153,6 +153,7 @@ bool Ped::Tscene::removeWaypoint(Ped::Twaypoint* w) {
 /// \see     Ped::Tagent::move(double h)
 bool Ped::Tscene::moveAgents(double h) {
   // first update states
+
   for (Tagent* agent : agents) agent->updateState();
 
   // then update forces

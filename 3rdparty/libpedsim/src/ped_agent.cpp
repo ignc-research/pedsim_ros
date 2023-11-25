@@ -16,7 +16,7 @@
 
 using namespace std;
 
-int Ped::Tagent::staticid = 1;
+int Ped::Tagent::staticid = 0;
 default_random_engine generator;
 
 /// Default Constructor

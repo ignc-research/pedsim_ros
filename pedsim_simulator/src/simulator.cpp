@@ -480,17 +480,17 @@ void Simulator::publishGroups()
   pub_agent_groups_.publish(sim_groups);
 }
 
-bool is_normal(float value)
-{
-  return !std::isinf(value) && !std::isnan(value);
-}
+// bool is_normal(float value)
+// {
+//   return !std::isinf(value) && !std::isnan(value);
+// }
 
-//needed because some values very close to zero get represented as inf down the line
-double normalize(double value){
-  if(!is_normal(value) || fabs(value) < std::numeric_limits<float>::min())
-    return 0.0;
-  return (double)value;
-}
+// //needed because some values very close to zero get represented as inf down the line
+// double normalize(double value){
+//   if(!is_normal(value) || fabs(value) < std::numeric_limits<float>::min())
+//     return 0.0;
+//   return (double)value;
+// }
 
 pedsim_msgs::Walls Simulator::getWalls()
 { 
@@ -499,24 +499,21 @@ pedsim_msgs::Walls Simulator::getWalls()
   for (const auto &sceneWall : SCENE.getWalls())
   {
     pedsim_msgs::Wall wall;
-    wall.start.x = normalize(sceneWall->getax());
-    wall.start.y = normalize(sceneWall->getay());
+    wall.start.x = sceneWall->getax(); // normalize(sceneWall->getax());
+    wall.start.y = sceneWall->getay(); // normalize(sceneWall->getay());
     wall.start.z = 0.0;
-    wall.end.x = normalize(sceneWall->getbx());
-    wall.end.y = normalize(sceneWall->getby());
+    wall.end.x = sceneWall->getbx(); // normalize(sceneWall->getbx());
+    wall.end.y = sceneWall->getby(); // normalize(sceneWall->getby());
     wall.end.z = 0.0;
 
-    if(// happens sometimes, don't care why
-      is_normal(wall.start.x) &&
-      is_normal(wall.start.y) &&
-      is_normal(wall.end.x) &&
-      is_normal(wall.end.y)
-    ){
-      sim_walls.walls.push_back(wall);
-      // ROS_WARN("\nidiot wall from (%lf, %lf) to (%lf, %lf)", sceneWall->getax(), sceneWall->getay(), sceneWall->getbx(), sceneWall->getby());
-    }
-    else{
-      }
+    // if(// happens sometimes, don't care why
+    //   is_normal(wall.start.x) &&
+    //   is_normal(wall.start.y) &&
+    //   is_normal(wall.end.x) &&
+    //   is_normal(wall.end.y)
+    // )
+    sim_walls.walls.push_back(wall);
+
   }
   return sim_walls;
 }
