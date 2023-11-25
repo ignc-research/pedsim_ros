@@ -477,7 +477,7 @@ bool Scene::removeObstacle(Obstacle* obstacle) {
   obstacles.removeAll(obstacle);
   bool success = true;
   for(auto& wall : obstacle->walls){
-    success &= Ped::Tscene::removeObstacle(wall);
+    success &= removeWall(wall);
   }
   return success;
 }
