@@ -160,7 +160,7 @@ bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &requ
     auto q = obstacle.pose.orientation;
     // https://stackoverflow.com/a/37560411
     double yaw = atan2(2.0 * (q.z * q.w + q.x * q.y), -1.0 + 2.0 * (q.w * q.w + q.x * q.x));
-    
+
     pedsim::id name = obstacle.name;
     static_obstacle_names_.push_back(name);
 
@@ -211,7 +211,6 @@ bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &requ
     // std::cout << "yaw when calling getWallFromFlatlandModel: " << yaw << std::endl;
     std::vector<Wall *> new_walls = getWallsFromFlatlandModel(obstacle, yaw);
     // append to current list of walls
-    walls.insert(walls.end(), new_walls.begin(), new_walls.end());
 
     Obstacle *sceneObstacle = new Obstacle();
     sceneObstacle->obstacle = obstacle;
@@ -527,7 +526,9 @@ bool SceneServices::cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
   bool success = true;
   for (auto &wall : request.walls)
   {
-    success &= SCENE.addWall(new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y, WallLayer::WORLD));
+    auto sceneWall = new Wall(wall.start.x, wall.start.y, wall.end.x, wall.end.y, WallLayer::WORLD);
+    success &= SCENE.addWall(sceneWall);
+    walls.push_back(sceneWall);
   }
 
   response.success = success;
@@ -543,7 +544,8 @@ bool SceneServices::cb_clearWalls(std_srvs::Trigger::Request &request, std_srvs:
     success &= SCENE.removeWall(wall);
   }
   walls.clear();
-  return true;
+  response.success = success;
+  return success;
 }
 
 bool SceneServices::cb_reset(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response)

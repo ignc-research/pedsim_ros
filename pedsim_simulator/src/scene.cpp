@@ -363,7 +363,6 @@ bool Scene::addObstacle(Obstacle* obstacle) {
 
   bool success = true;
   for(auto& wall : obstacle->walls){
-    walls.append(wall);
     success &= Ped::Tscene::addObstacle(wall);
   }
 
