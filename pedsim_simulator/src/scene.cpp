@@ -479,6 +479,7 @@ bool Scene::removeObstacle(Obstacle* obstacle) {
   for(auto& wall : obstacle->walls){
     success &= removeWall(wall);
   }
+  delete obstacle;
   return success;
 }
 

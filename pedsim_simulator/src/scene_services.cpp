@@ -160,14 +160,7 @@ bool SceneServices::cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &requ
     auto q = obstacle.pose.orientation;
     // https://stackoverflow.com/a/37560411
     double yaw = atan2(2.0 * (q.z * q.w + q.x * q.y), -1.0 + 2.0 * (q.w * q.w + q.x * q.x));
-
-    // double yaw = 0.0;
-
-    // std::cout << "yaw value: " << yaw << std::endl;
-
-    // get name
-
-    auto direction = Ped::Tvector::fromPolar(Ped::Tangle::fromRadian(yaw), 2.0);
+    
     pedsim::id name = obstacle.name;
     static_obstacle_names_.push_back(name);
 
