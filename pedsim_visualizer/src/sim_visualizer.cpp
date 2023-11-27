@@ -29,8 +29,28 @@
  */
 
 #include <pedsim_visualizer/sim_visualizer.h>
-
 #include <pedsim_utils/geometry.h>
+
+enum class WallLayer{
+  UNSET = 0,
+  WORLD,
+  OBSTACLE
+};
+static const char* WallLayerString(WallLayer layer){
+  switch(layer){
+
+    case WallLayer::OBSTACLE:
+      return "obstacle";
+
+    case WallLayer::WORLD:
+      return "world";
+
+    case WallLayer::UNSET:
+    default:
+      return "???";
+  }
+}
+
 
 namespace pedsim
 {
@@ -256,7 +276,7 @@ namespace pedsim
 
       if(walls_marker.points.size()){
         walls_marker.header = current_walls->header;
-        walls_marker.ns = std::to_string(layer);
+        walls_marker.ns = WallLayerString((WallLayer) layer);
         walls_marker.id = 0;
         walls_marker.color.a = 1.0;
         walls_marker.color.r = 0.647059;

@@ -37,10 +37,24 @@
 #include <QGraphicsLineItem>
 
 enum class WallLayer{
-    UNSET = 0,
-    WORLD,
-    OBSTACLE
-  };
+  UNSET = 0,
+  WORLD,
+  OBSTACLE
+};
+static const char* WallLayerString(WallLayer layer){
+  switch(layer){
+
+    case WallLayer::OBSTACLE:
+      return "obstacle";
+
+    case WallLayer::WORLD:
+      return "world";
+
+    case WallLayer::UNSET:
+    default:
+      return "???";
+  }
+}
 
 class Wall : public ScenarioElement, public Ped::Tobstacle {
   Q_OBJECT
