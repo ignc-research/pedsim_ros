@@ -732,11 +732,14 @@ std::vector<Wall *> SceneServices::getWallsFromFlatlandModel(pedsim_msgs::Obstac
       auto from = corners.at(i);
       auto to = corners.at((i + 1) % nCorners);
       new_walls.push_back(
-          new Wall(
-              from.x,
-              from.y,
-              to.x,
-              to.y));
+        new Wall(
+          from.x,
+          from.y,
+          to.x,
+          to.y,
+          WallLayer::OBSTACLE
+        )
+      );
     }
   }
   return new_walls;
