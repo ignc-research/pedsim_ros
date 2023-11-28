@@ -43,10 +43,15 @@
 #include <pedsim_msgs/AgentGroups.h>
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
+#include <pedsim_msgs/Obstacle.h>
+#include <pedsim_msgs/Obstacles.h>
+#include <pedsim_msgs/WaypointPluginDataframe.h>
+#include <pedsim_msgs/AgentFeedback.h>
+#include <pedsim_msgs/AgentFeedbacks.h>
 
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -58,6 +63,7 @@
 
 #include <pedsim_simulator/agentstatemachine.h>
 #include <pedsim_simulator/config.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentgroup.h>
 #include <pedsim_simulator/element/attractionarea.h>
@@ -69,6 +75,8 @@
 
 #include <dynamic_reconfigure/server.h>
 #include <pedsim_simulator/PedsimSimulatorConfig.h>
+
+#include <cmath>
 
 using SimConfig = pedsim_simulator::PedsimSimulatorConfig;
 
@@ -97,11 +105,25 @@ class Simulator {
   
  private:
   void updateRobotPositionFromTF();
-  void publishAgents();
+
+  pedsim_msgs::AgentStates getAgentStates();
+  pedsim_msgs::Waypoints getWaypoints();
+  pedsim_msgs::Walls getWalls();
+  pedsim_msgs::Obstacles getObstacles();
+
+  void publishAgents(pedsim_msgs::AgentStates agents);
   void publishGroups();
-  void publishObstacles();
+  void publishWalls(pedsim_msgs::Walls walls);
+  void publishObstacles(pedsim_msgs::Obstacles obstacles);
   void publishRobotPosition();
-  void publishWaypoints();
+  void publishWaypoints(pedsim_msgs::Waypoints waypoints);
+  void publishWaypointPlugin(
+    pedsim_msgs::AgentStates agents,
+    pedsim_msgs::AgentGroups groups,
+    pedsim_msgs::Waypoints waypoints,
+    pedsim_msgs::Walls walls,
+    pedsim_msgs::Obstacles obstacles
+  );
 
  private:
   ros::NodeHandle nh_;
@@ -109,11 +131,17 @@ class Simulator {
   ros::Timer spawn_timer_;
 
   // publishers
-  ros::Publisher pub_obstacles_;
+  ros::Publisher pub_walls_;
   ros::Publisher pub_agent_states_;
   ros::Publisher pub_agent_groups_;
   ros::Publisher pub_robot_position_;
   ros::Publisher pub_waypoints_;
+  ros::Publisher pub_obstacles_;
+  
+  // pedsim_waypoint_plugin
+  ros::Publisher pub_waypoint_plugin_;
+  ros::Subscriber sub_waypoint_plugin_;
+  void onWaypointPlugin(pedsim_msgs::AgentFeedbacks agents);
 
   // provided services
   ros::ServiceServer srv_pause_simulation_;

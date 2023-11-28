@@ -29,65 +29,64 @@
 * \author Sven Wehner <mail@svenwehner.de>
 */
 
-#include <pedsim_simulator/element/obstacle.h>
+#ifndef _obstacle_h_
+#define _obstacle_h_
 
-Obstacle::Obstacle(double pax, double pay, double pbx, double pby)
-    : Tobstacle(pax, pay, pbx, pby){};
+#include <pedsim/ped_obstacle.h>
+#include <pedsim_simulator/element/scenarioelement.h>
+#include <QGraphicsLineItem>
 
-Obstacle::~Obstacle() {}
+enum class WallLayer{
+  UNSET = 0,
+  WORLD,
+  OBSTACLE
+};
+static const char* WallLayerString(WallLayer layer){
+  switch(layer){
 
-/// moves the obstacle to a new position
-void Obstacle::setPosition(double pax, double pay, double pbx, double pby) {
-  Tobstacle::setPosition(pax, pay, pbx, pby);
+    case WallLayer::OBSTACLE:
+      return "obstacle";
 
-  // inform users
-  emit positionChanged();
+    case WallLayer::WORLD:
+      return "world";
+
+    case WallLayer::UNSET:
+    default:
+      return "???";
+  }
 }
 
-void Obstacle::setPosition(const QPointF& startIn, const QPointF& endIn) {
-  setPosition(startIn.x(), startIn.y(), endIn.x(), endIn.y());
-}
+class Wall : public ScenarioElement, public Ped::Tobstacle {
+  Q_OBJECT
 
-void Obstacle::setX1(double xIn) {
-  // update x1, keep the other values
-  setPosition(xIn, getay(), getbx(), getby());
-}
+  // Constructor and Destructor
+ public:
+  Wall(double ax = 0, double ay = 0, double bx = 1, double by = 1, WallLayer layer = WallLayer::UNSET);
+  virtual ~Wall();
 
-void Obstacle::setY1(double yIn) {
-  // update y1, keep the other values
-  setPosition(getax(), yIn, getbx(), getby());
-}
+  // Signals
+ signals:
+  void positionChanged();
 
-void Obstacle::setX2(double xIn) {
-  // update y2, keep the other values
-  setPosition(getax(), getay(), xIn, getby());
-}
+  // Methods
+ public:
+  void setPosition(double ax, double ay, double bx, double by);
+  void setPosition(const QPointF& startIn, const QPointF& endIn);
+  void setX1(double xIn);
+  void setY1(double yIn);
+  void setX2(double xIn);
+  void setY2(double yIn);
+  
+  WallLayer getLayer(){ return layer; };
 
-void Obstacle::setY2(double yIn) {
-  // update x2, keep the other values
-  setPosition(getax(), getay(), getbx(), yIn);
-}
+ private:
+  WallLayer layer;
 
-QPointF Obstacle::getVisiblePosition() const {
-  return QPointF(getax(), getay());
-}
+  // → ScenarioElement Overrides/Overloads
+ public:
+  virtual QPointF getVisiblePosition() const;
+  virtual void setVisiblePosition(const QPointF& positionIn);
+  QString toString() const;
+};
 
-void Obstacle::setVisiblePosition(const QPointF& positionIn) {
-  // compute new end position
-  QPointF deltaPos(positionIn.x() - getax(), positionIn.y() - getay());
-  QPointF endPos = QPointF(getbx(), getby()) + deltaPos;
-
-  // set new position
-  setPosition(positionIn.x(), positionIn.y(), endPos.x(), endPos.y());
-
-  // inform users
-  emit positionChanged();
-}
-
-QString Obstacle::toString() const {
-  return tr("Obstacle (%1,%2 - %3,%4)")
-      .arg(getax())
-      .arg(getay())
-      .arg(getbx())
-      .arg(getby());
-}
+#endif

@@ -55,8 +55,8 @@ class AgentGroup : public ScenarioElement {
   // Signals
  signals:
   void membersChanged();
-  void memberAdded(int id);
-  void memberRemoved(int id);
+  void memberAdded(pedsim::id id);
+  void memberRemoved(pedsim::id id);
 
   // Slots
  public slots:
@@ -92,7 +92,7 @@ class AgentGroup : public ScenarioElement {
   void setRecollect(bool recollectIn);
   bool isRecollecting() const;
   double getMaxDistance();
-  int getId() { return id_; }
+  pedsim::id getId() { return id_; }
 
  protected:
   void updateMaxDistance();
@@ -116,7 +116,7 @@ class AgentGroup : public ScenarioElement {
   bool dirtyMaxDistance;
   double cacheMaxDistance;
 
-  int id_;
+  pedsim::id id_;
 };
 
 #endif

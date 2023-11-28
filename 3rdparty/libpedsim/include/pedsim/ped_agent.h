@@ -75,7 +75,7 @@ class LIBEXPORT Tagent {
   void setTeleop(bool opstatus) { teleop = opstatus; }
   void setRobotPosDiffScalingFactor(double scalingFactor);
 
-  int getId() const { return id; };
+  pedsim::id getId() const { return id; };
   AgentType getType() const { return type; };
   double getVmax() const { return vmax; };
   double getRelaxationTime() const { return relaxationTime; };
@@ -119,7 +119,7 @@ class LIBEXPORT Tagent {
   double obstacleForceFunction(double distance);
 
   static int staticid;
-  int id;
+  pedsim::id id;
   int obstacleForceRange;
   double keepDistanceForceDistance;
   double keepDistanceForceDistanceDefault;
@@ -129,6 +129,9 @@ class LIBEXPORT Tagent {
   double forceFactorSocial;
   double forceFactorObstacle;
   double forceFactorRobot;
+
+  void overrideForce();
+  void overrideForce(Ped::Tvector pose);
 
  protected:
   Tvector p;  ///< current position of the agent
@@ -157,6 +160,9 @@ class LIBEXPORT Tagent {
   Ped::Tvector robotforce;
   Ped::Tvector myforce;
   Ped::Tvector keepdistanceforce;
+
+  Ped::Tvector forceOverride;
+  bool isForceOverridden = false;
 };
 }
 #endif

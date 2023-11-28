@@ -49,15 +49,15 @@ ObstaclePointCloud::ObstaclePointCloud(const ros::NodeHandle& node_handle,
 }
 
 void ObstaclePointCloud::broadcast() {
-  if (q_obstacles_.size() < 1) {
+  if (q_walls_.size() < 1) {
     return;
   }
 
-  const auto sim_obstacles = q_obstacles_.front();
+  const auto sim_walls = q_walls_.front();
 
   using Cell = std::pair<float, float>;
   std::vector<Cell> all_cells;
-  for (const auto& line : sim_obstacles->obstacles) {
+  for (const auto& line : sim_walls->walls) {
     const auto cells = pedsim::LineObstacleToCells(line.start.x, line.start.y,
                                                    line.end.x, line.end.y);
     std::copy(cells.begin(), cells.end(), std::back_inserter(all_cells));
@@ -75,7 +75,7 @@ void ObstaclePointCloud::broadcast() {
 
   sensor_msgs::PointCloud pcd_global;
   pcd_global.header.stamp = ros::Time::now();
-  pcd_global.header.frame_id = sim_obstacles->header.frame_id;
+  pcd_global.header.frame_id = sim_walls->header.frame_id;
   pcd_global.points.resize(num_points);
   pcd_global.channels.resize(1);
   pcd_global.channels[0].name = "intensities";
@@ -93,11 +93,11 @@ void ObstaclePointCloud::broadcast() {
   tf::StampedTransform robot_transform;
   try {
     transform_listener_->lookupTransform(robot_odom_.header.frame_id,
-                                         sim_obstacles->header.frame_id,
+                                         sim_walls->header.frame_id,
                                          ros::Time(0), robot_transform);
   } catch (tf::TransformException& e) {
     ROS_WARN_STREAM_THROTTLE(5.0, "TFP lookup from ["
-                                      << sim_obstacles->header.frame_id
+                                      << sim_walls->header.frame_id
                                       << "] to [" << robot_odom_.header.frame_id
                                       << "] failed. Reason: " << e.what());
     return;
@@ -138,7 +138,7 @@ void ObstaclePointCloud::broadcast() {
     pub_signals_global_.publish(pcd_global);
   }
 
-  q_obstacles_.pop();
+  q_walls_.pop();
 };
 
 void ObstaclePointCloud::run() {
@@ -153,8 +153,8 @@ void ObstaclePointCloud::run() {
 }
 
 void ObstaclePointCloud::obstaclesCallBack(
-    const pedsim_msgs::LineObstaclesConstPtr& obstacles) {
-  q_obstacles_.emplace(obstacles);
+    const pedsim_msgs::WallsConstPtr& obstacles) {
+  q_walls_.emplace(obstacles);
 }
 
 }  // namespace

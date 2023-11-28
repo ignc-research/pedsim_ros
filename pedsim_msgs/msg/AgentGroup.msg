@@ -1,5 +1,5 @@
 Header header
-uint16 group_id
+string group_id
 float64 age
-uint64[] members
+string[] members
 geometry_msgs/Pose center_of_mass

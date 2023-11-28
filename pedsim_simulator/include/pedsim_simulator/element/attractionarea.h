@@ -69,7 +69,7 @@ class AttractionArea : public ScenarioElement {
   virtual double getStrength() const;
   virtual void setStrength(double strengthIn);
 
-  int getId() { return id_; }
+  pedsim::id getId() { return id_; }
 
   // → ScenarioElement Overrides/Overloads
  public:
@@ -83,7 +83,7 @@ class AttractionArea : public ScenarioElement {
   Ped::Tvector position;
   QSizeF size;
   double attractionStrength;
-  int id_;
+  pedsim::id id_;
 };
 
 #endif

@@ -103,14 +103,14 @@ void PointCloud::broadcast() {
   std::vector<Cell> detected_obss(resol_, Cell(INF, INF));
 
   // obstacles 
-  if (q_obstacles_.size() < 1 || q_agents_.size() < 1) {
+  if (q_walls_.size() < 1 || q_agents_.size() < 1) {
     return;
   }
 
   // fill by cells
   std::vector<std::pair<float, float>> all_cells;
-  const auto sim_obstacles = q_obstacles_.front();
-  for (const auto& line : sim_obstacles->obstacles) {
+  const auto sim_walls = q_walls_.front();
+  for (const auto& line : sim_walls->walls) {
     const auto cells = pedsim::LineObstacleToCells(line.start.x, line.start.y,
                                                    line.end.x, line.end.y);
     std::copy(cells.begin(), cells.end(), std::back_inserter(all_cells));
@@ -140,7 +140,7 @@ void PointCloud::broadcast() {
 
   sensor_msgs::PointCloud pcd_global;
   pcd_global.header.stamp = ros::Time::now();
-  pcd_global.header.frame_id = sim_obstacles->header.frame_id;
+  pcd_global.header.frame_id = sim_walls->header.frame_id;
   pcd_global.points.resize(num_points);
   pcd_global.channels.resize(1);
   pcd_global.channels[0].name = "intensities";
@@ -158,11 +158,11 @@ void PointCloud::broadcast() {
   tf::StampedTransform robot_transform;
   try {
     transform_listener_->lookupTransform(robot_odom_.header.frame_id,
-                                         sim_obstacles->header.frame_id,
+                                         sim_walls->header.frame_id,
                                          ros::Time(0), robot_transform);
   } catch (tf::TransformException& e) {
     ROS_WARN_STREAM_THROTTLE(5.0, "TFP lookup from ["
-                                      << sim_obstacles->header.frame_id
+                                      << sim_walls->header.frame_id
                                       << "] to [" << robot_odom_.header.frame_id
                                       << "] failed. Reason: " << e.what());
     return;
@@ -204,7 +204,7 @@ void PointCloud::broadcast() {
     pub_signals_global_.publish(pcd_global);
   }
 
-  q_obstacles_.pop();
+  q_walls_.pop();
   q_agents_.pop();
 };
 
@@ -220,8 +220,8 @@ void PointCloud::run() {
 }
 
 void PointCloud::obstaclesCallBack(
-    const pedsim_msgs::LineObstaclesConstPtr& obstacles) {
-  q_obstacles_.emplace(obstacles);
+    const pedsim_msgs::WallsConstPtr& obstacles) {
+  q_walls_.emplace(obstacles);
 }
 
 void PointCloud::agentStatesCallBack(

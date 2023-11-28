@@ -8,6 +8,8 @@
 #include <cmath>
 #include <vector>
 
+#include <iostream>
+
 using namespace std;
 
 int Ped::Tobstacle::staticid = 0;
@@ -15,7 +17,7 @@ int Ped::Tobstacle::staticid = 0;
 /// Default constructor, places a wall from 0/0 to 1/1
 /// \date    2012-01-07
 Ped::Tobstacle::Tobstacle() {
-  id = staticid++;
+  id = std::to_string(staticid++);
   ax = 0;
   ay = 0;
   bx = 1;
@@ -30,7 +32,7 @@ Ped::Tobstacle::Tobstacle() {
 /// \param pbx x coordinate of the second corner of the obstacle.
 /// \param pby y coordinate of the second corner of the obstacle.
 Ped::Tobstacle::Tobstacle(double pax, double pay, double pbx, double pby) {
-  id = staticid++;
+  id = std::to_string(staticid++);
   ax = pax;
   ay = pay;
   bx = pbx;
@@ -43,7 +45,7 @@ Ped::Tobstacle::Tobstacle(double pax, double pay, double pbx, double pby) {
 /// \param startIn The first corner of the obstacle.
 /// \param endIn The second corner of the obstacle.
 Ped::Tobstacle::Tobstacle(const Tvector& startIn, const Tvector& endIn) {
-  id = staticid++;
+  id = std::to_string(staticid++);
   ax = startIn.x;
   ay = startIn.y;
   bx = endIn.x;

@@ -66,8 +66,9 @@ set(SOURCES
 	src/element/queueingwaypoint.cpp
 	src/element/waitingqueue.cpp
 	src/element/waypoint.cpp
-	src/element/obstacle.cpp
+	src/element/wall.cpp
 	src/element/scenarioelement.cpp
+	src/element/robot.cpp
 
 	# forces
 	src/force/alongwallforce.cpp
@@ -93,11 +94,13 @@ set(MOC_FILES
 	include/pedsim_simulator/agent_pose_stamped.h
 
 	include/pedsim_simulator/element/scenarioelement.h
+	include/pedsim_simulator/element/robot.h
 	include/pedsim_simulator/element/agent.h
 	include/pedsim_simulator/element/agentcluster.h
 	include/pedsim_simulator/element/agentgroup.h
 	include/pedsim_simulator/element/attractionarea.h
 	include/pedsim_simulator/element/obstacle.h
+	include/pedsim_simulator/element/wall.h
 	include/pedsim_simulator/element/waypoint.h
 	include/pedsim_simulator/element/areawaypoint.h
 	include/pedsim_simulator/element/waitingqueue.h
@@ -142,6 +145,9 @@ install(
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY include/${PROJECT_NAME}/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
 
 ## Unit Tests

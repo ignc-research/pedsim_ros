@@ -32,6 +32,7 @@
 #include <pedsim_simulator/agentstatemachine.h>
 #include <pedsim_simulator/config.h>
 #include <pedsim_simulator/element/agent.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/waypoint.h>
 #include <pedsim_simulator/force/force.h>
 #include <pedsim_simulator/scene.h>
@@ -126,8 +127,8 @@ Agent::Agent() {
   triggerZoneRadius = 0;
 }
 
-Agent::Agent(std::string name) : Agent() {
-  agentName = name;
+Agent::Agent(pedsim::id id) : Agent() {
+  this->id = id;
 }
 
 Agent::Agent(const Agent&) : ScenarioElement() {}
@@ -179,7 +180,7 @@ Ped::Tvector Agent::obstacleForce() {
       force = Ped::Tagent::obstacleForce();
     } else {
       Ped::Twaypoint closest_obstacle;
-      if (!SCENE.getClosestObstacle(p, &closest_obstacle)) {
+      if (!SCENE.getClosestWall(p, &closest_obstacle)) {
         return Ped::Tvector(0.0, 0.0);
       }
 
@@ -207,15 +208,17 @@ Ped::Tvector Agent::robotForce() {
   Ped::Tvector force;
 
   if (!disabledForces.contains("Robot")) {
-    if (SCENE.robot != nullptr) {
-      auto diff = p - SCENE.robot->getPosition();
+
+    for (auto robot : SCENE.getRobots()) {
+      auto robotState = robot->getState();
+      auto diff = p - Ped::Tvector(robotState.pose.position.x, robotState.pose.position.y, robotState.pose.position.z);
       auto dist = diff.length();
       if (dist < 4.0) {
         double amount = 10.0;
         if (dist > 0.0) {
           amount = 1.0 / dist;
         }
-        force = amount * diff.normalized();
+        force += amount * diff.normalized();
       }
     }
   }
@@ -1108,7 +1111,7 @@ void Agent::adjustKeepDistanceForceDistance() {
   // get number of agents that are listening to the same id as I do
   auto agents = SCENE.getAgents();
   int count = 0;
-  int check_for_id = -1;
+  pedsim::id check_for_id = pedsim::id_null;
 
   if (stateMachine->getCurrentState() == AgentStateMachine::AgentState::StateGroupTalking) {
     check_for_id = id;
@@ -1174,7 +1177,7 @@ void Agent::setVisiblePosition(const QPointF& positionIn) {
 }
 
 QString Agent::toString() const {
-  return tr("Agent %1 (@%2,%3)").arg(getId()).arg(getx()).arg(gety());
+  return tr("Agent %1 (@%2,%3)").arg(getId().c_str()).arg(getx()).arg(gety());
 }
 
 void Agent::varySpeed() {

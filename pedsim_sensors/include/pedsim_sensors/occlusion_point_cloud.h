@@ -35,7 +35,7 @@
 
 #include <queue>
 
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Walls.h>
 #include <pedsim_msgs/AgentStates.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
@@ -52,7 +52,7 @@ class PointCloud : public PedsimSensor {
 
   void broadcast() override;
   void run();
-  void obstaclesCallBack(const pedsim_msgs::LineObstaclesConstPtr& obstacles);
+  void obstaclesCallBack(const pedsim_msgs::WallsConstPtr& obstacles);
   void agentStatesCallBack(const pedsim_msgs::AgentStatesConstPtr& agents);
 
   // detected obss is a 360 deg scan map
@@ -66,7 +66,7 @@ class PointCloud : public PedsimSensor {
   ros::Subscriber sub_simulated_obstacles_;
   ros::Subscriber sub_simulated_agents_;
 
-  std::queue<pedsim_msgs::LineObstaclesConstPtr> q_obstacles_;
+  std::queue<pedsim_msgs::WallsConstPtr> q_walls_;
   std::queue<pedsim_msgs::AgentStatesConstPtr> q_agents_;
 
  protected:

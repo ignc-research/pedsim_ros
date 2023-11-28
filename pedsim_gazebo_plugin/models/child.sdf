@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+
+<actor name="actor0">
+  <pose>5 5 5 0 0 0</pose>
+  <!-- <pose>0 0 0.75 0 0 0</pose> -->
+  <skin>
+    <filename>moonwalk.dae</filename>
+    <scale>0.4</scale>
+  </skin>
+  <animation name="walking">
+    <filename>walk.dae</filename>
+    <scale>1.00000</scale>
+    <!-- <interpolate_x>false</interpolate_x> -->
+    <interpolate_x>true</interpolate_x>
+  </animation>
+  <!-- <plugin name="actor1_plugin" filename="libActorPlugin.so">
+    <target>0 -5 1.2138</target>
+    <target_weight>1.15</target_weight>
+    <obstacle_weight>1.8</obstacle_weight>
+    <animation_factor>5.1</animation_factor> -->
+    <!-- <ignore_obstacles>
+      <model>cafe</model>
+      <model>ground_plane</model>
+    </ignore_obstacles> -->
+  <!-- </plugin> -->
+</actor>
+</sdf>

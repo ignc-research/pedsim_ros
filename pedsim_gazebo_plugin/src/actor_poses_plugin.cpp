@@ -58,7 +58,7 @@ namespace gazebo
                     frame_id = tmp_model->GetName();
 
                     for (uint actor =0; actor< msg->agent_states.size() ; actor++) {
-                        if(frame_id == std::to_string( msg->agent_states[actor].id)  ){
+                        if(frame_id == msg->agent_states[actor].id){
 //                            ROS_INFO_STREAM("actor_id: "<< std::to_string( msg->tracks[actor].track_id) );
                             ignition::math::Pose3d gzb_pose;
                             gzb_pose.Pos().Set( msg->agent_states[actor].pose.position.x,

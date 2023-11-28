@@ -32,6 +32,7 @@
 #ifndef _agent_h_
 #define _agent_h_
 
+#include <pedsim/types.h>
 #include <pedsim/ped_agent.h>
 #include <pedsim_simulator/element/scenarioelement.h>
 #include <pedsim_simulator/element/areawaypoint.h>
@@ -56,7 +57,7 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   // Constructor and Destructor
  public:
   Agent();
-  Agent(std::string name);
+  Agent(pedsim::id id);
   Agent(const Agent&);
   virtual ~Agent();
 
@@ -179,7 +180,6 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   void updateArenaGoal();
   void varySpeed();
 
-  std::string agentName;
   double initialPosX;
   double initialPosY;
 
@@ -189,14 +189,14 @@ class Agent : public ScenarioElement, public Ped::Tagent {
   int destinationIndex;
   int previousDestinationIndex;
   int nextDestinationIndex;
-  int lastInteractedWithWaypointId;
+  pedsim::id lastInteractedWithWaypointId;
   Waypoint* lastInteractedWithWaypoint;
   bool isInteracting;
 
   double maxTalkingDistance;
-  int talkingToId;
+  pedsim::id talkingToId;
   const Agent* talkingToAgent;
-  int listeningToId;
+  pedsim::id listeningToId;
   Agent* listeningToAgent;
   double maxServicingRadius;
   const Agent* servicingAgent;

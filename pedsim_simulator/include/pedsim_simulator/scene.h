@@ -43,15 +43,18 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <ros/ros.h>
 
+#include <pedsim_simulator/element/obstacle.h>
+
 // Forward Declarations
 class QGraphicsScene;
 class Agent;
-class Obstacle;
+class Wall;
 class Waypoint;
 class AttractionArea;
 class AgentCluster;
 class AgentGroup;
 class WaitingQueue;
+class Robot;
 
 struct SpawnArea {
   double x, y;
@@ -89,14 +92,14 @@ class Scene : public QObject, protected Ped::Tscene {
   void sceneTimeChanged(double time);
 
   // → added/removed elements
-  void agentAdded(int id);
-  void agentRemoved(int id);
-  void obstacleAdded(int id);
-  void obstacleRemoved(int id);
-  void waypointAdded(int id);
-  void waypointRemoved(int id);
-  void agentClusterAdded(int id);
-  void agentClusterRemoved(int id);
+  void agentAdded(pedsim::id id);
+  void agentRemoved(pedsim::id id);
+  void wallAdded(pedsim::id id);
+  void wallRemoved(pedsim::id id);
+  void waypointAdded(pedsim::id id);
+  void waypointRemoved(pedsim::id id);
+  void agentClusterAdded(pedsim::id id);
+  void agentClusterRemoved(pedsim::id id);
   void waitingQueueAdded(QString name);
   void waitingQueueRemoved(QString name);
   void attractionAdded(QString name);
@@ -115,15 +118,17 @@ class Scene : public QObject, protected Ped::Tscene {
   QRectF itemsBoundingRect() const;
 
   // → elements
+  const QList<Robot*>& getRobots() const;
   const QList<Agent*>& getAgents() const;
-  Agent* getAgent(int id) const;
-  Agent* getAgentById(int idIn) const;
+  Agent* getAgent(pedsim::id id) const;
+  Agent* getAgentById(pedsim::id idIn) const;
   QList<AgentGroup*> getGroups();
   QMap<QString, AttractionArea*> getAttractions();
+  const QList<Wall*>& getWalls() const;
   const QList<Obstacle*>& getObstacles() const;
   const QMap<QString, Waypoint*>& getWaypoints() const;
   const QMap<QString, AttractionArea*>& getAttractions() const;
-  Waypoint* getWaypointById(int idIn) const;
+  Waypoint* getWaypointById(pedsim::id idIn) const;
   Waypoint* getWaypointByName(const QString& nameIn) const;
   WaitingQueue* getWaitingQueueByName(const QString& nameIn) const;
   const QList<AgentCluster*>& getAgentClusters() const;
@@ -141,40 +146,40 @@ class Scene : public QObject, protected Ped::Tscene {
   void dissolveClusters();
 
  public:
-  virtual void addAgent(Agent* agent);
-  virtual void addObstacle(Obstacle* obstacle);
-  virtual void addWaypoint(Waypoint* waypoint);
-  virtual void addAgentCluster(AgentCluster* clusterIn);
-  virtual void addWaitingQueue(WaitingQueue* queueIn);
-  virtual void addAttraction(AttractionArea* attractionIn);
+  virtual bool addAgent(Agent* agent);
+  virtual bool addWall(Wall* wall);
+  virtual bool addObstacle(Obstacle* obstacle);
+  virtual bool addWaypoint(Waypoint* waypoint);
+  virtual bool addAgentCluster(AgentCluster* clusterIn);
+  virtual bool addWaitingQueue(WaitingQueue* queueIn);
+  virtual bool addAttraction(AttractionArea* attractionIn);
+  virtual bool addRobot(Robot* agent);
   virtual bool removeAgent(Agent* agent);
+  virtual bool removeWall(Wall* wall);
   virtual bool removeObstacle(Obstacle* obstacle);
   bool removeWaypoint(QString name);
   virtual bool removeWaypoint(Waypoint* waypoint);
   virtual bool removeAgentCluster(AgentCluster* clusterIn);
   virtual bool removeWaitingQueue(WaitingQueue* queueIn);
   virtual bool removeAttraction(AttractionArea* attractionInIn);
-
-  //->move agent cluster directly to another place
-  virtual void moveClusters(int i);
-  virtual void removeAllObstacles();
+  virtual bool moveClusters(int i);
+  virtual bool removeAllObstacles();
 
   virtual std::set<const Ped::Tagent*> getNeighbors(double x, double y,
                                                     double maxDist);
 
-  bool getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest);
+  bool getClosestWall(Ped::Tvector pos_in, Ped::Twaypoint* closest);
   void arenaGoalCallback(const geometry_msgs::PoseStampedConstPtr& msg);
   std::vector<int> odomPosToMapIndex(Ped::Tvector pos);
   bool isOccupied(Ped::Tvector pos);
 
-  // obstacle cell locations
-  std::vector<Location> obstacle_cells_;
+  // wall cell locations
+  std::vector<Location> wall_cells_;
 
   std::vector<std::string> agent_types {"adult", "child", "elder", "forklift", "servicerobot", "robot"};
-  std::vector<float> agent_radius {0.5, 0.5, 0.5, 1.8, 1.0, 1.0};  // used for obstacle force calculation
-  std::vector<std::string> obstacle_types {"areawaypoint", "pointwaypoint", "shelf"};
-  std::vector<float> obstacle_radius {1.0, 1.0, 1.0};  // used for obstacle force calculation
-  std::vector<Ped::Twaypoint> circleObstacles;
+  std::vector<float> agent_radius {0.5, 0.5, 0.5, 1.8, 1.0, 1.0};  // used for wall force calculation
+  std::vector<std::string> wall_types {"areawaypoint", "pointwaypoint", "shelf"};
+  std::vector<float> wall_radius {1.0, 1.0, 1.0};  // used for wall force calculation
   std::vector<std::string> start_up_modes {"default", "wait_timer", "trigger_zone"};
 
   Agent* robot;
@@ -189,6 +194,8 @@ class Scene : public QObject, protected Ped::Tscene {
   // Attributes
  protected:
   QList<Agent*> agents;
+  QList<Robot*> robots;
+  QList<Wall*> walls;
   QList<Obstacle*> obstacles;
   QMap<QString, Waypoint*> waypoints;
   QMap<QString, AttractionArea*> attractions;

@@ -177,7 +177,7 @@ bool WaitingQueue::dequeueAgent(Agent* agentIn) {
     resetDequeueTime();
 
     // inform users about changed front position
-    int frontId = (newFront != nullptr) ? newFront->getId() : -1;
+    pedsim::id frontId = (newFront != nullptr) ? newFront->getId() : "NULL";
     emit queueLeaderChanged(frontId);
   }
 
@@ -247,7 +247,7 @@ void WaitingQueue::setVisiblePosition(const QPointF& positionIn) {
 QString WaitingQueue::toString() const {
   QStringList waitingIDs;
   foreach (const Agent* agent, queuedAgents)
-    waitingIDs.append(QString::number(agent->getId()));
+    waitingIDs.append(QString(agent->getId().c_str()));
   QString waitingString = waitingIDs.join(",");
 
   return tr("WaitingQueue '%1' (@%2,%3; queue: %4)")

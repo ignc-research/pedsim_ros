@@ -13,17 +13,19 @@
 #include <pedsim_simulator/scene.h>
 #include <pedsim_simulator/waypointplanner/waypointplanner.h>
 #include <pedsim_srvs/SpawnPeds.h>
-#include <pedsim_srvs/SpawnObstacle.h>
-#include <pedsim_srvs/SpawnInteractiveObstacles.h>
+#include <pedsim_srvs/SpawnWalls.h>
+#include <pedsim_srvs/SpawnObstacles.h>
 #include <pedsim_srvs/MovePeds.h>
+#include <pedsim_srvs/RegisterRobot.h>
 #include <flatland_msgs/Model.h>
 #include <pedsim_msgs/Ped.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
-#include <pedsim_msgs/InteractiveObstacle.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
+#include <pedsim_msgs/Waypoint.h>
 #include <std_srvs/SetBool.h>
 #include <std_srvs/Trigger.h>
 #include <yaml-cpp/yaml.h>
+
 
 /**
  * This class provides services to spawn and remove pedestrians dynamically.
@@ -35,96 +37,111 @@ public:
   SceneServices();
   virtual ~SceneServices() = default;
 
-  ros::ServiceServer respawn_peds_service_;
-  ros::ServiceServer remove_all_peds_service_;
-  ros::ServiceServer remove_all_peds_behavior_modelling_service_;
-  ros::ServiceServer spawn_ped_service_;
-  ros::ServiceServer add_obstacle_service_;
-  ros::ServiceServer move_peds_service_;
+  ros::ServiceServer reset_service_;
+
   ros::ServiceServer spawn_peds_service_;
-  ros::ServiceServer reset_peds_service_;
-  ros::ServiceServer respawn_interactive_obstacles_service_;
-  ros::ServiceServer spawn_interactive_obstacles_service_;
-  ros::ServiceServer remove_all_interactive_obstacles_service_;
+  ros::ServiceServer respawn_peds_service_;
+  ros::ServiceServer move_peds_service_;
+  ros::ServiceServer remove_all_peds_service_;
+  ros::ServiceServer reset_all_peds_service_;
+  // ros::ServiceServer remove_all_peds_behavior_modelling_service_;
+  
+  ros::ServiceServer add_walls_service_;
+  ros::ServiceServer clear_walls_service_;
+  
+  ros::ServiceServer spawn_obstacles_service_;
+  ros::ServiceServer respawn_obstacles_service_;
+  ros::ServiceServer remove_all_obstacles_service_;
+  
+  ros::ServiceServer register_robot_service_;
 
   bool env_is_flatland = true;
   static int agents_index_;
   static int static_obstacles_index_;
-  static std::vector<std::string> static_obstacle_names_;
+  static std::vector<pedsim::id> static_obstacle_names_;
 
   /**
    * @brief Spawns pedestrian in pedsim and flatland.
    */
-  bool spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response);
+  bool cb_spawnPeds(pedsim_srvs::SpawnPeds::Request &request, pedsim_srvs::SpawnPeds::Response &response);
 
   /**
    * @brief Removes all pedestrians in flatland.
    */
-  bool removeAllPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
+  bool cb_removeAllPeds(std_srvs::SetBool::Request &request, std_srvs::SetBool::Response &response);
 
   /**
    * @brief Resets all pedestrians to their initial position and state
    */
-  bool resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
+  bool cb_resetPeds(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
    * @brief Repawn interactive obstacles
    */
-  bool respawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+  bool cb_respawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Spawn interactive obstacles
    */
-  bool spawnInteractiveObstacles(pedsim_srvs::SpawnInteractiveObstacles::Request &request, pedsim_srvs::SpawnInteractiveObstacles::Response &response);
+  bool cb_spawnObstacles(pedsim_srvs::SpawnObstacles::Request &request, pedsim_srvs::SpawnObstacles::Response &response);
 
   /**
    * @brief Remove all interactive obstacles
    */
-  bool removeAllInteractiveObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
+  bool cb_removeAllObstacles(std_srvs::Trigger::Request &request, std_srvs::Trigger::Response &response);
 
   /**
    * @brief Respawning means reusing objects from previous tasks.
    * It is a more efficient way to setup a task during learning.
    */
-  bool respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
+  bool cb_respawnPeds(pedsim_srvs::SpawnPeds::Request &request,
                    pedsim_srvs::SpawnPeds::Response &response);
 
-  bool moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
+  bool cb_moveAgentClustersInPedsim(pedsim_srvs::MovePeds::Request &request,
                                  pedsim_srvs::MovePeds::Response &response);
 
   /**
    * @brief Adding static obstacles to pedsim.
    */
-  bool addStaticObstacles(pedsim_srvs::SpawnObstacle::Request &request,
-                          pedsim_srvs::SpawnObstacle::Response &response);
+  bool cb_addWalls(pedsim_srvs::SpawnWalls::Request &request,
+                          pedsim_srvs::SpawnWalls::Response &response);
+
+  bool cb_clearWalls(std_srvs::Trigger::Request &request,
+                          std_srvs::Trigger::Response &response);
+
+  bool cb_reset(std_srvs::Trigger::Request &request,
+                          std_srvs::Trigger::Response &response);
+
+  bool cb_registerRobot(pedsim_srvs::RegisterRobot::Request &request,
+                          pedsim_srvs::RegisterRobot::Response &response);
 
 protected:
   ros::NodeHandle nh_;
 
 private:
-  std::vector<std::string> removePedsInPedsim();
-  void addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<int> ids);
-  std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<int> ids);
-  std::vector<int> generateAgentIds(int n);
-  bool removeModelsInFlatland(std::vector<std::string> model_names);
+  std::vector<pedsim::id> removePedsInPedsim();
+  bool addAgentClusterToPedsim(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
+  std::vector<flatland_msgs::Model> getFlatlandModels(pedsim_msgs::Ped ped, std::vector<pedsim::id> ids);
+  std::vector<pedsim::id> generateAgentIds(pedsim::id base, int n);
+  bool removeModelsInFlatland(std::vector<pedsim::id> model_names);
   bool spawnModelsInFlatland(std::vector<flatland_msgs::Model> models);
-  // bool respawnModelsInFlatland(std::vector<std::string> old_model_names, std::vector<flatland_msgs::Model> new_models);
-  void removeAllReferencesToInteractiveObstacles();
-  void removeAllInteractiveObstaclesFromPedsim();
-  void removeAllInteractiveObstaclesFromFlatland();
-  std::vector<Obstacle *> getWallsFromFlatlandModel(pedsim_msgs::InteractiveObstacle obstacle, double yaw);
-  int stringToEnumIndex(std::string str, std::vector<std::string> values);
+  // bool respawnModelsInFlatland(std::vector<pedsim::id> old_model_names, std::vector<flatland_msgs::Model> new_models);
+  bool removeAllReferencesToInteractiveObstacles();
+  bool removeAllInteractiveObstaclesFromPedsim();
+  bool removeAllInteractiveObstaclesFromFlatland();
+  std::vector<Wall *> getWallsFromFlatlandModel(pedsim_msgs::Obstacle obstacle, double yaw);
+  int stringToEnumIndex(pedsim::id str, std::vector<pedsim::id> values);
 
   std::string spawn_models_topic_;
   ros::ServiceClient spawn_models_client_;
 
-  // std::string respawn_models_topic_;
+  // pedsim::id respawn_models_topic_;
   // ros::ServiceClient respawn_models_client_;
 
   std::string delete_models_topic_;
   ros::ServiceClient delete_models_client_;
 
-  std::vector<Obstacle *> walls;
+  std::vector<Wall *> walls;
 };
 
 #endif /* _scene_service_h_ */

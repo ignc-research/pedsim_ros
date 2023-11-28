@@ -44,8 +44,8 @@
 #include <pedsim_msgs/AgentGroups.h>
 #include <pedsim_msgs/AgentState.h>
 #include <pedsim_msgs/AgentStates.h>
-#include <pedsim_msgs/LineObstacle.h>
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Wall.h>
+#include <pedsim_msgs/Walls.h>
 #include <pedsim_msgs/Waypoint.h>
 #include <pedsim_msgs/Waypoints.h>
 
@@ -86,10 +86,10 @@ class SimVisualizer {
   void run();
 
   // callbacks.
-  void agentStatesCallBack(const pedsim_msgs::AgentStatesConstPtr& agents);
-  void agentGroupsCallBack(const pedsim_msgs::AgentGroupsConstPtr& groups);
-  void obstaclesCallBack(const pedsim_msgs::LineObstaclesConstPtr& obstacles);
-  void waypointsCallBack(const pedsim_msgs::WaypointsConstPtr& waypoints);
+  void agentStatesCallBack(const pedsim_msgs::AgentStatesPtr& agents);
+  void agentGroupsCallBack(const pedsim_msgs::AgentGroupsPtr& groups);
+  void obstaclesCallBack(const pedsim_msgs::WallsPtr& obstacles);
+  void waypointsCallBack(const pedsim_msgs::WaypointsPtr& waypoints);
 
  protected:
   /// publishers
@@ -97,7 +97,7 @@ class SimVisualizer {
   void publishRelationVisuals();
   void publishActivityVisuals();
   void publishGroupVisuals();
-  void publishObstacleVisuals();
+  void publishWallVisuals();
   void publishWaypointVisuals();
 
  private:
@@ -107,7 +107,7 @@ class SimVisualizer {
   double hz_;
 
   /// publishers
-  ros::Publisher pub_obstacles_visuals_;
+  ros::Publisher pub_walls_visuals_;
   ros::Publisher pub_person_visuals_;
   ros::Publisher pub_group_visuals_;
   ros::Publisher pub_forces_;
@@ -120,10 +120,10 @@ class SimVisualizer {
   ros::Subscriber sub_waypoints_;
 
   /// Local data queues.
-  std::queue<pedsim_msgs::AgentStatesConstPtr> q_people_;
-  std::queue<pedsim_msgs::AgentGroupsConstPtr> q_groups_;
-  std::queue<pedsim_msgs::LineObstaclesConstPtr> q_obstacles_;
-  std::queue<pedsim_msgs::WaypointsConstPtr> q_waypoints_;
+  pedsim_msgs::AgentStatesPtr q_people_;
+  pedsim_msgs::AgentGroupsPtr q_groups_;
+  pedsim_msgs::WallsPtr q_walls_;
+  pedsim_msgs::WaypointsPtr q_waypoints_;
 };
 }  // namespace pedsim
 

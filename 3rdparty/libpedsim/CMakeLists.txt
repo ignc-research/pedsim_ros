@@ -45,6 +45,7 @@ set(SOURCES
   src/ped_tree.cpp
   src/ped_vector.cpp
   src/ped_waypoint.cpp
+  src/types.cpp
 )
 
 add_library(pedsim ${SOURCES})

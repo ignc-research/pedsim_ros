@@ -44,7 +44,7 @@ class AgentCluster : public ScenarioElement {
 
   // Constructor and Destructor
  public:
-  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1, std::vector<int> agent_ids = {});
+  AgentCluster(double xIn = 0, double yIn = 0, int countIn = 1, std::vector<pedsim::id> agent_ids = {});
   virtual ~AgentCluster();
 
   // Signals
@@ -55,7 +55,7 @@ class AgentCluster : public ScenarioElement {
   // Methods
  public:
   QList<Agent*> dissolve();
-  int getId() const;
+  pedsim::id getId() const;
   int getCount() const;
   void setCount(int countIn);
   const QList<Waypoint*>& getWaypoints() const;
@@ -85,7 +85,7 @@ class AgentCluster : public ScenarioElement {
 
   // Attributes
  protected:
-  int id;
+  pedsim::id id;
   Ped::Tvector position;
   int count;
   QSizeF distribution;
@@ -113,7 +113,7 @@ class AgentCluster : public ScenarioElement {
   double stateTalkingAndWalkingBaseTime;  // in seconds
   double stateRequestingServiceBaseTime = 30.0;
   double stateReceivingServiceBaseTime = 30.0;
-  std::vector<int> agentIds;
+  std::vector<pedsim::id> agentIds;
 };
 
 #endif

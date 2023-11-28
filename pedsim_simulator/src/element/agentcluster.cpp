@@ -36,11 +36,11 @@
 
 default_random_engine generator;
 
-AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<int> agent_ids) {
+AgentCluster::AgentCluster(double xIn, double yIn, int countIn, std::vector<std::string> agent_ids) {
   if (countIn != (int) agent_ids.size()) {
     agentIds.clear();
-    for (int i = 0; i < countIn; i++) {
-      agentIds.push_back(Ped::Tagent::staticid + i);
+    for (auto& id : agent_ids) {
+      agentIds.push_back(std::to_string(Ped::Tagent::staticid++) + "_" + id);
     }
   } else {
     agentIds = agent_ids;
@@ -81,8 +81,7 @@ QList<Agent*> AgentCluster::dissolve() {
 
   // create and initialize agents
   for (int i = 0; i < count; ++i) {
-    std::string name = "person_" + std::to_string(agentIds[i]);
-    Agent* a = new Agent(name);
+    Agent* a = new Agent(agentIds[i]);
 
     double randomizedX = position.x;
     double randomizedY = position.y;
@@ -131,7 +130,7 @@ QList<Agent*> AgentCluster::dissolve() {
   return agents;
 }
 
-int AgentCluster::getId() const { return id; }
+std::string AgentCluster::getId() const { return id; }
 
 int AgentCluster::getCount() const { return count; }
 

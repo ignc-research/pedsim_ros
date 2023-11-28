@@ -56,9 +56,9 @@ class WaitingQueue : public Waypoint {
  signals:
   void directionChanged(double radianAngle);
   // → Waiting Agents
-  void agentMayPass(int id);
-  void agentDequeued(int id);
-  void queueLeaderChanged(int id);
+  void agentMayPass(pedsim::id id);
+  void agentDequeued(pedsim::id id);
+  void queueLeaderChanged(pedsim::id id);
   void queueEndChanged();
   void queueEndPositionChanged(double x, double y);
 

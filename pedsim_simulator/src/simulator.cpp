@@ -56,6 +56,8 @@ Simulator::~Simulator()
   pub_agent_groups_.shutdown();
   pub_robot_position_.shutdown();
   pub_waypoints_.shutdown();
+  pub_waypoint_plugin_.shutdown();
+  sub_waypoint_plugin_.shutdown();
 
   srv_pause_simulation_.shutdown();
   srv_unpause_simulation_.shutdown();
@@ -75,8 +77,8 @@ bool Simulator::initializeSimulation()
                           : ""));
 
   // setup ros publishers
-  pub_obstacles_ =
-      nh_.advertise<pedsim_msgs::LineObstacles>("simulated_walls", queue_size);
+  pub_walls_ =
+      nh_.advertise<pedsim_msgs::Walls>("simulated_walls", queue_size);
   pub_agent_states_ =
       nh_.advertise<pedsim_msgs::AgentStates>("simulated_agents", queue_size);
   pub_agent_groups_ =
@@ -85,6 +87,14 @@ bool Simulator::initializeSimulation()
       nh_.advertise<nav_msgs::Odometry>("robot_position", queue_size);
   pub_waypoints_ =
       nh_.advertise<pedsim_msgs::Waypoints>("simulated_waypoints", queue_size);
+  pub_obstacles_ =
+      nh_.advertise<pedsim_msgs::Obstacles>("simulated_obstacles", queue_size);
+  
+  pub_waypoint_plugin_ = 
+      nh_.advertise<pedsim_msgs::WaypointPluginDataframe>("waypoint_plugin_data", queue_size);
+  sub_waypoint_plugin_ =
+      nh_.subscribe("waypoint_plugin_feedback", 1, &Simulator::onWaypointPlugin, this);
+
 
   // services
   srv_pause_simulation_ = nh_.advertiseService(
@@ -123,13 +133,13 @@ bool Simulator::initializeSimulation()
   {
     ROS_INFO_STREAM(
         "Could not load the given scene file, trying to load empty scene");
-  }
-  const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena-simulation-setup") + "/pedsim/empty.xml");
-  if (scenario_reader.readFromFile(empty_scenefile) == false)
-  {
-    ROS_ERROR_STREAM(
-        "Could not load empty scene file, quitting");
-    return false;
+    const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena-simulation-setup") + "/pedsim/empty.xml");
+    if (scenario_reader.readFromFile(empty_scenefile) == false)
+    {
+      ROS_ERROR_STREAM(
+          "Could not load empty scene file, quitting");
+      return false;
+    }
   }
   nh_.param<bool>("enable_groups", CONFIG.groups_enabled, true);
   nh_.param<double>("max_robot_speed", CONFIG.max_robot_speed, 1.5);
@@ -149,8 +159,14 @@ bool Simulator::initializeSimulation()
 
   // spawn robot
   Agent *a = new Agent("myrobot");
-  a->id = 0;
-  Ped::Tagent::staticid = 1; // reset id so regular agents start at 1
+
+  bool env_is_flatland = true;
+  std::string environment;
+  nh_.param<std::string>("/simulator", environment, "flatland");
+  if (environment == "gazebo")
+    env_is_flatland = false;
+  // ROS_INFO("staticid in simulator.cpp: %d", Ped::Tagent::staticid);
+
   a->setType(Ped::Tagent::AgentType::ROBOT);
   SCENE.addAgent(a);
   SCENE.robot = a;
@@ -178,11 +194,19 @@ void Simulator::runSimulation()
         agent->recordVelocity();
       }
 
-      publishAgents();
-      // publishGroups();
+      auto agents = getAgentStates();
+      auto groups = pedsim_msgs::AgentGroups();
+      auto waypoints = getWaypoints();
+      auto walls = getWalls();
+      auto obstacles = getObstacles();
+
+      publishAgents(agents);
+      // publishGroups(groups);
       // publishRobotPosition();
-      publishObstacles();
-      publishWaypoints();
+      publishWalls(walls);
+      publishObstacles(obstacles);
+      publishWaypoints(waypoints);
+      publishWaypointPlugin(agents, groups, waypoints, walls, obstacles);
     }
     ros::spinOnce();
     r.sleep();
@@ -330,12 +354,8 @@ void Simulator::publishRobotPosition()
   pub_robot_position_.publish(robot_location);
 }
 
-void Simulator::publishAgents()
+pedsim_msgs::AgentStates Simulator::getAgentStates()
 {
-  if (SCENE.getAgents().size() < 1)
-  {
-    return;
-  }
 
   pedsim_msgs::AgentStates all_status;
   all_status.header = createMsgHeader();
@@ -377,6 +397,14 @@ void Simulator::publishAgents()
 
     // Forces.
     pedsim_msgs::AgentForce agent_forces;
+
+    agent_forces.vmax = a->getVmax();
+
+    agent_forces.desired_ffactor = a->forceFactorDesired;
+    agent_forces.obstacle_ffactor = a->forceFactorObstacle;
+    agent_forces.social_ffactor = a->forceFactorSocial;
+    agent_forces.robot_ffactor = a->forceFactorRobot;
+
     agent_forces.desired_force = VecToMsg(a->getDesiredDirection() * a->forceFactorDesired);
     agent_forces.obstacle_force = VecToMsg(a->getObstacleForce() * a->forceFactorObstacle);
     agent_forces.social_force = VecToMsg(a->getSocialForce() * a->forceFactorSocial);
@@ -407,7 +435,11 @@ void Simulator::publishAgents()
     // ROS_WARN("publish agent states %d,%lf, typeID,%d",state.id,state.twist.linear.x,state.type);
   }
 
-  pub_agent_states_.publish(all_status);
+  return all_status;
+}
+
+void Simulator::publishAgents(pedsim_msgs::AgentStates agents){
+  pub_agent_states_.publish(agents);
 }
 
 void Simulator::publishGroups()
@@ -448,26 +480,64 @@ void Simulator::publishGroups()
   pub_agent_groups_.publish(sim_groups);
 }
 
-void Simulator::publishObstacles()
+bool is_normal(float value)
 {
-  pedsim_msgs::LineObstacles sim_obstacles;
-  sim_obstacles.header = createMsgHeader();
-  for (const auto &obstacle : SCENE.getObstacles())
-  {
-    pedsim_msgs::LineObstacle line_obstacle;
-    line_obstacle.start.x = obstacle->getax();
-    line_obstacle.start.y = obstacle->getay();
-    line_obstacle.start.z = 0.0;
-    line_obstacle.end.x = obstacle->getbx();
-    line_obstacle.end.y = obstacle->getby();
-    line_obstacle.end.z = 0.0;
-    sim_obstacles.obstacles.push_back(line_obstacle);
-  }
-  pub_obstacles_.publish(sim_obstacles);
+  return !std::isinf(value) && !std::isnan(value);
 }
 
-void Simulator::publishWaypoints()
+pedsim_msgs::Walls Simulator::getWalls()
+{ 
+  pedsim_msgs::Walls sim_walls;
+  sim_walls.header = createMsgHeader();
+  for (const auto &sceneWall : SCENE.getWalls())
+  {
+    pedsim_msgs::Wall wall;
+    wall.start.x = sceneWall->getax();
+    wall.start.y = sceneWall->getay();
+    wall.start.z = 0.0;
+    wall.end.x = sceneWall->getbx();
+    wall.end.y = sceneWall->getby();
+    wall.end.z = 0.0;
+
+    wall.layer = (uint8_t) sceneWall->getLayer();
+
+    if( //happens sometimes, don't know or care why
+      is_normal(wall.start.x) &&
+      is_normal(wall.start.y) &&
+      is_normal(wall.end.x) &&
+      is_normal(wall.end.y)
+    ){
+      sim_walls.walls.push_back(wall);
+    }
+    else{
+      }
+  }
+  return sim_walls;
+}
+
+pedsim_msgs::Obstacles Simulator::getObstacles(){
+  pedsim_msgs::Obstacles sim_obstacles;
+  sim_obstacles.header = createMsgHeader();
+  for (const auto &sceneObstacle : SCENE.getObstacles())
+  {
+    pedsim_msgs::Obstacle obstacle;
+    obstacle = sceneObstacle->obstacle;
+    sim_obstacles.obstacles.push_back(obstacle);
+  }
+  return sim_obstacles;
+}
+
+void Simulator::publishWalls(pedsim_msgs::Walls walls)
 {
+  pub_walls_.publish(walls);
+}
+
+void Simulator::publishObstacles(pedsim_msgs::Obstacles obstacles)
+{
+  pub_obstacles_.publish(obstacles);
+}
+
+pedsim_msgs::Waypoints Simulator::getWaypoints(){
   pedsim_msgs::Waypoints sim_waypoints;
   sim_waypoints.header = createMsgHeader();
   for (const auto &waypoint : SCENE.getWaypoints())
@@ -482,7 +552,12 @@ void Simulator::publishWaypoints()
     wp.position.y = waypoint->getPosition().y;
     sim_waypoints.waypoints.push_back(wp);
   }
-  pub_waypoints_.publish(sim_waypoints);
+  return sim_waypoints;
+}
+
+void Simulator::publishWaypoints(pedsim_msgs::Waypoints waypoints)
+{
+  pub_waypoints_.publish(waypoints);
 }
 
 std::string Simulator::agentStateToActivity(
@@ -506,4 +581,48 @@ void Simulator::odomCallback(const nav_msgs::OdometryConstPtr &odom)
   robot_->setY(odom->pose.pose.position.y);
   robot_->setvx(odom->twist.twist.linear.x);
   robot_->setvy(odom->twist.twist.linear.y);
+}
+
+void Simulator::publishWaypointPlugin(
+  pedsim_msgs::AgentStates agents,
+  pedsim_msgs::AgentGroups groups,
+  pedsim_msgs::Waypoints waypoints,
+  pedsim_msgs::Walls walls,
+  pedsim_msgs::Obstacles obstacles
+){
+  pedsim_msgs::WaypointPluginDataframe dataframe;
+
+  dataframe.header = createMsgHeader();
+  dataframe.agent_states = agents.agent_states;
+  
+  for(auto robot : SCENE.getRobots()){
+    dataframe.robot_states.push_back(robot->getState());
+  }
+
+  dataframe.simulated_groups = groups.groups;
+  dataframe.simulated_waypoints = waypoints.waypoints;
+  dataframe.walls = walls.walls;
+  dataframe.obstacles = obstacles.obstacles;
+
+  pub_waypoint_plugin_.publish(dataframe);
+}
+
+void Simulator::onWaypointPlugin(pedsim_msgs::AgentFeedbacks agents){
+  for(auto agent : agents.agents){
+    Agent* sceneAgent = SCENE.getAgent(agent.id);
+    if(!sceneAgent) continue;
+
+    if(agent.unforce){
+      sceneAgent->overrideForce();
+    }
+    else{
+      sceneAgent->overrideForce(
+        Ped::Tvector(
+          agent.force.x,
+          agent.force.y,
+          agent.force.z
+        )
+      );
+    }
+  }
 }

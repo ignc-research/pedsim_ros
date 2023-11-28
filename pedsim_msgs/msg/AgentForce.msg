@@ -1,5 +1,14 @@
 # Forces acting on an agent.
 
+# Max Speed
+float64 vmax
+
+# Force Factors
+float64 desired_ffactor
+float64 obstacle_ffactor
+float64 social_ffactor
+float64 robot_ffactor
+
 # Basic SFM forces.
 geometry_msgs/Vector3 desired_force
 geometry_msgs/Vector3 obstacle_force

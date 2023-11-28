@@ -1,5 +1,5 @@
 # Junhui Li
 # info the pedsim_ros the position of static obstacles
-pedsim_msgs/LineObstacles staticObstacles
+pedsim_msgs/Wall[] walls
 ---
-bool finished
+bool success

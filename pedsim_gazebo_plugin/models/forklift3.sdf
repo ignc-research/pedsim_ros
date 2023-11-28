@@ -1,0 +1,619 @@
+<?xml version='1.0'?>
+<sdf version='1.5'>
+<model name='AGV_A4'>
+	<static>false</static>
+
+<!--Mesh Bounding Box Size 3.356963 1.034387 3.155002-->
+<!--Mesh Bounding Box Diag 4.721567 -->
+<!--Mesh Volume is 1.474650-->
+<!--Mesh Surface is 46.442028-->
+<!--Thin shell barycenter 0.146682 0.007949 1.072887-->
+<!--Center of Mass is 0.691704 0.007937 0.435443-->
+<!--Inertia Tensor is :-->
+<!--| 0.296941 0.003089 -0.039190 |-->
+<!--| 0.003089 0.489606 0.001573 |-->
+<!--| -0.039190 0.001573 0.282447 |-->
+<!--Principal axes are :-->
+<!--| 0.768468 0.015062 0.639711 |-->
+<!--| -0.008542 0.999875 -0.013281 |-->
+<!--| -0.639831 0.004742 0.768501 |-->
+<!--axis momenta are :-->
+<!--| 0.329537 0.489660 0.249797 |-->
+
+<!--chassis//base_link_____________________________________________________ -->
+<!--<box size>x=1.500 y=0.893 z=1.294</box size> Approximation Chassis Box for inertia calculation --> 
+	<link name='base_link'> <!-- chassis of the model -->
+		<pose>0 0 .001 0 0 0</pose>
+		<inertial>
+      <pose>0.691704 0.007937 0.435443 0 0 0</pose>
+			<mass>1200</mass>
+			<inertia>
+        <ixx>356.3292</ixx>      <!-- for a box: ixx = 0.083 * mass * (y*y + z*z) 0.296941 -->
+        <ixy>0</ixy>             <!-- for a box: ixy = 0 -->
+        <ixz>0</ixz>             <!-- for a box: ixz = 0 -->
+        <iyy>587.5272</iyy>      <!-- for a box: iyy = 0.083 * mass * (x*x + z*z) 0.489606-->
+        <iyz>0</iyz>             <!-- for a box: iyz = 0 -->
+        <izz>338.9364</izz>      <!-- for a box: izz = 0.083 * mass * (x*x + y*y) 0.282447 -->
+			</inertia>
+		</inertial>
+		<collision name='collision'>
+			<geometry>
+				<mesh>
+					<uri>model://agv_a4/meshes/collision/agv_a4_chassis.stl</uri>
+				</mesh>
+			</geometry>
+		</collision>
+		<visual name='visual'>
+			<pose>0 0 0 0 0 0</pose>
+			<geometry>
+				<mesh>
+					<uri>model://agv_a4/meshes/visual/agv_a4_chassis.dae</uri>
+				</mesh>
+			</geometry>
+		</visual>
+	</link>
+
+<!--  lift_____________________________________________________ -->
+	<link name='lift'> <!-- agv lift 0.163 -->
+		<pose>-0.194 0 0 0 0 0</pose> 
+		<collision name='collision'>
+			<geometry>
+				<mesh>
+					<uri>model://agv_a4/meshes/collision/agv_a4_forks2.dae</uri>
+				</mesh>
+			</geometry>
+		</collision>
+		<visual name='visual'>
+			<pose>0 0 0 0 0 0</pose>
+			<geometry>
+				<mesh>
+					<uri>model://agv_a4/meshes/visual/agv_a4_forks2.dae</uri>
+				</mesh>
+			</geometry>
+		</visual>
+	</link>
+  <joint name='lift_joint' type='prismatic'>
+    <parent>base_link</parent>
+    <child>lift</child>
+    <axis>
+      <xyz>0 0 1</xyz>
+      <limit>
+        <upper>1.65</upper>
+        <lower>0.01</lower>
+        <effort>100000</effort>
+      </limit>
+  
+      <dynamics>
+        <damping>25</damping>
+      </dynamics>
+    </axis>
+    <physics>
+      <ode>
+        <implicit_spring_damper>1</implicit_spring_damper>
+      </ode>
+    </physics>
+  </joint>
+
+<!--  front_wheel_____________________________________________________ -->
+	<link name='front_wheel'>
+		<pose>1.204 0 .1 -1.5707 -0 0</pose>
+		<collision name='collision'>
+			<geometry>
+				<cylinder>
+					<radius>.1</radius>
+					<length>.125</length>
+				</cylinder>
+			</geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1.0</mu>
+            <mu2>1.0</mu2>
+            <fdir1>0 0 1</fdir1>
+            <slip1>0.0</slip1>
+            <slip2>0.0</slip2>
+          </ode>
+        </friction>
+        <contact>
+          <ode>
+            <min_depth>0.005</min_depth>
+            <kp>1e8</kp>
+          </ode>
+        </contact>
+      </surface>
+		</collision>
+    <visual name='visual'>
+      <geometry>
+        <cylinder>
+          <radius>.1</radius>
+          <length>.125</length>
+        </cylinder>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/DarkGrey</name>
+        </script>
+      </material>
+    </visual>
+	</link>
+	<joint name='front_wheel_joint' type='universal' >
+		<parent>base_link</parent>
+		<child>front_wheel</child>
+		<axis>
+			<xyz>0 -1 0</xyz>
+			<limit>
+				<lower>-1.0471976</lower> <!--+-60deg -->
+				<upper>1.0471976</upper>
+			</limit>
+		</axis>
+		<axis2>
+			<xyz>0 0 1</xyz>
+		</axis2>
+	</joint>
+
+<!--  left_wheel_____________________________________________________ -->
+	<link name='left_wheel'>
+		<pose>0 0.382 .15 -1.5707 0 0</pose>
+		<collision name='collision'>
+			<geometry>
+				<cylinder>
+					<radius>.15</radius>
+					<length>.15</length>
+				</cylinder>
+			</geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1.0</mu>
+            <mu2>1.0</mu2>
+            <fdir1>0 0 1</fdir1>
+            <slip1>0.0</slip1>
+            <slip2>0.0</slip2>
+          </ode>
+        </friction>
+        <contact>
+          <ode>
+            <min_depth>0.005</min_depth>
+            <kp>1e8</kp>
+          </ode>
+        </contact>
+      </surface>
+		</collision>
+	  <visual name='visual'>
+	    <pose>0 0 0 0 0 0</pose>
+	    <geometry>
+	      <cylinder>
+	        <radius>.15</radius>
+	        <length>.15</length>
+	      </cylinder>
+	    </geometry>
+			<material>
+	      <script>
+	        <uri>file://media/materials/scripts/gazebo.material</uri>
+	        <name>Gazebo/DarkGrey</name>
+	      </script>
+	    </material>
+	  </visual>
+	</link> 
+	<joint name='left_wheel_joint' type='revolute'>
+		<parent>base_link</parent>
+		<child>left_wheel</child>
+		<axis>
+			<xyz>0 0 1</xyz>
+		</axis>
+	</joint>
+
+<!--  right_wheel_____________________________________________________ -->
+	<link name='right_wheel'>
+		<pose>0 -0.382 .15 -1.5707 0 0</pose>
+		<collision name='collision'>
+			<geometry>
+				<cylinder>
+					<radius>.15</radius>
+					<length>.15</length>
+				</cylinder>
+			</geometry>
+      <surface>
+        <friction>
+          <ode>
+            <mu>1.0</mu>
+            <mu2>1.0</mu2>
+            <fdir1>0 0 1</fdir1>
+            <slip1>0.0</slip1>
+            <slip2>0.0</slip2>
+          </ode>
+        </friction>
+        <contact>
+          <ode>
+            <min_depth>0.005</min_depth>
+            <kp>1e8</kp>
+          </ode>
+        </contact>
+      </surface>
+		</collision>
+		<visual name='visual'>
+		  <geometry>
+		    <cylinder>
+		      <radius>.15</radius>
+		      <length>.15</length>
+		    </cylinder>
+		  </geometry>
+			<material>
+		    <script>
+		      <uri>file://media/materials/scripts/gazebo.material</uri>
+		      <name>Gazebo/DarkGrey</name>
+		    </script>
+		  </material>
+		</visual>
+	</link>
+
+	<joint name='right_wheel_joint' type='revolute'>
+		<parent>base_link</parent>
+		<child>right_wheel</child>
+		<axis>
+			<xyz>0 0 1</xyz>
+		</axis>
+	</joint>
+
+<!--  SENSORS_____________________________________________________ -->
+  <link name='s300_right'>
+    <pose>1.440 -0.4465 0.150 0 0 -0.7863981</pose>
+    <visual name='visual'>
+      <pose>0 0 .13 3.141592 0 0</pose> 
+      <geometry>
+        <mesh>
+          <uri>model://sick_s300/meshes/SICK_S300.dae</uri>
+        </mesh>
+      </geometry>
+    </visual>
+    <sensor name='laser' type='ray'>
+      <pose>0 0 0 0 0 0</pose>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>1080</samples>
+            <resolution>0.5</resolution>
+<!--        +-135Degree-->
+            <min_angle>-2.35619449</min_angle>
+            <max_angle>2.35619449</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.08</min>
+          <max>8</max>
+          <resolution>0.03</resolution>
+        </range>
+      </ray>
+
+      <plugin name='laser' filename='libRayPlugin.so' />
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+    </sensor>
+  </link>
+  <joint name='S300_right_joint' type='fixed'>
+    <child>s300_right</child>
+    <parent>base_link</parent>
+  </joint>
+
+  <link name='s300_left'>
+    <pose>1.440 0.4465 0.150 0 0 0.7863981</pose>
+    <visual name='visual'>
+      <pose>0 0 .13 3.141592 0 0</pose> 
+      <geometry>
+        <mesh>
+          <uri>model://sick_s300/meshes/SICK_S300.dae</uri>
+        </mesh>
+      </geometry>
+    </visual>
+    <sensor name='laser' type='ray'>
+      <pose>0 0 0 0 0 0</pose>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>1080</samples>
+            <resolution>0.5</resolution>
+<!--        +-135Degree-->
+            <min_angle>-2.35619449</min_angle>
+            <max_angle>2.35619449</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.08</min>
+          <max>8</max>
+          <resolution>0.03</resolution>
+        </range>
+      </ray>
+
+      <plugin name='laser' filename='libRayPlugin.so' />
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+    </sensor>
+  </link>
+  <joint name='S300_left_joint' type='fixed'>
+    <child>s300_left</child>
+    <parent>base_link</parent>
+  </joint>
+
+  <link name='s300_rear'>
+    <pose>0 0 0.150 0 0 3.141592</pose>
+    <visual name='visual'>
+      <pose>0 0 .13 3.141592 0 0</pose> 
+      <geometry>
+        <mesh>
+          <uri>model://sick_s300/meshes/SICK_S300.dae</uri>
+        </mesh>
+      </geometry>
+    </visual>
+    <sensor name='laser' type='ray'>
+      <pose>0 0 0 0 0 0</pose>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>240</samples>
+            <resolution>0.5</resolution>
+<!--            +-30Degree-->
+            <min_angle>-0.5236</min_angle>
+            <max_angle>0.5236</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.08</min>
+          <max>8</max>
+          <resolution>0.03</resolution>
+        </range>
+      </ray>
+
+      <plugin name='laser' filename='libRayPlugin.so' />
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+    </sensor>
+  </link>
+  <joint name='s300_rear_joint' type='fixed'>
+    <child>s300_rear</child>
+    <parent>base_link</parent>
+  </joint>
+
+<!--  LOAD_SENSORS________________________________________________ -->
+  <link name='load_sensor_cross'>
+    <pose>-0.2 0 0.65 0 0.785398163 3.141592654</pose>
+    <visual name='visual'>
+      <pose>0 0 0.06225 0 0 0</pose> 
+      <geometry>
+        <box>
+          <size>0.0815 0.043 0.1245</size>
+        </box>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/SkyBlue</name>
+        </script>
+      </material>
+    </visual>
+    <sensor name='laser' type='ray'>
+      <pose>0 0 0.0925 0 0 0</pose>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>10</samples>
+            <resolution>0.1</resolution>
+            <min_angle>0</min_angle>
+            <max_angle>0</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.02</min>
+          <max>2</max>
+          <resolution>0.00015</resolution>
+        </range>
+      </ray>
+
+      <plugin name='laser' filename='libRayPlugin.so' />
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+    </sensor>
+  </link>
+  <joint name='load_sensor_cross_joint' type='fixed'>
+    <child>load_sensor_cross</child>
+    <parent>lift</parent>
+  </joint>
+
+  <link name='load_sensor_plane'>
+    <pose>-0.25 0 0.2 3.141592654 0 3.141592654</pose>
+    <visual name='visual'>
+      <pose>0 0 0.06225 0 0 0</pose> 
+      <geometry>
+        <box>
+          <size>0.0815 0.043 0.1245</size>
+        </box>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/SkyBlue</name>
+        </script>
+      </material>
+    </visual>
+    <sensor name='laser' type='ray'>
+      <pose>0 0 0.0925 0 0 0</pose>
+      <ray>
+        <scan>
+          <horizontal>
+            <samples>10</samples>
+            <resolution>0.1</resolution>
+            <min_angle>0</min_angle>
+            <max_angle>0</max_angle>
+          </horizontal>
+        </scan>
+        <range>
+          <min>0.02</min>
+          <max>2</max>
+          <resolution>0.00015</resolution>
+        </range>
+      </ray>
+
+      <plugin name='laser' filename='libRayPlugin.so' />
+      <always_on>1</always_on>
+      <update_rate>30</update_rate>
+      <visualize>true</visualize>
+    </sensor>
+  </link>
+  <joint name='load_sensor_plane_joint' type='fixed'>
+    <child>load_sensor_plane</child>
+    <parent>lift</parent>
+  </joint>
+
+<!--  BUMPER_____________________________________________________ -->
+  <link name="bumper_front">
+    <pose>1.44 0 0.095 0 0 0</pose>
+
+    <collision name="collision_box">
+      <geometry>
+        <box>
+          <size>0.05 0.90 0.05</size>
+       </box>
+      </geometry>
+    </collision>
+
+    <visual name="visual">
+      <geometry>
+        <box>
+          <size>0.05 0.90 0.05</size>
+        </box>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/Black</name>
+        </script>
+      </material>
+    </visual>
+    <sensor name='contact_front' type='contact'>
+      <contact>
+        <collision>collision_box</collision>
+      </contact>
+    </sensor>
+  </link>
+  <joint name='bumper_front_joint' type='fixed'>
+    <child>bumper_front</child>
+    <parent>base_link</parent>
+  </joint>
+
+  <link name="bumper_left">
+    <pose>0.660 0.485 0.095 0 0 1.570796327</pose>
+
+    <collision name="collision_box">
+      <geometry>
+        <box>
+          <size>0.05 1.540 0.05</size>
+       </box>
+      </geometry>
+    </collision>
+
+    <visual name="visual">
+      <geometry>
+        <box>
+          <size>0.05 1.540 0.05</size>
+        </box>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/Black</name>
+        </script>
+      </material>
+    </visual>
+    <sensor name='contact_left' type='contact'>
+      <contact>
+        <collision>collision_box</collision>
+      </contact>
+    </sensor>
+  </link>
+  <joint name='bumper_left_joint' type='fixed'>
+    <child>bumper_left</child>
+    <parent>base_link</parent>
+  </joint>
+
+  <link name="bumper_right">
+    <pose>0.660 -0.485 0.095 0 0 1.570796327</pose>
+
+    <collision name="collision_box">
+      <geometry>
+        <box>
+          <size>0.05 1.540 0.05</size>
+       </box>
+      </geometry>
+    </collision>
+
+    <visual name="visual">
+      <geometry>
+        <box>
+          <size>0.05 1.540 0.05</size>
+        </box>
+      </geometry>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/gazebo.material</uri>
+          <name>Gazebo/Black</name>
+        </script>
+      </material>
+    </visual>
+    <sensor name='contact_right' type='contact'>
+      <contact>
+        <collision>collision_box</collision>
+      </contact>
+    </sensor>
+  </link>
+  <joint name='bumper_right_joint' type='fixed'>
+    <child>bumper_right</child>
+    <parent>base_link</parent>
+  </joint>
+
+<!--  PLUGINS_____________________________________________________ -->
+<!--  <plugin name='socket_com' filename='libsocket_com.so'/>-->-->
+  <plugin name='tricycle_drive' filename='libtricycle_drive.so'>
+    <drive_speed_fw>1.5</drive_speed_fw>
+    <drive_speed_bw>0.9</drive_speed_bw>
+  </plugin>
+  <plugin name='planar_move' filename='libplanar_move.so'/>
+  <plugin name='lift_ctrl' filename='liblift_ctrl.so'>
+    <lift_speed_up>0.200</lift_speed_up>
+    <lift_speed_down>-0.200</lift_speed_down>
+    <load_capacity>1250</load_capacity>
+
+    <p_gain>1600</p_gain>
+    <i_gain>0</i_gain>
+    <d_gain>50</d_gain>
+
+    <p2_gain>2600</p2_gain>
+    <i2_gain></i2_gain>
+    <d2_gain>2600</d2_gain>
+
+  </plugin>
+<!--  <plugin name='sensor_com' filename='libsensor_com.so'>-->
+<!--    <topic_S300_rear>s300_rear/laser/scan</topic_S300_rear>-->
+<!--    <topic_S300_left>s300_left/laser/scan</topic_S300_left>-->
+<!--    <topic_S300_right>s300_right/laser/scan</topic_S300_right>-->
+<!--  </plugin>-->
+  <plugin name='laserscanner_ctrl' filename='liblaserscanner_ctrl.so'>
+    <topic_S300_rear>s300_rear/laser/scan</topic_S300_rear>
+    <topic_S300_left>s300_left/laser/scan</topic_S300_left>
+    <topic_S300_right>s300_right/laser/scan</topic_S300_right>
+  </plugin>
+  <plugin name='bumper_ctrl' filename='libbumper_ctrl.so'>
+    <topic_bumper_front>bumper_front/contact_front</topic_bumper_front>
+    <topic_bumper_left>bumper_left/contact_left</topic_bumper_left>
+    <topic_bumper_right>bumper_right/contact_right</topic_bumper_right>
+  </plugin>
+  <plugin name='distance_sensor_ctrl' filename='libdistance_sensor_ctrl.so'>
+    <topic_load_sensor_plane>load_sensor_plane/laser/scan</topic_load_sensor_plane>
+    <topic_load_sensor_cross>load_sensor_cross/laser/scan</topic_load_sensor_cross>
+  </plugin>
+
+</model>
+</sdf>

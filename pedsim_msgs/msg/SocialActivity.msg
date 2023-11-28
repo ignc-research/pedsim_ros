@@ -1,7 +1,7 @@
 string      type        # see constants below
 float32     confidence  # detection confidence
 
-uint64[]      track_ids   # IDs of all person tracks involved in the activity, might be one or multiple
+string[]      track_ids   # IDs of all person tracks involved in the activity, might be one or multiple
 
 
 # Constants for social activity type (just examples at the moment)

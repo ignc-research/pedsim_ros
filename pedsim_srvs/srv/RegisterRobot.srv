@@ -1,0 +1,5 @@
+string name
+string odom_topic
+string yaml_path
+---
+bool success

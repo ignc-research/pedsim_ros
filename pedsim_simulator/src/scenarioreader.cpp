@@ -33,7 +33,7 @@
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/element/areawaypoint.h>
 #include <pedsim_simulator/element/attractionarea.h>
-#include <pedsim_simulator/element/obstacle.h>
+#include <pedsim_simulator/element/wall.h>
 #include <pedsim_simulator/element/waitingqueue.h>
 #include <pedsim_simulator/scenarioreader.h>
 
@@ -89,8 +89,8 @@ void ScenarioReader::processData() {
       const double y1 = elementAttributes.value("y1").toString().toDouble();
       const double x2 = elementAttributes.value("x2").toString().toDouble();
       const double y2 = elementAttributes.value("y2").toString().toDouble();
-      Obstacle* obs = new Obstacle(x1, y1, x2, y2);
-      SCENE.addObstacle(obs);
+      Wall* obs = new Wall(x1, y1, x2, y2);
+      SCENE.addWall(obs);
     } else if (elementName == "waypoint") {
       const QString id = elementAttributes.value("id").toString();
       const double x = elementAttributes.value("x").toString().toDouble();

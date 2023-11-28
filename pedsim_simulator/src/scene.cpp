@@ -33,11 +33,12 @@
 #include <pedsim_simulator/scene.h>
 
 #include <pedsim/ped_tree.h>
+#include <pedsim_simulator/element/robot.h>
 #include <pedsim_simulator/element/agent.h>
 #include <pedsim_simulator/element/agentcluster.h>
 #include <pedsim_simulator/element/areawaypoint.h>
 #include <pedsim_simulator/element/attractionarea.h>
-#include <pedsim_simulator/element/obstacle.h>
+#include <pedsim_simulator/element/wall.h>
 #include <pedsim_simulator/element/waitingqueue.h>
 #include <pedsim_simulator/force/alongwallforce.h>
 #include <pedsim_simulator/force/groupcoherenceforce.h>
@@ -67,7 +68,7 @@ Scene::Scene(QObject* parent) {
   tree =
       new Ped::Ttree(this, 0, area.x(), area.y(), area.width(), area.height());
 
-  obstacle_cells_.clear();
+  wall_cells_.clear();
 
   arenaGoalSub = nh_.subscribe(ros::this_node::getNamespace() + "/goal", 1, &Scene::arenaGoalCallback, this);
   arenaGoal = nullptr;
@@ -135,9 +136,9 @@ QRectF Scene::itemsBoundingRect() const {
     }
   }
   // → obstacles
-  foreach (Obstacle* obstacle, obstacles) {
-    QPointF startPoint = obstacle->getVisiblePosition();
-    QPointF endPoint(obstacle->getbx(), obstacle->getby());
+  foreach (Wall* wall, walls) {
+    QPointF startPoint = wall->getVisiblePosition();
+    QPointF endPoint(wall->getbx(), wall->getby());
 
     if (!boundingRect.contains(startPoint) ||
         !boundingRect.contains(endPoint)) {
@@ -183,7 +184,7 @@ QRectF Scene::itemsBoundingRect() const {
 
 const QList<Agent*>& Scene::getAgents() const { return agents; }
 
-Agent* Scene::getAgent(int id) const {
+Agent* Scene::getAgent(pedsim::id id) const {
   for (Agent* agent : agents) {
     if (agent->getId() == id) {
       return agent;
@@ -196,7 +197,7 @@ QList<AgentGroup*> Scene::getGroups() { return agentGroups; }
 
 QMap<QString, AttractionArea*> Scene::getAttractions() { return attractions; }
 
-Agent* Scene::getAgentById(int idIn) const {
+Agent* Scene::getAgentById(pedsim::id idIn) const {
   foreach (Agent* currentAgent, agents) {
     if (idIn == currentAgent->getId()) return currentAgent;
   }
@@ -204,7 +205,7 @@ Agent* Scene::getAgentById(int idIn) const {
   return nullptr;
 }
 
-const QList<Obstacle*>& Scene::getObstacles() const { return obstacles; }
+const QList<Wall*>& Scene::getWalls() const { return walls; }
 
 const QMap<QString, Waypoint*>& Scene::getWaypoints() const {
   return waypoints;
@@ -214,7 +215,7 @@ const QMap<QString, AttractionArea*>& Scene::getAttractions() const {
   return attractions;
 }
 
-Waypoint* Scene::getWaypointById(int idIn) const {
+Waypoint* Scene::getWaypointById(pedsim::id idIn) const {
   foreach (Waypoint* currentWaypoint, waypoints) {
     if (idIn == currentWaypoint->getId()) return currentWaypoint;
   }
@@ -314,12 +315,13 @@ void Scene::dissolveClusters() {
   agentClusters.clear();
 }
 
-void Scene::addAgent(Agent* agent) {
+bool Scene::addAgent(Agent* agent) {
   // keep track of the agent
   agents.append(agent);
 
   // add the agent to the PedSim scene
-  Ped::Tscene::addAgent(agent);
+  if(!Ped::Tscene::addAgent(agent))
+    return false;
 
   // add additional forces
   // → Random Force
@@ -335,58 +337,82 @@ void Scene::addAgent(Agent* agent) {
 
   // inform users
   emit agentAdded(agent->getId());
+  return true;
 }
 
-void Scene::addObstacle(Obstacle* obstacle) {
-  ROS_INFO("added wall from (%f, %f) to (%f, %f)", obstacle->getax(), obstacle->getay(), obstacle->getbx(), obstacle->getby());
+bool Scene::addWall(Wall* wall) {
+  ROS_DEBUG("added wall from (%f, %f) to (%f, %f)", wall->getax(), wall->getay(), wall->getbx(), wall->getby());
+  // keep track of the obstacle
+  walls.append(wall);
+
+  // add the obstacle to the PedSim scene
+  if(!Ped::Tscene::addObstacle(wall))
+    return false;
+
+  // inform users
+  emit wallAdded(wall->getid());
+  return true;
+}
+
+const QList<Obstacle*>& Scene::getObstacles() const { return obstacles; }
+
+bool Scene::addObstacle(Obstacle* obstacle) {
+  ROS_DEBUG("added obstacle %s", obstacle->obstacle.name.c_str());
   // keep track of the obstacle
   obstacles.append(obstacle);
 
-  // add the obstacle to the PedSim scene
-  Ped::Tscene::addObstacle(obstacle);
+  bool success = true;
+  for(auto& wall : obstacle->walls){
+    success &= addWall(wall);
+  }
 
-  // inform users
-  emit obstacleAdded(obstacle->getid());
+  return success;
 }
 
-void Scene::addWaypoint(Waypoint* waypoint) {
+bool Scene::addWaypoint(Waypoint* waypoint) {
   // keep track of the waypoints
   waypoints.insert(waypoint->getName(), waypoint);
 
   // add the waypoint to the PedSim scene
-  Ped::Tscene::addWaypoint(waypoint);
+  if(!Ped::Tscene::addWaypoint(waypoint))
+    return false;
 
   // inform users
   emit waypointAdded(waypoint->getId());
+  return true;
 }
 
-void Scene::addAgentCluster(AgentCluster* clusterIn) {
+bool Scene::addAgentCluster(AgentCluster* clusterIn) {
   // keep track of agent clusters
   agentClusters.append(clusterIn);
 
   // inform users
   emit agentClusterAdded(clusterIn->getId());
+  
+  return true;
 }
 
-void Scene::addWaitingQueue(WaitingQueue* queueIn) {
+bool Scene::addWaitingQueue(WaitingQueue* queueIn) {
   // sanity checks
   if (queueIn == nullptr) {
     ROS_DEBUG("Cannot add null to the list of waiting queues!");
-    return;
+    return false;
   }
 
   // add waiting queue as waypoint to the scene
-  addWaypoint(dynamic_cast<Waypoint*>(queueIn));
+  if(!addWaypoint(dynamic_cast<Waypoint*>(queueIn)))
+    return false;
 
   // inform users
   emit waitingQueueAdded(queueIn->getName());
+  return true;
 }
 
-void Scene::addAttraction(AttractionArea* attractionIn) {
+bool Scene::addAttraction(AttractionArea* attractionIn) {
   // sanity checks
   if (attractionIn == nullptr) {
     ROS_DEBUG("Cannot add null to the list of attractions!");
-    return;
+    return false;
   }
 
   // add attraction to the scene
@@ -394,6 +420,8 @@ void Scene::addAttraction(AttractionArea* attractionIn) {
 
   // inform users
   emit attractionAdded(attractionIn->getName());
+
+  return true;
 }
 
 bool Scene::removeAgent(Agent* agent) {
@@ -432,15 +460,26 @@ bool Scene::removeAgent(Agent* agent) {
   return Ped::Tscene::removeAgent(agent);
 }
 
+bool Scene::removeWall(Wall* wall) {
+  // don't keep track of obstacle anymore
+  walls.removeAll(wall);
+
+  // inform users
+  emit wallRemoved(wall->getid());
+
+  // actually remove it
+  return Ped::Tscene::removeObstacle(wall);
+}
+
 bool Scene::removeObstacle(Obstacle* obstacle) {
   // don't keep track of obstacle anymore
   obstacles.removeAll(obstacle);
-
-  // inform users
-  emit obstacleRemoved(obstacle->getid());
-
-  // actually remove it
-  return Ped::Tscene::removeObstacle(obstacle);
+  bool success = true;
+  for(auto& wall : obstacle->walls){
+    success &= removeWall(wall);
+  }
+  delete obstacle;
+  return success;
 }
 
 bool Scene::removeWaypoint(QString name) {
@@ -608,7 +647,7 @@ void Scene::moveAllAgents() {
 
 // move the agent cluster to another position directly
 // @param int i episode number to determine the next wp
-void Scene::moveClusters(int i) {
+bool Scene::moveClusters(int i) {
   guideActive = false;
   followerActive = false;
   for(Agent* agent: agents){
@@ -637,20 +676,26 @@ void Scene::moveClusters(int i) {
 
     agent->hasRequestedFollower = false;
   }
+
+  return true;
 }
 
-void Scene::removeAllObstacles(){
+bool Scene::removeAllObstacles(){
   // remove all elements from the scene
-  Ped::Tscene::removeAllObstacles();
+  auto to_delete = obstacles;
+  for(auto& obstacle : to_delete){
+    removeObstacle(obstacle);
+  }
   obstacles.clear();
 }
 
 void Scene::cleanupScene() { Ped::Tscene::cleanup(); }
 
-bool Scene::getClosestObstacle(Ped::Tvector pos_in, Ped::Twaypoint* closest) {
+bool Scene::getClosestWall(Ped::Tvector pos_in, Ped::Twaypoint* closest) {
   double min_dist_squared = INFINITY;
   bool found_something = false;
-  for (auto wp : circleObstacles) {
+  for (auto& obstacle : SCENE.getObstacles()) {
+    auto wp = Ped::Twaypoint(obstacle->obstacle.pose.position.x, obstacle->obstacle.pose.position.x);
     auto diff = pos_in - wp.getPosition();
     auto dist_squared = diff.lengthSquared();
     if (dist_squared < min_dist_squared) {
@@ -694,3 +739,13 @@ bool Scene::isOccupied(Ped::Tvector pos) {
 
   return true;
 }
+
+
+
+const QList<Robot*>& Scene::getRobots() const { return robots; }
+bool Scene::addRobot(Robot* robot) {
+  // keep track of the agent
+  robots.append(robot);
+  return true;
+}
+

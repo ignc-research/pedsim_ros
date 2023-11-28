@@ -12,6 +12,7 @@
 #define LIBEXPORT
 #endif
 
+#include "types.h"
 #include <stdio.h>
 #include <cmath>
 #include <string>

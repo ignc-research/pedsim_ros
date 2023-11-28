@@ -35,7 +35,7 @@
 
 #include <queue>
 
-#include <pedsim_msgs/LineObstacles.h>
+#include <pedsim_msgs/Walls.h>
 #include <ros/ros.h>
 #include <sensor_msgs/PointCloud.h>
 
@@ -49,12 +49,12 @@ class ObstaclePointCloud : public PedsimSensor {
 
   void broadcast() override;
   void run();
-  void obstaclesCallBack(const pedsim_msgs::LineObstaclesConstPtr& obstacles);
+  void obstaclesCallBack(const pedsim_msgs::WallsConstPtr& obstacles);
 
  private:
   ros::Subscriber sub_simulated_obstacles_;
 
-  std::queue<pedsim_msgs::LineObstaclesConstPtr> q_obstacles_;
+  std::queue<pedsim_msgs::WallsConstPtr> q_walls_;
 };
 
 }  // namespace pedsim_ros
