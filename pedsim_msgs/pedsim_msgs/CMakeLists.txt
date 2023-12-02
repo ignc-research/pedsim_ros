@@ -40,6 +40,8 @@ add_message_files( DIRECTORY msg
   PedsimAgentsDataframe.msg
   AgentFeedback.msg
   AgentFeedbacks.msg
+  SemanticDatum.msg
+  SemanticData.msg
 )
 
 # generate the messages

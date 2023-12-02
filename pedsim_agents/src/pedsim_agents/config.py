@@ -1,4 +1,4 @@
 class Topics:
-    INPUT = "input"
-    FEEDBACK = "feedback"
-    SEMANTIC = "semantic"
+    INPUT: str = "input"
+    FEEDBACK: str = "feedback"
+    SEMANTIC: str = "semantic"

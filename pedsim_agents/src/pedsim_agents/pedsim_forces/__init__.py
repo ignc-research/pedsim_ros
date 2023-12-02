@@ -1,12 +1,12 @@
-import os
-
 import dataclasses
 from enum import Enum
-from typing import Dict, List, Optional, Type, TypeVar
-import pedsim_msgs.msg
-import std_msgs.msg
+from typing import Dict, Type
+import genpy
+
+
 
 from pedsim_agents.config import Topics
+from pedsim_agents.utils import InputData, FeedbackData, FeedbackMsg
 import rospy
 
 class ForcemodelName(Enum):
@@ -16,32 +16,9 @@ class ForcemodelName(Enum):
     DEEPSOCIALFORCE = "deepsocialforce"
     EVACUATION = "evacuation"
 
-InputMsg = pedsim_msgs.msg.PedsimAgentsDataframe
-
-@dataclasses.dataclass
-class InputData:
-    header: std_msgs.msg.Header
-    agents: List[pedsim_msgs.msg.AgentState]
-    robots: List[pedsim_msgs.msg.RobotState]
-    groups: List[pedsim_msgs.msg.AgentGroup]
-    waypoints: List[pedsim_msgs.msg.Waypoint]
-    line_obstacles: List[pedsim_msgs.msg.Wall] #TODO rename to walls
-    obstacles: List[pedsim_msgs.msg.Obstacle]
-
-OutputData = List[pedsim_msgs.msg.AgentFeedback]
-
-OutputMsg = pedsim_msgs.msg.AgentFeedbacks
-
 class Forcemodel:
-    def callback(self, data: InputData) -> OutputData:
+    def callback(self, data: InputData) -> FeedbackData:
         raise NotImplementedError()
-    
-T = TypeVar("T")
-
-
-def NList(l: Optional[List[T]]) -> List[T]:
-    return [] if l is None else l
-
 
 class PedsimForcemodel:
 
@@ -57,71 +34,60 @@ class PedsimForcemodel:
             return force_model
         return inner
 
-    def __init__(self, forcemodel_name: ForcemodelName):
+    forcemodel_name: ForcemodelName
+    forcemodel_class: Type[Forcemodel]
+    forcemodel: Forcemodel
+
+    publisher: rospy.Publisher
+    running: bool
+
+    def __init__(self, name: str):
+
+        try:
+            forcemodel_name = ForcemodelName(name)
+        except ValueError as e:
+            raise ValueError(f"Force model {name} does not exist.\nAvailable force models: {[name.value for name in ForcemodelName]}") from e
+
+        self.forcemodel_name = forcemodel_name
 
         forcemodel_class = self.__registry.get(forcemodel_name)
 
         if forcemodel_class is None:
             raise RuntimeError(f"Force model {forcemodel_name.value} has no registered implementation.\nImplemented force models: {[name.value for name in self.__registry.keys()]}")
 
-        publisher = rospy.Publisher(
+        self.forcemodel_class = forcemodel_class
+
+        self.publisher = rospy.Publisher(
             name=Topics.FEEDBACK,
-            data_class=OutputMsg,
+            data_class=FeedbackMsg,
             queue_size=1
         )
 
-
-        while True:
-
-            running: bool = False
-
-            if rospy.get_param("/resetting", True) == True:
-                rospy.wait_for_message("/reset_end", std_msgs.msg.Empty)
-
-            try:
-                force_model: Forcemodel = forcemodel_class()
-            except Exception as e:
-                rospy.signal_shutdown(f"Could not initialize force model {forcemodel_name.value}. Aborting.")
-                raise RuntimeError(f"Could not initialize force model {forcemodel_name.value}. Aborting.") from e
+        self.running = False
 
 
-            def callback(dataframe: InputMsg):
+    def reset(self):
+        if self.running:
+            del self.forcemodel 
+            self.running = False
 
-                if not running or dataframe.agent_states is None or len(dataframe.agent_states) == 0:
-                    return
+        try:
+            self.forcemodel: Forcemodel = self.forcemodel_class()
+            rospy.loginfo(f"starting pedsim_agents with force model {self.forcemodel_class.__name__}")
+        except Exception as e:
+            rospy.signal_shutdown(f"Could not initialize force model {self.forcemodel_name.value}. Aborting.")
+            raise RuntimeError(f"Could not initialize force model {self.forcemodel_name.value}. Aborting.") from e
+        
+        self.running = True
 
-                dataframe_data = InputData(
-                    header=dataframe.header,
-                    agents=NList(dataframe.agent_states),
-                    robots=NList(dataframe.robot_states),
-                    groups=NList(dataframe.simulated_groups),
-                    waypoints=NList(dataframe.simulated_waypoints),
-                    line_obstacles=NList(dataframe.walls),
-                    obstacles=NList(dataframe.obstacles)
-                )
-
-                agent_states_data = force_model.callback(dataframe_data)
-
-                publisher.publish(
-                    OutputMsg(
-                        agents=agent_states_data
-                    )
-                )
-
-            sub = rospy.Subscriber(
-                name=Topics.INPUT,
-                data_class=InputMsg,
-                callback=callback,
-                queue_size=1
-            )
-
-            running = True
-
-            rospy.loginfo(
-                f"starting pedsim_waypoint_generator with force model {type(force_model).__name__}")
-            
-            rospy.wait_for_message("/reset_start", std_msgs.msg.Empty)
-
-            running = False
-            sub.unregister()
-            del force_model
+    def calculate(self, data: InputData) -> FeedbackData:
+        if len(data.agents) == 0:
+            return []
+        
+        return self.forcemodel.callback(data)
+    
+    def publish(self, stamp: genpy.Time, data: FeedbackData):
+        msg = FeedbackMsg()
+        msg.header.stamp = stamp
+        msg.agents = data
+        self.publisher.publish(msg)

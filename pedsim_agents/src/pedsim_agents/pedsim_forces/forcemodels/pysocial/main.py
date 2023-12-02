@@ -1,4 +1,4 @@
-from pedsim_agents.pedsim_forces import OutputData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
 import pedsim_msgs.msg
 
 import numpy as np
@@ -117,7 +117,7 @@ class Plugin_PySocialForce(Forcemodel):
         return obs_list
 
 
-    def callback(self, data: InputData) -> OutputData:
+    def callback(self, data: InputData) -> FeedbackData:
         if len(data.agents) < 1:
             return list()
         

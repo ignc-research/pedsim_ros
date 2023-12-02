@@ -1,5 +1,5 @@
 import numpy as np
-from pedsim_agents.pedsim_forces import OutputData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
 import pedsim_msgs.msg
 
 @PedsimForcemodel.register(ForcemodelName.SPINNY)
@@ -10,7 +10,7 @@ class Plugin_Spinny(Forcemodel):
     def __init__(self):
         ...
 
-    def callback(self, data) -> OutputData:
+    def callback(self, data) -> FeedbackData:
         
         def datapoint_to_vec(agent: pedsim_msgs.msg.AgentState) -> pedsim_msgs.msg.AgentFeedback:
             

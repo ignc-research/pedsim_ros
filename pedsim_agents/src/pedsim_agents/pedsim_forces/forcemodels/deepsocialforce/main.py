@@ -1,4 +1,4 @@
-from pedsim_agents.pedsim_forces import OutputData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
 import pedsim_msgs.msg
 from socialforce import Simulator
 from socialforce.potentials import *
@@ -15,7 +15,7 @@ class Plugin_DSF(Forcemodel):
         self.force_buffers = None
         self.start = True
 
-    def callback(self, data) -> OutputData:
+    def callback(self, data) -> FeedbackData:
         agent_ids = []
         agent_states = []
         for agent in data.agents:

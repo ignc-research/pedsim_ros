@@ -9,8 +9,6 @@
     <arg name="pedsim_agents_node" value="pedsim_agents" />
 
     <group if="$(eval arg('has_sfm'))">
-        <remap from="input" to="$(arg pedsim_agents_node)/input" />
-        <remap from="feedback" to="$(arg pedsim_agents_node)/feedback" />
         <node name="$(arg pedsim_agents_node)" pkg="pedsim_agents" type="pedsim_agents" required="true">
             <param name="forcemodel" value="$(arg sfm)" />
         </node>
@@ -19,7 +17,7 @@
     <group>
         <group>
             <node name="pedsim_agents_data_relay" pkg="topic_tools" type="relay" args="$(arg pedsim_simulator_node)/pedsim_agents_data $(arg pedsim_agents_node)/input"  if="$(eval arg('has_sfm'))" />
-            <node name="pedsim_agents_feedback_relay" pkg="topic_tools" type="relay" args="$(arg pedsim_agents_node)/feedback $(arg pedsim_simulator_node)/pedsim_agents_feedback"  if="$(eval arg('has_sfm'))" />
+            <node name="pedsim_agents_feedback_relay" pkg="topic_tools" type="relay" args="$(arg pedsim_agents_node)/feedback $(arg pedsim_simulator_node)/pedsim_agents_feedback" if="$(eval arg('has_sfm'))" />
         </group>
 
         <node name="$(arg pedsim_simulator_node)" pkg="pedsim_simulator" type="pedsim_simulator" required="true">

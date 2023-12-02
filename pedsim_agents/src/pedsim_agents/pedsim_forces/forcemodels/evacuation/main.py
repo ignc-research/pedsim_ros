@@ -1,4 +1,4 @@
-from pedsim_agents.pedsim_forces import OutputData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
 import pedsim_msgs.msg
 from .Integrators import *
 from .diff_equation import Diff_Equ
@@ -11,7 +11,7 @@ class Plugin_Evacuation(Forcemodel):
     def __init__(self):
         ...
 
-    def callback(self, data) -> OutputData:
+    def callback(self, data) -> FeedbackData:
         '''
         "num_steps" is the duration the simulation will run (recommended:1000)
 
