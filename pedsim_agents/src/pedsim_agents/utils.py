@@ -6,6 +6,8 @@ import pedsim_msgs.msg
 import std_msgs.msg
 import geometry_msgs.msg
 
+# INPUT
+
 InputMsg = pedsim_msgs.msg.PedsimAgentsDataframe
 
 @dataclasses.dataclass
@@ -18,9 +20,19 @@ class InputData:
     line_obstacles: List[pedsim_msgs.msg.Wall] #TODO rename to walls
     obstacles: List[pedsim_msgs.msg.Obstacle]
 
-FeedbackMsg = pedsim_msgs.msg.AgentFeedbacks
-FeedbackData = List[pedsim_msgs.msg.AgentFeedback]
 
+# FEEDBACK
+
+@dataclasses.dataclass
+class FeedbackDatum:
+    feedback: pedsim_msgs.msg.AgentFeedback
+    TODO: None = None
+
+FeedbackData = List[FeedbackDatum]
+FeedbackMsg = pedsim_msgs.msg.AgentFeedbacks
+
+
+# SEMANTIC 
 
 class SemanticAttribute(enum.IntEnum):
     IS_PEDESTRIAN = 0

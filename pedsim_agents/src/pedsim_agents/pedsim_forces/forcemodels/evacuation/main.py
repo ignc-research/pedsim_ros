@@ -1,4 +1,6 @@
-from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import PedsimForcemodel, ForcemodelName, Forcemodel
+from pedsim_agents.utils import FeedbackDatum, FeedbackData
+
 import pedsim_msgs.msg
 from .Integrators import *
 from .diff_equation import Diff_Equ
@@ -64,6 +66,6 @@ class Plugin_Evacuation(Forcemodel):
             feedback.id = agent.id
             feedback.force.x = forces[0][i][0]
             feedback.force.y = forces[1][i][0]
-            feedbacks.append(feedback)
+            feedbacks.append(FeedbackDatum(feedback))
 
         return feedbacks

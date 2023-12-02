@@ -9,7 +9,7 @@ import rospy
 import pedsim_msgs.msg
 
 from pedsim_agents.config import Topics
-from pedsim_agents.utils import InputData, FeedbackData, SemanticMsg, SemanticData, SemanticAttribute
+from pedsim_agents.utils import InputData, FeedbackData, FeedbackDatum, SemanticMsg, SemanticData, SemanticAttribute
 
 
 class SemanticProcessor:
@@ -30,12 +30,12 @@ class SemanticProcessor:
         for attribute in SemanticAttribute:
             semantic_data[attribute] = []
 
-        def get_attributes(state: pedsim_msgs.msg.AgentState, feedback: pedsim_msgs.msg.AgentFeedback) -> List[Tuple[SemanticAttribute, float]]:
+        def get_attributes(state: pedsim_msgs.msg.AgentState, feedback: FeedbackDatum) -> List[Tuple[SemanticAttribute, float]]:
             attributes: List[Tuple[SemanticAttribute, float]] = []
 
             attributes.append((SemanticAttribute.IS_PEDESTRIAN, 1))
 
-            if np.linalg.norm([feedback.force.x, feedback.force.y]) > 0.1:
+            if np.linalg.norm([feedback.feedback.force.x, feedback.feedback.force.y]) > 0.1:
                 attributes.append((SemanticAttribute.IS_PEDESTRIAN_MOVING, 1))
 
             return attributes

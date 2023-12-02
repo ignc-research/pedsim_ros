@@ -3,10 +3,8 @@ from enum import Enum
 from typing import Dict, Type
 import genpy
 
-
-
 from pedsim_agents.config import Topics
-from pedsim_agents.utils import InputData, FeedbackData, FeedbackMsg
+from pedsim_agents.utils import InputData, FeedbackDatum, FeedbackData, FeedbackMsg
 import rospy
 
 class ForcemodelName(Enum):
@@ -89,5 +87,5 @@ class PedsimForcemodel:
     def publish(self, stamp: genpy.Time, data: FeedbackData):
         msg = FeedbackMsg()
         msg.header.stamp = stamp
-        msg.agents = data
+        msg.agents = [datum.feedback for datum in data]
         self.publisher.publish(msg)

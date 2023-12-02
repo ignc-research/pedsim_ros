@@ -1,4 +1,6 @@
-from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, ForcemodelName, Forcemodel
+from pedsim_agents.utils import InputData, FeedbackDatum
+
 import pedsim_msgs.msg
 
 import numpy as np
@@ -89,7 +91,7 @@ class Plugin_PySocialForce(Forcemodel):
     @staticmethod
     def map_force_to_feedback(agents: List[pedsim_msgs.msg.AgentState],
                               force: np.ndarray
-                              ) -> List[pedsim_msgs.msg.AgentFeedback]:
+                              ) -> List[FeedbackDatum]:
         feedbacks = list()
         for i in range(force.shape[0]):
             feedback = pedsim_msgs.msg.AgentFeedback()
@@ -97,12 +99,12 @@ class Plugin_PySocialForce(Forcemodel):
             feedback.force.x = force[i, 0]
             feedback.force.y = force[i, 1]
 
-            feedbacks.append(feedback)
+            feedbacks.append(FeedbackDatum(feedback))
         
         return feedbacks
     
     @staticmethod
-    def extract_obstacles(obstacles: List[pedsim_msgs.msg.LineObstacle]
+    def extract_obstacles(obstacles: List[pedsim_msgs.msg.Wall]
                           ) -> List[List[int]]:
         obs_list = list()
 

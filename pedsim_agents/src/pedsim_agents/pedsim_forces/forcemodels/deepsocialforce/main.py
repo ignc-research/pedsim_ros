@@ -1,4 +1,6 @@
-from pedsim_agents.pedsim_forces import FeedbackData, PedsimForcemodel, InputData, ForcemodelName, Forcemodel
+from pedsim_agents.pedsim_forces import PedsimForcemodel, ForcemodelName, Forcemodel
+from pedsim_agents.utils import FeedbackDatum, FeedbackData
+
 import pedsim_msgs.msg
 from socialforce import Simulator
 from socialforce.potentials import *
@@ -33,7 +35,7 @@ class Plugin_DSF(Forcemodel):
         
         if agent_states == []:
             self.start = True
-            return [pedsim_msgs.msg.AgentFeedback(unforce=True) for _ in data.agents]
+            return [FeedbackDatum(pedsim_msgs.msg.AgentFeedback(unforce=True)) for _ in data.agents]
         
         state = self.simulator.normalize_state(agent_states)
         
@@ -46,7 +48,7 @@ class Plugin_DSF(Forcemodel):
                     self.force_buffers[agent_id].apply(Force(state[i][4],state[i][5]))
                     self.force_buffers[agent_id].pop()
             self.start = False
-            return [pedsim_msgs.msg.AgentFeedback(unforce=True) for _ in data.agents]
+            return [FeedbackDatum(pedsim_msgs.msg.AgentFeedback(unforce=True)) for _ in data.agents]
         
         states = self.simulator.run(state,self.steps)
         next_state = states[-1]
@@ -64,7 +66,7 @@ class Plugin_DSF(Forcemodel):
             self.force_buffers[agent_id].apply(force_new)
 
             feedback.force.x, feedback.force.y = force_pub.x, force_pub.y
-            feedbacks.append(feedback)
+            feedbacks.append(FeedbackDatum(feedback))
 
         return feedbacks
     
