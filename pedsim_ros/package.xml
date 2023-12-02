@@ -28,7 +28,7 @@
   <exec_depend>pedsim_sensors</exec_depend>
   <exec_depend>pedsim_visualizer</exec_depend>
 
-  <export>
-    <metapackage/>
-  </export>
+  <exec_depend>pedsim_agents</exec_depend>
+  <exec_depend>pedsim_msgs</exec_depend>
+  
 </package>

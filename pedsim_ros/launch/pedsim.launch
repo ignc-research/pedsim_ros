@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+    <arg name="sfm" default="" />
+    <arg name="scene_file" />
+
+    <arg name="has_sfm" value="$(eval arg('sfm') != '')" />
+    
+    <arg name="pedsim_simulator_node" value="pedsim_simulator" />
+    <arg name="pedsim_agents_node" value="pedsim_agents" />
+
+    <group if="$(eval arg('has_sfm'))">
+        <remap from="input" to="$(arg pedsim_agents_node)/input" />
+        <remap from="feedback" to="$(arg pedsim_agents_node)/feedback" />
+        <node name="$(arg pedsim_agents_node)" pkg="pedsim_agents" type="pedsim_agents" required="true">
+            <param name="forcemodel" value="$(arg sfm)" />
+        </node>
+    </group>
+
+    <group>
+        <group>
+            <node name="pedsim_agents_data_relay" pkg="topic_tools" type="relay" args="$(arg pedsim_simulator_node)/pedsim_agents_data $(arg pedsim_agents_node)/input"  if="$(eval arg('has_sfm'))" />
+            <node name="pedsim_agents_feedback_relay" pkg="topic_tools" type="relay" args="$(arg pedsim_agents_node)/feedback $(arg pedsim_simulator_node)/pedsim_agents_feedback"  if="$(eval arg('has_sfm'))" />
+        </group>
+
+        <node name="$(arg pedsim_simulator_node)" pkg="pedsim_simulator" type="pedsim_simulator" required="true">
+            <param name="simulation_factor" value="1" type="double" />
+            <param name="pedsim_update_rate" value="30.0" type="double" />
+            <param name="scene_file" value="$(arg scene_file)" type="string" />
+        </node>
+    </group>
+
+    <!-- <node name="pedsim_agent" pkg="pedsim_gazebo_plugin" type="spawn_pedsim_agents.py"></node> -->
+    <node name="pedsim_visualizer" type="pedsim_visualizer_node" pkg="pedsim_visualizer" />
+</launch>
