@@ -52,6 +52,7 @@ class SemanticProcessor:
 
             msg.header.stamp = stamp
             msg.points = [pedsim_msgs.msg.SemanticDatum(location=location, evidence=evidence) for location, evidence in evidences]
+            msg.type = attribute.value
 
             self.publishers[attribute].publish(msg)
 

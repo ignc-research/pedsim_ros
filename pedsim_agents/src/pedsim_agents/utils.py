@@ -34,12 +34,13 @@ FeedbackMsg = pedsim_msgs.msg.AgentFeedbacks
 
 # SEMANTIC 
 
-class SemanticAttribute(enum.IntEnum):
-    IS_PEDESTRIAN = 0
-    IS_PEDESTRIAN_MOVING = 1
+@enum.unique
+class SemanticAttribute(enum.Enum):
+    IS_PEDESTRIAN = "pedestrian"
+    IS_PEDESTRIAN_MOVING = "pedestrian_moving"
 
 SemanticMsg = pedsim_msgs.msg.SemanticData
-SemanticData = Dict[SemanticAttribute, List[ Tuple[geometry_msgs.msg.Point, float]]]
+SemanticData = Dict[SemanticAttribute, List[Tuple[geometry_msgs.msg.Point, float]]]
 
 T = TypeVar("T")
 
