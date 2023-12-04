@@ -9,7 +9,7 @@ import rospy
 import pedsim_msgs.msg
 
 from pedsim_agents.config import Topics
-from pedsim_agents.utils import InputData, FeedbackData, FeedbackDatum, SemanticMsg, SemanticData, SemanticAttribute
+from pedsim_agents.utils import InputData, FeedbackData, FeedbackDatum, SemanticMsg, SemanticData, SemanticAttribute, PedType
 
 
 class SemanticProcessor:
@@ -38,8 +38,12 @@ class SemanticProcessor:
             if np.linalg.norm([feedback.feedback.force.x, feedback.feedback.force.y]) > 0.05:
                 attributes.append((SemanticAttribute.IS_PEDESTRIAN_MOVING, 1))
 
-            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_X, state.forces.force.x))
-            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_Y, state.forces.force.y))
+            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_X, feedback.feedback.force.x))
+            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_Y, feedback.feedback.force.y))
+
+            rospy.logerr(f"({feedback.feedback.force.x}, {feedback.feedback.force.y})")
+
+            attributes.append((SemanticAttribute.PEDESTRIAN_TYPE, PedType[str(state.type)].value))
 
             return attributes
         
