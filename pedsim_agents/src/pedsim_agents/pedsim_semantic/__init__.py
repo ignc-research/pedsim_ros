@@ -35,8 +35,11 @@ class SemanticProcessor:
 
             attributes.append((SemanticAttribute.IS_PEDESTRIAN, 1))
 
-            if np.linalg.norm([feedback.feedback.force.x, feedback.feedback.force.y]) > 0.1:
+            if np.linalg.norm([feedback.feedback.force.x, feedback.feedback.force.y]) > 0.05:
                 attributes.append((SemanticAttribute.IS_PEDESTRIAN_MOVING, 1))
+
+            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_X, state.forces.force.x))
+            attributes.append((SemanticAttribute.PEDESTRIAN_VEL_Y, state.forces.force.y))
 
             return attributes
         
