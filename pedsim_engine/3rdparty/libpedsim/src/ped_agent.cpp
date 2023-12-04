@@ -354,6 +354,17 @@ void Ped::Tagent::computeForces()
   myforce = myForce(desiredDirection);
 }
 
+const Ped::Tvector Ped::Tagent::getForce() const{
+  return Ped::Tvector(
+    forceFactorDesired * desiredforce +
+    forceFactorSocial * socialforce +
+    forceFactorObstacle * obstacleforce +
+    myforce +
+    keepdistanceforce +
+    forceFactorRobot * robotforce
+  );
+}
+
 /// Does the agent dynamics stuff. Calls the methods to calculate the individual
 /// forces, adds them
 /// to get the total force affecting the agent. This will then be translated
@@ -365,17 +376,12 @@ void Ped::Tagent::move(double stepSizeIn)
 {
   still_time += stepSizeIn;
 
-  // sum of all forces --> acceleration
   if(isForceOverridden){
     a = forceOverride;
   }
   else{
-    a = forceFactorDesired * desiredforce +
-        forceFactorSocial * socialforce +
-        forceFactorObstacle * obstacleforce +
-        myforce +
-        keepdistanceforce +
-        forceFactorRobot * robotforce;
+    // sum of all forces --> acceleration
+    a = getForce();
   }
 
   // if (id == 1) {

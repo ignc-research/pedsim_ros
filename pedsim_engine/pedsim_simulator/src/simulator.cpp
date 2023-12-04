@@ -415,7 +415,7 @@ pedsim_msgs::AgentStates Simulator::getAgentStates()
     // agent_forces.group_repulsion_force = a->getSocialForce();
     // agent_forces.random_force = a->getSocialForce();
 
-    agent_forces.force = VecToMsg(a->getMyForce());
+    agent_forces.force = VecToMsg(a->getForce());
 
     state.forces = agent_forces;
 

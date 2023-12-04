@@ -10,4 +10,12 @@ class Plugin_Passthrough(Forcemodel):
         ...
 
     def callback(self, data) -> FeedbackData:
-        return [FeedbackDatum(pedsim_msgs.msg.AgentFeedback(force=agent.forces.force)) for agent in data.agents]
+        return [
+            FeedbackDatum(
+                pedsim_msgs.msg.AgentFeedback(
+                    id = agent.id,
+                    force = agent.forces.force
+                )
+            )
+        for agent
+        in data.agents]

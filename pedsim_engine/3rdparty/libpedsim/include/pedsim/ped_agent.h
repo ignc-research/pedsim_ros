@@ -85,6 +85,7 @@ class LIBEXPORT Tagent {
   // these getter should replace the ones later (returning the individual vector
   // values)
   const Tvector& getPosition() const { return p; }
+  const Tvector getForce() const;
   const Tvector& getVelocity() const { return v; }
   const Tvector& getAcceleration() const { return a; }
 
