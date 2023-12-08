@@ -1,0 +1,4 @@
+#! /usr/bin/env python
+import pedsim_agents
+if __name__ == '__main__':
+    pedsim_agents.main()
