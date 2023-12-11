@@ -2,8 +2,6 @@ from pedsim_agents.pedsim_forces import PedsimForcemodel, ForcemodelName, Forcem
 from pedsim_agents.utils import FeedbackDatum, FeedbackData
 
 import pedsim_msgs.msg
-from socialforce import Simulator
-from socialforce.potentials import *
 
 @PedsimForcemodel.register(ForcemodelName.DEEPSOCIALFORCE)
 class Plugin_DSF(Forcemodel):
@@ -12,7 +10,11 @@ class Plugin_DSF(Forcemodel):
     buffer_length = 7
 
     def __init__(self):
-        self.simulator = Simulator(ped_ped=PedPedPotential(sigma=1))
+
+        from socialforce import Simulator
+        import socialforce.potentials
+
+        self.simulator = Simulator(ped_ped=socialforce.potentials.PedPedPotential(sigma=1))
         self.old_forces = None
         self.force_buffers = None
         self.start = True

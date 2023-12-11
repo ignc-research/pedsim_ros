@@ -2,16 +2,16 @@ from pedsim_agents.pedsim_forces import PedsimForcemodel, ForcemodelName, Forcem
 from pedsim_agents.utils import FeedbackDatum, FeedbackData
 
 import pedsim_msgs.msg
-from .Integrators import *
-from .diff_equation import Diff_Equ
-from .Room import Room
-import numpy as np
-
 
 @PedsimForcemodel.register(ForcemodelName.EVACUATION)
 class Plugin_Evacuation(Forcemodel):
     def __init__(self):
-        ...
+        global Diff_Equ, Room, np, leap_frog
+
+        from .Integrators import leap_frog
+        from .diff_equation import Diff_Equ
+        from .Room import Room
+        import numpy as np
 
     def callback(self, data) -> FeedbackData:
         '''

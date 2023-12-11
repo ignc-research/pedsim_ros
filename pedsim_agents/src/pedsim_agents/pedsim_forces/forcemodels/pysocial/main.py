@@ -9,10 +9,6 @@ from typing import Dict, List, Optional, Type, TypeVar
 import random
 import rospy
 
-import sys
-sys.path.append(str(Path(__file__).resolve().parent))
-import pysocialforce as psf
-
 
 @PedsimForcemodel.register(ForcemodelName.PYSOCIAL)
 class Plugin_PySocialForce(Forcemodel):
@@ -20,6 +16,12 @@ class Plugin_PySocialForce(Forcemodel):
     GROUP_DEST_DIST = 0.5
 
     def __init__(self):
+        global psf
+
+        import sys
+        sys.path.append(str(Path(__file__).resolve().parent))
+        import pysocialforce as psf
+
         self.groups = dict()
         self.group_count = 0
 
