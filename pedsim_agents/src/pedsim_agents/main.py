@@ -53,7 +53,7 @@ def main():
 
         running: bool = False
 
-        if rospy.get_param("/resetting", True) == True:
+        if rospy.get_param("/resetting", False) == True:
             rospy.wait_for_message("/reset_end", std_msgs.msg.Empty)
 
         forcemodel.reset()
