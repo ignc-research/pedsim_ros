@@ -133,7 +133,7 @@ bool Simulator::initializeSimulation()
   {
     ROS_INFO_STREAM(
         "Could not load the given scene file, trying to load empty scene");
-    const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena-simulation-setup") + "/pedsim/empty.xml");
+    const QString empty_scenefile = QString::fromStdString(ros::package::getPath("arena_simulation_setup") + "/pedsim/empty.xml");
     if (scenario_reader.readFromFile(empty_scenefile) == false)
     {
       ROS_ERROR_STREAM(
